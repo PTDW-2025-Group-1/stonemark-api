@@ -35,31 +35,33 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     @Override
     public AuthenticationResponseDto register(RegisterRequestDto request) {
         var user = new User();
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        if (request.role() != null) {
+            user.setRole(request.role());
         } else {
             user.setRole(Role.USER);
         }
         repository.save(user);
+
         var token = jwtService.generateToken(user);
-        return new AuthenticationResponseDto(token);
+        return new AuthenticationResponseDto(token, user.getRole().name());
     }
 
     @Override
     public AuthenticationResponseDto authenticate(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
+                        request.email(),
+                        request.password()
                 )
         );
-        var user = repository.findByEmail(request.getEmail()).orElseThrow();
+        var user = repository.findByEmail(request.email()).orElseThrow();
         var token = jwtService.generateToken(user);
-        return new AuthenticationResponseDto(token);
+
+        return new AuthenticationResponseDto(token, user.getRole().name());
     }
 
 }

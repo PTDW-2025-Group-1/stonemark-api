@@ -1,19 +1,12 @@
 package pt.estga.stonemark.dtos;
 
-public class AuthenticationResponseDto {
-    private String token;
-
-    public AuthenticationResponseDto() {}
-
-    public AuthenticationResponseDto(String token) {
-        this.token = token;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
+public record AuthenticationResponseDto(
+        String token,
+        String type,
+        String role
+) {
+    // auxiliar constructor to set default type as "Bearer"
+    public AuthenticationResponseDto(String token, String role) {
+        this(token, "Bearer", role);
     }
 }

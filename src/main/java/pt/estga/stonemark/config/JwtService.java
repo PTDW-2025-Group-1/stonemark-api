@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import pt.estga.stonemark.entities.User;
 
 import java.security.Key;
 import java.util.Date;
@@ -29,7 +30,13 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetail) {
-        return generateToken(new HashMap<>(), userDetail);
+        Map<String, Object> extraClaims = new HashMap<>();
+
+        if (userDetail instanceof User user) {
+            extraClaims.put("role", user.getRole().name());
+        }
+
+        return generateToken(extraClaims, userDetail);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetail) {
