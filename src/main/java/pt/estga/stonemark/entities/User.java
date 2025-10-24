@@ -12,27 +12,25 @@ import java.util.Objects;
 @Entity
 @Table(name = "_user")
 public class User implements UserDetails {
+
     @Id
     @GeneratedValue
     private Integer id;
+
     private String firstName;
+
     private String lastName;
+
     private String email;
+
     private String telephone;
+
     private String password;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
     public User() {}
-
-    public User(String firstName, String lastName, String email, String telephone, String password, Role role) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.telephone = telephone;
-        this.password = password;
-        this.role = role;
-    }
 
     public User(Integer id, String firstName, String lastName, String email, String telephone, String password, Role role) {
         this.id = id;

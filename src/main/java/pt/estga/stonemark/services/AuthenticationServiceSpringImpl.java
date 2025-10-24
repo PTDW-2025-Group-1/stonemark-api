@@ -8,8 +8,8 @@ import pt.estga.stonemark.dtos.AuthenticationRequestDto;
 import pt.estga.stonemark.dtos.AuthenticationResponseDto;
 import pt.estga.stonemark.dtos.RegisterRequestDto;
 import pt.estga.stonemark.config.JwtService;
+import pt.estga.stonemark.entities.UserBuilder;
 import pt.estga.stonemark.enums.Role;
-import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.respositories.UserRepository;
 
 @Service
@@ -34,7 +34,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponseDto register(RegisterRequestDto request) {
-        var user = new User();
+        var user = new UserBuilder().createUser();
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
         user.setEmail(request.email());
@@ -54,8 +54,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public AuthenticationResponseDto authenticate(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
+                request.email(),
+                request.password()
                 )
         );
         var user = repository.findByEmail(request.email()).orElseThrow();
