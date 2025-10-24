@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.entities.MediaFileBuilder;
 import pt.estga.stonemark.entities.content.Mark;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;

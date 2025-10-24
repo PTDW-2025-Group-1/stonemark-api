@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.stonemark.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -19,6 +19,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final String SECRET_KEY = "81cb1c6f22512ee206b3e036613daa7b789c2a080793591ded73a34ef1344bdc";
+    private static final int JWT_EXPIRATION = 1000 * 60 * 60 * 5;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -44,8 +45,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetail.getUsername())
                 .setIssuedAt(new java.util.Date(System.currentTimeMillis()))
-                //.setExpiration(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
-                .setExpiration(new java.util.Date(System.currentTimeMillis() + 1000 * 60 * 60 * 5))
+                .setExpiration(new java.util.Date(System.currentTimeMillis() + JWT_EXPIRATION))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

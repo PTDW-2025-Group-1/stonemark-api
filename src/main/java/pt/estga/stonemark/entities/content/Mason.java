@@ -1,12 +1,18 @@
 package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
+import lombok.*;
 import pt.estga.stonemark.interfaces.Content;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Mason implements Content {
 
     @Id
@@ -31,19 +37,6 @@ public class Mason implements Content {
 
     private LocalDateTime updatedAt;
 
-    public Mason() {}
-
-    public Mason(Long id, String firstName, String lastName, String fullName, String nickname, Date birthDate, Date deathDate, String biography, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.fullName = fullName;
-        this.nickname = nickname;
-        this.birthDate = birthDate;
-        this.deathDate = deathDate;
-        this.biography = biography;
-    }
-
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();
@@ -54,88 +47,16 @@ public class Mason implements Content {
         updatedAt = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public Date getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(Date birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public Date getDeathDate() {
-        return deathDate;
-    }
-
-    public void setDeathDate(Date deathDate) {
-        this.deathDate = deathDate;
-    }
-
-    public String getBiography() {
-        return biography;
-    }
-
-    public void setBiography(String biography) {
-        this.biography = biography;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
     @Override
     public Content clone(Content content) {
-        return null;
+        return Mason.builder()
+            .firstName(this.firstName)
+            .lastName(this.lastName)
+            .fullName(this.fullName)
+            .nickname(this.nickname)
+            .birthDate(this.birthDate)
+            .deathDate(this.deathDate)
+            .biography(this.biography)
+            .build();
     }
 }

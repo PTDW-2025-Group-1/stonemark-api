@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.AuthenticationRequestDto;
 import pt.estga.stonemark.dtos.AuthenticationResponseDto;
 import pt.estga.stonemark.dtos.RegisterRequestDto;
-import pt.estga.stonemark.config.JwtService;
-import pt.estga.stonemark.entities.UserBuilder;
+import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.respositories.UserRepository;
 
@@ -34,12 +33,13 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponseDto register(RegisterRequestDto request) {
-        var user = new UserBuilder().createUser();
+        var user = new User();
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
+        user.setTelephone(request.telephone());
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
-        if (request.role() != null) {
+        if (request.role() != null && request.role() != Role.USER) {
             user.setRole(request.role());
         } else {
             user.setRole(Role.USER);
@@ -53,10 +53,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     @Override
     public AuthenticationResponseDto authenticate(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
+            new UsernamePasswordAuthenticationToken(
                 request.email(),
                 request.password()
-                )
+            )
         );
         var user = repository.findByEmail(request.email()).orElseThrow();
         var token = jwtService.generateToken(user);
