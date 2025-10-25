@@ -1,4 +1,4 @@
-package pt.estga.stonemark.respositories;
+package pt.estga.stonemark.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

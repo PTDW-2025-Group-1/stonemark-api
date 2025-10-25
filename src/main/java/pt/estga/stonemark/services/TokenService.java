@@ -1,5 +1,6 @@
 package pt.estga.stonemark.services;
 
+import jakarta.transaction.Transactional;
 import pt.estga.stonemark.entities.Token;
 
 import java.util.List;
@@ -7,14 +8,27 @@ import java.util.Optional;
 
 public interface TokenService {
 
-    List<Token> findAllValidByUser(Long userId);
+    List<Token> findAllValidByUserId(Long userId);
 
     Optional<Token> findByToken(String token);
 
-    Token save(Token token);
+    boolean isRefreshTokenValid(String refreshToken, Long userId);
 
-    List<Token> saveAll(List<Token> tokens);
+    @Transactional
+    void saveAccessToken(Long userId, String token, String refreshToken);
 
-    boolean deleteAllRevokedAndExpiredTokens();
+    @Transactional
+    void saveRefreshToken(Long userId, String refreshToken);
 
+    @Transactional
+    void revoke(String token);
+
+    @Transactional
+    void revokeAllByRefreshToken(String parentToken);
+
+    @Transactional
+    void revokeAllByUserId(Long userId);
+
+    @Transactional
+    void deleteAllRevokedAndExpired();
 }

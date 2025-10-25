@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
-import pt.estga.stonemark.respositories.UserRepository;
+import pt.estga.stonemark.repositories.UserRepository;
 
 import java.security.Principal;
 import java.util.List;

@@ -94,4 +94,6 @@ public class User implements UserDetails {
     public int hashCode() {
         return Objects.hash(id, firstName, lastName, email, telephone, password, role);
     }
+
+    // TODO add @CreationTimestamp in all entities
 }

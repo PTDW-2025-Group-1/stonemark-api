@@ -14,8 +14,6 @@ public interface AuthenticationService {
 
     AuthenticationResponseDto authenticate(AuthenticationRequestDto request);
 
-    void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException;
+    AuthenticationResponseDto refreshToken(String refreshToken);
+
 }

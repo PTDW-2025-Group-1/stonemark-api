@@ -8,8 +8,8 @@ import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.entities.content.Mark;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
-import pt.estga.stonemark.respositories.MarkRepository;
-import pt.estga.stonemark.respositories.MediaRepository;
+import pt.estga.stonemark.repositories.MarkRepository;
+import pt.estga.stonemark.repositories.MediaRepository;
 
 import java.util.List;
 
