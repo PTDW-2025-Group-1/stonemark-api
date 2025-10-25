@@ -50,8 +50,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         );
         var user = userService.findByEmail(request.getEmail()).orElseThrow();
         var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
 
-        return new AuthenticationResponseDto(token, user.getRole().name());
+        return new AuthenticationResponseDto(token, refreshToken);
     }
 
     private void saveUserToken(User user, String jwtToken) {
