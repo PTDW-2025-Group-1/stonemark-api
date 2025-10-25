@@ -1,6 +1,16 @@
 package pt.estga.stonemark.dtos;
 
-public record AuthenticationRequestDto(
-        String email,
-        String password
-) {}
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AuthenticationRequestDto {
+
+    private String email;
+
+    private String password;
+
+}

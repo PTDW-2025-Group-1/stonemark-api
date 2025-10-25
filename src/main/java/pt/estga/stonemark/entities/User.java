@@ -6,23 +6,22 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.stonemark.enums.Role;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Table(name = "_user")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class User implements UserDetails {
 
     @Id
     @GeneratedValue
-    private Integer id;
+    private Long id;
 
     private String firstName;
 
@@ -37,12 +36,21 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private LocalDate credentialsExpiryDate;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> role.name());
-    }
+    return switch (role) {
+        case ADMIN -> List.of(
+                () -> Role.USER.name(),
+                () -> Role.MODERATOR.name(),
+                () -> Role.ADMIN.name()
+        );
+        case MODERATOR -> List.of(
+                () -> Role.USER.name(),
+                () -> Role.MODERATOR.name()
+        );
+        default -> List.of(() -> Role.USER.name());
+    };
+}
 
     @Override
     public String getPassword() {
@@ -66,7 +74,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return credentialsExpiryDate == null || credentialsExpiryDate.isAfter(LocalDate.now());
+        return true;
     }
 
     @Override

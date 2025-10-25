@@ -11,17 +11,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pt.estga.stonemark.respositories.UserRepository;
+import pt.estga.stonemark.services.UserService;
 
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByEmail(username)
+        return username -> userService.findByEmail(username)
                 //.map(UserDetails.class::cast)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

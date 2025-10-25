@@ -1,11 +1,19 @@
 package pt.estga.stonemark.dtos;
 
-public record AuthenticationResponseDto(
-        String token,
-        String type,
-        String role
-) {
-    public AuthenticationResponseDto(String token, String role) {
-        this(token, "Bearer", role);
-    }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AuthenticationResponseDto {
+
+    @JsonProperty("access_token")
+    private String accessToken;
+
+    @JsonProperty("refresh_token")
+    private String refreshToken;
+
 }

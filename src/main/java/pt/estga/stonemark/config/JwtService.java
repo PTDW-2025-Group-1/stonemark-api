@@ -1,10 +1,11 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.User;
@@ -18,8 +19,12 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "81cb1c6f22512ee206b3e036613daa7b789c2a080793591ded73a34ef1344bdc";
-    private static final int JWT_EXPIRATION = 1000 * 60 * 60 * 5;
+    @Value("${application.security.jwt.secret-key}")
+    private String secretKey;
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -30,22 +35,31 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetail) {
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
-
-        if (userDetail instanceof User user) {
-            extraClaims.put("role", user.getRole().name());
+        if (userDetails instanceof User) {
+            extraClaims.put("role", ((User) userDetails).getRole().name());
         }
-
-        return generateToken(extraClaims, userDetail);
+        return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetail) {
-        return Jwts.builder()
+    public String generateRefreshToken(
+            UserDetails userDetails
+    ) {
+        return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    }
+
+    private String buildToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration
+    ) {
+        return Jwts
+                .builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetail.getUsername())
-                .setIssuedAt(new java.util.Date(System.currentTimeMillis()))
-                .setExpiration(new java.util.Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -56,7 +70,6 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        assert extractExpiration(token) != null;
         return extractExpiration(token).before(new Date());
     }
 
@@ -73,7 +86,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] secretKeyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] secretKeyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(secretKeyBytes);
     }
 }

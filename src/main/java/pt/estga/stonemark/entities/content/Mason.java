@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class Mason implements Content {
 

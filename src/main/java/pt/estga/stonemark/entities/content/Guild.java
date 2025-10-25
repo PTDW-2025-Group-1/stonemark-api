@@ -10,10 +10,10 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class Guild implements Content {
     @Id

@@ -9,10 +9,10 @@ import pt.estga.stonemark.enums.TargetType;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class MediaFile {
 

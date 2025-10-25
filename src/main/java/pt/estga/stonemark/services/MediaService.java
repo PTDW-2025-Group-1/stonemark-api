@@ -14,4 +14,5 @@ public interface MediaService {
     List<MediaFile> getMediaForMark(Long markId);
 
     void deleteMedia(Long mediaId);
+
 }

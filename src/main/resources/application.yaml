@@ -1,0 +1,49 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stonemark
+    username: postgres
+    password: 1234pP
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: google-client-id
+            client-secret: google-client-secret
+            scope: profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+storage:
+  local:
+    root-path: uploads
+
+logging:
+  level:
+    org.springframework: INFO
+    pt.estga: DEBUG
+
+application:
+  security:
+    jwt:
+      secret-key: 81cb1c6f22512ee206b3e036613daa7b789c2a080793591ded73a34ef1344bdc
+      expiration: 3600000 # 1 hour
+      refresh-token:
+        expiration: 604800000 # 7 days

@@ -1,6 +1,7 @@
 package pt.estga.stonemark.services;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pt.estga.stonemark.entities.MediaFile;
@@ -13,19 +14,12 @@ import pt.estga.stonemark.respositories.MediaRepository;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class MediaServiceSpringImpl implements MediaService {
 
     private final MediaRepository mediaRepository;
     private final MarkRepository markRepository;
     private final FileStorageService fileStorageService;
-
-    public MediaServiceSpringImpl(MediaRepository mediaRepository,
-                                  MarkRepository markRepository,
-                                  FileStorageService fileStorageService) {
-        this.mediaRepository = mediaRepository;
-        this.markRepository = markRepository;
-        this.fileStorageService = fileStorageService;
-    }
 
     @Override
     public MediaFile attachMediaToMark(Long markId, MultipartFile file, boolean primaryImage, int sortOrder) {
@@ -36,18 +30,19 @@ public class MediaServiceSpringImpl implements MediaService {
         String directory = "marks/" + markId;
         String storagePath = fileStorageService.storeFile(file, directory);
 
-        MediaFile media = new MediaFileBuilder().createMediaFile();
-        media.setFileName(file.getOriginalFilename());
-        media.setOriginalFileName(file.getOriginalFilename());
-        media.setContentType(file.getContentType());
-        media.setSize(file.getSize());
-        media.setStorageProvider(StorageProvider.LOCAL); // or AZURE if using cloud
-        media.setStoragePath(storagePath);
-        media.setProviderPublicId(null); // can be set by cloud storage (e.g., Azure blob ID)
-        media.setTargetType(TargetType.MARK);
-        media.setTargetId(mark.getId());
-        media.setPrimaryImage(primaryImage);
-        media.setSortOrder(sortOrder);
+        MediaFile media = MediaFile.builder()
+            .fileName(file.getOriginalFilename())
+            .originalFileName(file.getOriginalFilename())
+            .contentType(file.getContentType())
+            .size(file.getSize())
+            .storageProvider(StorageProvider.LOCAL) // or AZURE if using cloud
+            .storagePath(storagePath)
+            .providerPublicId(null) // can be set by cloud storage (e.g., Azure blob ID)
+            .targetType(TargetType.MARK)
+            .targetId(mark.getId())
+            .primaryImage(primaryImage)
+            .sortOrder(sortOrder)
+            .build();
 
         return mediaRepository.save(media);
     }
@@ -60,9 +55,6 @@ public class MediaServiceSpringImpl implements MediaService {
 
     @Override
     public void deleteMedia(Long mediaId) {
-
-        // TODO verify if user is moderator or admin
-
         MediaFile media = mediaRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Media not found with id: " + mediaId));
         fileStorageService.deleteFile(media.getStoragePath());

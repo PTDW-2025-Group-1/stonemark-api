@@ -7,10 +7,10 @@ import pt.estga.stonemark.interfaces.Content;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Builder
 public class Monument implements Content {
 
