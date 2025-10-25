@@ -5,11 +5,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.TokenType;
+import pt.estga.stonemark.services.TokenService;
 
 import java.security.Key;
 import java.util.Date;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")
@@ -26,6 +29,8 @@ public class JwtService {
     private long jwtExpiration;
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
+
+    private final TokenService tokenService;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -36,7 +41,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
+    private String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         if (userDetails instanceof User) {
             extraClaims.put("role", ((User) userDetails).getRole().name());
@@ -44,12 +49,24 @@ public class JwtService {
         return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    public String generateRefreshToken(
+    public String generateAndSaveToken(UserDetails userDetails, String refreshToken) {
+        String accessToken = generateToken(userDetails);
+        tokenService.saveAccessToken(((User) userDetails).getId(), accessToken, refreshToken);
+        return accessToken;
+    }
+
+    private String generateRefreshToken(
             UserDetails userDetails
     ) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("type", TokenType.REFRESH);
         return buildToken(extraClaims, userDetails, refreshExpiration);
+    }
+
+    public String generateAndSaveRefreshToken(UserDetails userDetails) {
+        String newRefreshToken = generateRefreshToken(userDetails);
+        tokenService.saveRefreshToken(((User) userDetails).getId(), newRefreshToken);
+        return newRefreshToken;
     }
 
     private String buildToken(
@@ -68,7 +85,7 @@ public class JwtService {
 
     public Boolean isTokenValid(String token, UserDetails userDetail) {
         final String username = extractUsername(token);
-        return (username.equals(userDetail.getUsername()) && !isTokenExpired(token));
+        return (username.equals(userDetail.getUsername()) && !isTokenExpired(token) && tokenService.isTokenActive(token));
     }
 
     private boolean isTokenExpired(String token) {

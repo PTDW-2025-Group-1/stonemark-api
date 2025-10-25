@@ -2,6 +2,7 @@ package pt.estga.stonemark.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import pt.estga.stonemark.entities.content.MarkOccurrence;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
@@ -54,15 +55,11 @@ public class MediaFile {
     @Column(nullable = false)
     private int sortOrder;
 
-    @Column(nullable = false)
+    @CreationTimestamp
     private LocalDateTime uploadedAt;
 
     @ManyToOne
     @JoinColumn(name = "mark_id")
     private MarkOccurrence mark;
 
-    @PrePersist
-    void onCreate() {
-        uploadedAt = LocalDateTime.now();
-    }
 }

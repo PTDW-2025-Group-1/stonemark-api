@@ -2,6 +2,8 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import pt.estga.stonemark.interfaces.Content;
 
 import java.time.LocalDateTime;
@@ -33,19 +35,11 @@ public class Mason implements Content {
 
     private String biography;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Content clone(Content content) {

@@ -26,11 +26,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
         User user = userService.save(request.toUser(passwordEncoder));
 
-        var refreshToken = jwtService.generateRefreshToken(user);
-        var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateAndSaveRefreshToken(user);
+        var token = jwtService.generateAndSaveToken(user, refreshToken);
 
-        tokenService.saveAccessToken(user.getId(), token, refreshToken);
-        tokenService.saveRefreshToken(user.getId(), refreshToken);
         return new AuthenticationResponseDto(token, refreshToken);
     }
 
@@ -43,11 +41,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             )
         );
         var user = userService.findByEmail(request.getEmail()).orElseThrow();
-        var refreshToken = jwtService.generateRefreshToken(user);
-        var token = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateAndSaveRefreshToken(user);
+        var token = jwtService.generateAndSaveToken(user, refreshToken);
 
-        tokenService.saveAccessToken(user.getId(), token, refreshToken);
-        tokenService.saveRefreshToken(user.getId(), refreshToken);
         return new AuthenticationResponseDto(token, refreshToken);
     }
 
@@ -71,13 +67,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (!jwtService.isTokenValid(refreshToken, user)) {
             return null;
         }
-        if (!tokenService.isRefreshTokenValid(refreshToken, user.getId())) {
-            return null;
-        } // TODO: make this check work
 
-        var accessToken = jwtService.generateToken(user);
         tokenService.revokeAllByRefreshToken(refreshToken);
-        tokenService.saveAccessToken(user.getId(), accessToken, refreshToken);
+        var accessToken = jwtService.generateAndSaveToken(user, refreshToken);
         return AuthenticationResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

@@ -2,6 +2,8 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.interfaces.Content;
 
@@ -28,8 +30,10 @@ public class Guild implements Content {
 
     private Date dissolvedDate;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -37,18 +41,6 @@ public class Guild implements Content {
 
     @OneToMany
     private List<MediaFile> images;
-
-    @PrePersist
-    void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Content clone(Content content) {

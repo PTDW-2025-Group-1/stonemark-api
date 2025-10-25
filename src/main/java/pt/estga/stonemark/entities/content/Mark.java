@@ -2,6 +2,8 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.enums.MarkCategory;
 import pt.estga.stonemark.enums.MarkShape;
@@ -30,8 +32,10 @@ public class Mark implements Content {
     @Enumerated(EnumType.STRING)
     private MarkShape shape;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToOne
@@ -39,16 +43,6 @@ public class Mark implements Content {
 
     @OneToMany
     private List<MediaFile> images;
-
-    @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Content clone(Content content) {

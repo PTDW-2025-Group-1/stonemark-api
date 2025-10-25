@@ -41,13 +41,18 @@ public class TokenServiceHibernateImpl implements TokenService {
     }
 
     @Override
-    public boolean isRefreshTokenValid(String refreshToken, Long userId) {
-        Objects.requireNonNull(refreshToken, "refreshToken must not be null");
-        Objects.requireNonNull(userId, "userId must not be null");
+    public boolean isTokenActive(String token) {
+        Objects.requireNonNull(token, "refreshToken must not be null");
 
-        var tokens = tokenRepository.findByRefreshToken(refreshToken);
-        return tokens.stream()
-                .anyMatch(t -> t.getUser().getId().equals(userId) && !t.isExpired() && !t.isRevoked());
+        var tokenOpt = tokenRepository.findByToken(token);
+        if (tokenOpt.isEmpty()) {
+            log.debug("Token not found: {}", mask(token));
+            return false;
+        }
+        var storedToken = tokenOpt.get();
+        boolean isValid = !storedToken.isRevoked() && !storedToken.isExpired();
+        log.debug("Token id={} token={} is valid={}", storedToken.getId(), mask(token), isValid);
+        return isValid;
     }
 
     @Transactional

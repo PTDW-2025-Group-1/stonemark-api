@@ -2,10 +2,12 @@ package pt.estga.stonemark.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.stonemark.enums.Role;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -36,21 +38,24 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-    return switch (role) {
-        case ADMIN -> List.of(
-                () -> Role.USER.name(),
-                () -> Role.MODERATOR.name(),
-                () -> Role.ADMIN.name()
-        );
-        case MODERATOR -> List.of(
-                () -> Role.USER.name(),
-                () -> Role.MODERATOR.name()
-        );
-        default -> List.of(() -> Role.USER.name());
-    };
-}
+        return switch (role) {
+            case ADMIN -> List.of(
+                    () -> Role.USER.name(),
+                    () -> Role.MODERATOR.name(),
+                    () -> Role.ADMIN.name()
+            );
+            case MODERATOR -> List.of(
+                    () -> Role.USER.name(),
+                    () -> Role.MODERATOR.name()
+            );
+            default -> List.of(() -> Role.USER.name());
+        };
+    }
 
     @Override
     public String getPassword() {
@@ -84,16 +89,13 @@ public class User implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && role == user.role;
+        return Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && role == user.role && Objects.equals(createdAt, user.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, lastName, email, telephone, password, role);
+        return Objects.hash(id, firstName, lastName, email, telephone, password, role, createdAt);
     }
-
-    // TODO add @CreationTimestamp in all entities
 }

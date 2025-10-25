@@ -2,6 +2,8 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.interfaces.Content;
 
@@ -25,8 +27,10 @@ public class MarkOccurrence implements Content {
 
     private Long monumentId;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -34,16 +38,6 @@ public class MarkOccurrence implements Content {
 
     @OneToMany(mappedBy = "mark", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MediaFile> images = new ArrayList<>();
-
-    @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Content clone(Content content) {
