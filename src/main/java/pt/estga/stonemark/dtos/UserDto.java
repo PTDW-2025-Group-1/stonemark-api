@@ -3,6 +3,8 @@ package pt.estga.stonemark.dtos;
 import lombok.*;
 import pt.estga.stonemark.enums.Role;
 
+import java.time.Instant;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -21,5 +23,7 @@ public class UserDto {
     private String telephone;
 
     private Role role;
+
+    private Instant createdAt;
 
 }

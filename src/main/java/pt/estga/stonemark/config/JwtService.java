@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.TokenType;
-import pt.estga.stonemark.services.TokenService;
+import pt.estga.stonemark.services.auth.TokenService;
 
 import java.security.Key;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.auth;
 
 import jakarta.transaction.Transactional;
 import pt.estga.stonemark.entities.Token;

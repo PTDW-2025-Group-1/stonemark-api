@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +10,8 @@ import pt.estga.stonemark.dtos.AuthenticationRequestDto;
 import pt.estga.stonemark.dtos.AuthenticationResponseDto;
 import pt.estga.stonemark.dtos.RegisterRequestDto;
 import pt.estga.stonemark.entities.User;
+import pt.estga.stonemark.mappers.UserMapper;
+import pt.estga.stonemark.services.UserService;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new IllegalArgumentException("email already in use");
         }
 
-        User user = userService.save(request.toUser(passwordEncoder));
+        User parsedUser = UserMapper.registerRequestToUser(request, passwordEncoder);
+        User user = userService.save(parsedUser);
 
         var refreshToken = jwtService.generateAndSaveRefreshToken(user);
         var token = jwtService.generateAndSaveToken(user, refreshToken);
