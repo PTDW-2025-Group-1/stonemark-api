@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class MarkOccurrence implements Content {
+public class MarkOccurrence extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -27,23 +27,10 @@ public class MarkOccurrence implements Content {
 
     private Long monumentId;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
     @OneToOne(cascade = CascadeType.ALL)
     private MediaFile cover;
 
     @OneToMany(mappedBy = "mark", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MediaFile> images = new ArrayList<>();
 
-    @Override
-    public Content clone(Content content) {
-        return MarkOccurrence.builder()
-            .markId(this.markId)
-            .monumentId(this.monumentId)
-            .build();
-    }
 }

@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Mark implements Content {
+public class Mark extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -32,24 +32,10 @@ public class Mark implements Content {
     @Enumerated(EnumType.STRING)
     private MarkShape shape;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
     @OneToOne
     private MediaFile cover;
 
     @OneToMany
     private List<MediaFile> images;
 
-    @Override
-    public Content clone(Content content) {
-        return Mark.builder()
-            .title(this.title)
-            .category(this.category)
-            .shape(this.shape)
-            .build();
-    }
 }

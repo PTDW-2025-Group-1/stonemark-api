@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-public class Monument implements Content {
+public class Monument extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -28,19 +28,4 @@ public class Monument implements Content {
 
     private Double longitude;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    @Override
-    public Content clone(Content content) {
-        return Monument.builder()
-            .name(this.name)
-            .description(this.description)
-            .latitude(this.latitude)
-            .longitude(this.longitude)
-            .build();
-    }
 }

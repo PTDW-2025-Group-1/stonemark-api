@@ -15,7 +15,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Builder
-public class Mason implements Content {
+public class Mason extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -35,22 +35,4 @@ public class Mason implements Content {
 
     private String biography;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    @Override
-    public Content clone(Content content) {
-        return Mason.builder()
-            .firstName(this.firstName)
-            .lastName(this.lastName)
-            .fullName(this.fullName)
-            .nickname(this.nickname)
-            .birthDate(this.birthDate)
-            .deathDate(this.deathDate)
-            .biography(this.biography)
-            .build();
-    }
 }

@@ -25,6 +25,11 @@ public class AdminUserController {
 
     private final UserService service;
 
+    @GetMapping
+    public ResponseEntity<Page<User>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Long id) {
         return service.findById(id)
