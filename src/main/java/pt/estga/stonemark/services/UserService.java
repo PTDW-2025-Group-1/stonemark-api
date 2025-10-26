@@ -1,29 +1,32 @@
 package pt.estga.stonemark.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
+
+    Page<User> findAll(Pageable pageable);
 
     Optional<User> findById(Long id);
 
     Optional<User> findByEmail(String email);
 
-    List<User> findAll();
+    boolean existsByEmail(String email);
 
     User save(User user);
 
-    boolean deleteById(Long id);
+    User update(User user);
 
-    boolean existsByEmail(String email);
+    User updateRole(Long userId, Role newRole);
 
-    boolean updateRole(Long userId, Role newRole);
+    void changePassword(ChangePasswordRequestDto request, Principal connectedUser);
 
-    boolean changePassword(ChangePasswordRequestDto request, Principal connectedUser);
+    void deleteById(Long id);
 
 }

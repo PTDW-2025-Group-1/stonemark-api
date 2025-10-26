@@ -1,0 +1,44 @@
+package pt.estga.stonemark.controllers.user;
+
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
+import pt.estga.stonemark.dtos.UserDto;
+import pt.estga.stonemark.mappers.UserMapper;
+import pt.estga.stonemark.services.UserService;
+
+import java.security.Principal;
+
+@RestController
+@RequestMapping("/api/v1/user/account")
+@RequiredArgsConstructor
+@Tag(name = "User - Account", description = "Self-service operations for logged-in users.")
+public class UserController {
+
+    private final UserService service;
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getPersonalInfo(Principal principal) {
+        if (principal == null || principal.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return service.findByEmail(principal.getName())
+                .map(UserMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequestDto request,
+            Principal connectedUser
+    ) {
+        service.changePassword(request, connectedUser);
+        return ResponseEntity.ok().build();
+    }
+}

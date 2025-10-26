@@ -5,10 +5,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class RegisterRequestDto {
 

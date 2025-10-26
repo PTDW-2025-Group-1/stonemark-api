@@ -23,6 +23,16 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponseDto register(RegisterRequestDto request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request must not be null");
+        }
+        var email = request.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("email must not be null or blank");
+        }
+        if (userService.existsByEmail(email)) {
+            throw new IllegalArgumentException("email already in use");
+        }
 
         User user = userService.save(request.toUser(passwordEncoder));
 

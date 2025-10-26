@@ -3,10 +3,10 @@ package pt.estga.stonemark.dtos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class AuthenticationResponseDto {
 
