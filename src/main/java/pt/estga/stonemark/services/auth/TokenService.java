@@ -12,7 +12,7 @@ public interface TokenService {
 
     Optional<Token> findByToken(String token);
 
-    boolean isTokenActive(String refreshToken);
+    boolean isTokenRevoked(String refreshToken);
 
     @Transactional
     void saveAccessToken(Long userId, String token, String refreshToken);

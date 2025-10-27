@@ -1,6 +1,7 @@
 package pt.estga.stonemark.services.auth;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,9 +11,11 @@ import pt.estga.stonemark.dtos.AuthenticationRequestDto;
 import pt.estga.stonemark.dtos.AuthenticationResponseDto;
 import pt.estga.stonemark.dtos.RegisterRequestDto;
 import pt.estga.stonemark.entities.User;
+import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceSpringImpl implements AuthenticationService {
@@ -22,13 +25,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserMapper mapper;
 
     @Override
     public AuthenticationResponseDto register(RegisterRequestDto request) {
         if (request == null) {
             throw new IllegalArgumentException("request must not be null");
         }
-        var email = request.getEmail();
+        var email = request.email();
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("email must not be null or blank");
         }
@@ -36,7 +40,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new IllegalArgumentException("email already in use");
         }
 
-        User parsedUser = UserMapper.registerRequestToUser(request, passwordEncoder);
+        User parsedUser = mapper.registerRequestToUser(request);
+        parsedUser.setPassword(passwordEncoder.encode(request.password()));
+        if (parsedUser.getRole() == null) {
+            parsedUser.setRole(Role.USER);
+        }
         User user = userService.save(parsedUser);
 
         var refreshToken = jwtService.generateAndSaveRefreshToken(user);
@@ -49,11 +57,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public AuthenticationResponseDto authenticate(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
-                request.getPassword()
+                request.email(),
+                request.password()
             )
         );
-        var user = userService.findByEmail(request.getEmail()).orElseThrow();
+        var user = userService.findByEmail(request.email()).orElseThrow();
         var refreshToken = jwtService.generateAndSaveRefreshToken(user);
         var token = jwtService.generateAndSaveToken(user, refreshToken);
 

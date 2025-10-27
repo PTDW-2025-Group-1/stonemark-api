@@ -20,6 +20,7 @@ import java.security.Principal;
 public class UserController {
 
     private final UserService service;
+    private final UserMapper mapper;
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getPersonalInfo(Principal principal) {
@@ -28,7 +29,7 @@ public class UserController {
         }
 
         return service.findByEmail(principal.getName())
-                .map(UserMapper::toDto)
+                .map(mapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

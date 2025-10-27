@@ -2,11 +2,8 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import pt.estga.stonemark.interfaces.Content;
+import pt.estga.stonemark.entities.AuditableEntity;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -15,24 +12,22 @@ import java.util.Date;
 @Getter
 @Setter
 @Builder
-public class Mason extends AuditableEntity {
+public class Mason extends ContentEntity {
 
     @Id
     @GeneratedValue
     private Long id;
 
     private String firstName;
-
     private String lastName;
-
     private String fullName;
-
     private String nickname;
-
     private Date birthDate;
-
     private Date deathDate;
-
     private String biography;
 
+    @Override
+    public String getDisplayName() {
+        return fullName;
+    }
 }

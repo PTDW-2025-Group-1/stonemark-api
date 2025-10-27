@@ -41,6 +41,5 @@ public class Token {
 
     public void revoke() {
         this.revoked = true;
-        this.expired = true;
     }
 }

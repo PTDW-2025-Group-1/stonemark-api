@@ -2,6 +2,7 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pt.estga.stonemark.entities.AuditableEntity;
 import pt.estga.stonemark.entities.MediaFile;
 
 import java.util.Date;
@@ -13,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Guild extends AuditableEntity {
+public class Guild extends ContentEntity {
 
     @Id
     @GeneratedValue
@@ -28,9 +29,13 @@ public class Guild extends AuditableEntity {
     private Date dissolvedDate;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private MediaFile defaultMark;
+    private Mark defaultMark;
 
     @OneToMany
     private List<MediaFile> images;
 
+    @Override
+    public String getDisplayName() {
+        return name;
+    }
 }

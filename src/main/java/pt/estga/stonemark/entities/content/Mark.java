@@ -2,14 +2,11 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import pt.estga.stonemark.entities.AuditableEntity;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.enums.MarkCategory;
 import pt.estga.stonemark.enums.MarkShape;
-import pt.estga.stonemark.interfaces.Content;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -18,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Mark extends AuditableEntity {
+public class Mark extends ContentEntity {
 
     @Id
     @GeneratedValue
@@ -38,4 +35,8 @@ public class Mark extends AuditableEntity {
     @OneToMany
     private List<MediaFile> images;
 
+    @Override
+    public String getDisplayName() {
+        return title;
+    }
 }

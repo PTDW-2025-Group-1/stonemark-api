@@ -2,12 +2,9 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import pt.estga.stonemark.entities.AuditableEntity;
 import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.interfaces.Content;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class MarkOccurrence extends AuditableEntity {
+public class MarkOccurrence extends ContentEntity {
 
     @Id
     @GeneratedValue
@@ -33,4 +30,9 @@ public class MarkOccurrence extends AuditableEntity {
     @OneToMany(mappedBy = "mark", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MediaFile> images = new ArrayList<>();
 
+
+    @Override
+    public String getDisplayName() {
+        return "MarkOccurrence #" + id;
+    }
 }

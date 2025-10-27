@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Check token validity in DB (revoked/expired)
             boolean isTokenValidInDb = tokenService.findByToken(jwt)
-                    .filter(t -> !t.isExpired() && !t.isRevoked())
+                    .filter(t -> !t.isRevoked())
                     .isPresent();
 
             // Check JWT signature/expiration

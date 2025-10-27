@@ -41,8 +41,8 @@ public class TokenServiceHibernateImpl implements TokenService {
     }
 
     @Override
-    public boolean isTokenActive(String token) {
-        Objects.requireNonNull(token, "refreshToken must not be null");
+    public boolean isTokenRevoked(String token) {
+        Objects.requireNonNull(token, "token must not be null");
 
         var tokenOpt = tokenRepository.findByToken(token);
         if (tokenOpt.isEmpty()) {
@@ -50,9 +50,9 @@ public class TokenServiceHibernateImpl implements TokenService {
             return false;
         }
         var storedToken = tokenOpt.get();
-        boolean isValid = !storedToken.isRevoked() && !storedToken.isExpired();
-        log.debug("Token id={} token={} is valid={}", storedToken.getId(), mask(token), isValid);
-        return isValid;
+        boolean isRevoked = storedToken.isRevoked();
+        log.debug("Token id={} token={} is valid={}", storedToken.getId(), mask(token), isRevoked);
+        return isRevoked;
     }
 
     @Transactional

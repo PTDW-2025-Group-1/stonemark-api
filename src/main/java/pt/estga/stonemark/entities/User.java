@@ -27,20 +27,15 @@ public class User implements UserDetails {
     private Long id;
 
     private String firstName;
-
     private String lastName;
-
     private String email;
-
     private String telephone;
-
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
     private boolean accountLocked;
-
     private boolean enabled;
 
     @CreationTimestamp
@@ -89,7 +84,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return true;
     }
 
     @Override

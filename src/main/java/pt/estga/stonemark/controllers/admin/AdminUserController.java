@@ -7,15 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
 import pt.estga.stonemark.dtos.UserDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
-
-import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")
@@ -24,6 +20,7 @@ import java.util.List;
 public class AdminUserController {
 
     private final UserService service;
+    private final UserMapper mapper;
 
     @GetMapping
     public ResponseEntity<Page<User>> getAll(@PageableDefault(size = 20) Pageable pageable) {
@@ -48,7 +45,7 @@ public class AdminUserController {
             @RequestParam Role newRole
     ) {
         User updatedUser = service.updateRole(id, newRole);
-        UserDto userDto = UserMapper.toDto(updatedUser);
+        UserDto userDto = mapper.toDto(updatedUser);
         return ResponseEntity.ok(userDto);
     }
 
