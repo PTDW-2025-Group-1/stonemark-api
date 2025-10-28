@@ -36,7 +36,7 @@ public class AdminUserController {
 
     @PostMapping
     public ResponseEntity<User> create(@RequestBody User user) {
-        return ResponseEntity.ok(service.save(user));
+        return ResponseEntity.ok(service.create(user));
     }
 
     @PatchMapping("/{id}/role")

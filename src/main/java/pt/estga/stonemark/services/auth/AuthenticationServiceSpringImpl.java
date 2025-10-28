@@ -45,7 +45,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (parsedUser.getRole() == null) {
             parsedUser.setRole(Role.USER);
         }
-        User user = userService.save(parsedUser);
+        User user = userService.create(parsedUser);
 
         var refreshToken = jwtService.generateAndSaveRefreshToken(user);
         var token = jwtService.generateAndSaveToken(user, refreshToken);
