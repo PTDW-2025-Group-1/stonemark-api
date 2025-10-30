@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class LogoutService implements LogoutHandler {
 
-    private final TokenService tokenService;
+    private final AccessTokenService accessTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void logout(
@@ -31,15 +32,12 @@ public class LogoutService implements LogoutHandler {
 
         final String jwtToken = authHeader.substring(7).trim();
 
-        tokenService.findByToken(jwtToken).ifPresent(token -> {
-            // Revoke access token first
-            tokenService.revoke(jwtToken);
+        accessTokenService.findByToken(jwtToken).ifPresent(token -> {
+            accessTokenService.revokeToken(jwtToken);
 
-            String refreshToken = token.getRefreshToken();
+            String refreshToken = token.getRefreshToken().getToken();
             if (refreshToken != null && !refreshToken.isBlank()) {
-                // Revoke all tokens associated with this refresh token and the refresh token itself.
-                tokenService.revokeAllByRefreshToken(refreshToken);
-                tokenService.revoke(refreshToken);
+                refreshTokenService.revokeToken(refreshToken);
             }
 
             log.debug("Revoked tokens for token id: {}", token.getId());

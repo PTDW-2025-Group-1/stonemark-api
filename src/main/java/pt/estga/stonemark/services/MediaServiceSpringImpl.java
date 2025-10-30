@@ -33,7 +33,6 @@ public class MediaServiceSpringImpl implements MediaService {
         MediaFile media = MediaFile.builder()
             .fileName(file.getOriginalFilename())
             .originalFileName(file.getOriginalFilename())
-            .contentType(file.getContentType())
             .size(file.getSize())
             .storageProvider(StorageProvider.LOCAL) // or AZURE if using cloud
             .storagePath(storagePath)

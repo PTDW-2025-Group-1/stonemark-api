@@ -1,23 +1,31 @@
 package pt.estga.stonemark.entities.proposals;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.ProposalStatus;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @MappedSuperclass
+@Getter
+@Setter
 public abstract class BaseProposal {
 
     @Id
     @GeneratedValue
     private Long id;
 
+    @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private User submittedBy;
 
-    @Column(nullable = false)
-    private LocalDateTime submittedAt;
+    @CreatedDate
+    private Instant submittedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -26,7 +34,7 @@ public abstract class BaseProposal {
     @ManyToOne(fetch = FetchType.LAZY)
     private User reviewedBy;
 
-    private LocalDateTime reviewedAt;
+    private Instant reviewedAt;
 
     @Column(length = 512)
     private String reviewComment;

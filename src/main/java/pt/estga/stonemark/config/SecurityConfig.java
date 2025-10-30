@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.services.auth.LogoutService;
 
 import java.util.List;
@@ -51,8 +52,9 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITE_LIST_URL).permitAll()
-                        .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "MODERATOR", "ADMIN")
-                        .requestMatchers("/api/v1/moderator/**").hasAnyRole("MODERATOR", "ADMIN")
+                        .requestMatchers("/api/v1/user/**").hasAnyRole(Role.USER.name(), Role.REVIEWER.name(), Role.MODERATOR.name(), Role.ADMIN.name())
+                        .requestMatchers("/api/v1/reviewer/**").hasAnyRole(Role.REVIEWER.name(), Role.MODERATOR.name(), Role.ADMIN.name())
+                        .requestMatchers("/api/v1/moderator/**").hasAnyRole(Role.MODERATOR.name(), Role.ADMIN.name())
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

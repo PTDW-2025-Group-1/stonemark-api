@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.stonemark.enums.Role;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;

@@ -27,10 +27,6 @@ public class MarkOccurrence extends ContentEntity {
     @OneToOne(cascade = CascadeType.ALL)
     private MediaFile cover;
 
-    @OneToMany(mappedBy = "mark", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MediaFile> images = new ArrayList<>();
-
-
     @Override
     public String getDisplayName() {
         return "MarkOccurrence #" + id;

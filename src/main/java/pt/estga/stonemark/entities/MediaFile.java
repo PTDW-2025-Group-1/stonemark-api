@@ -7,7 +7,7 @@ import pt.estga.stonemark.entities.content.MarkOccurrence;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @NoArgsConstructor
@@ -26,9 +26,6 @@ public class MediaFile {
 
     @Column
     private String originalFileName;
-
-    @Column(length = 100)
-    private String contentType;
 
     private Long size;
 
@@ -56,10 +53,6 @@ public class MediaFile {
     private int sortOrder;
 
     @CreationTimestamp
-    private LocalDateTime uploadedAt;
-
-    @ManyToOne
-    @JoinColumn(name = "mark_id")
-    private MarkOccurrence mark;
+    private Instant uploadedAt;
 
 }

@@ -1,9 +1,11 @@
 package pt.estga.stonemark.services.auth;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.config.JwtService;
@@ -21,13 +23,15 @@ import pt.estga.stonemark.services.UserService;
 public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     private final UserService userService;
-    private final TokenService tokenService;
+    private final AccessTokenService accessTokenService;
+    private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserMapper mapper;
 
     @Override
+    @Transactional
     public AuthenticationResponseDto register(RegisterRequestDto request) {
         if (request == null) {
             throw new IllegalArgumentException("request must not be null");
@@ -47,13 +51,17 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
         User user = userService.create(parsedUser);
 
-        var refreshToken = jwtService.generateAndSaveRefreshToken(user);
-        var token = jwtService.generateAndSaveToken(user, refreshToken);
+        var refreshTokenString = jwtService.generateRefreshToken(user);
+        var accessTokenString = jwtService.generateAccessToken(user);
 
-        return new AuthenticationResponseDto(token, refreshToken);
+        var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
+        accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
+
+        return new AuthenticationResponseDto(accessTokenString, refreshTokenString);
     }
 
     @Override
+    @Transactional
     public AuthenticationResponseDto authenticate(AuthenticationRequestDto request) {
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
@@ -62,38 +70,33 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             )
         );
         var user = userService.findByEmail(request.email()).orElseThrow();
-        var refreshToken = jwtService.generateAndSaveRefreshToken(user);
-        var token = jwtService.generateAndSaveToken(user, refreshToken);
+        var refreshTokenString = jwtService.generateRefreshToken(user);
+        var accessTokenString = jwtService.generateAccessToken(user);
 
-        return new AuthenticationResponseDto(token, refreshToken);
+        var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
+        accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
+
+        return new AuthenticationResponseDto(accessTokenString, refreshTokenString);
     }
 
     @Override
-    public AuthenticationResponseDto refreshToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) {
-            return null;
-        }
-        if (!jwtService.isRefreshToken(refreshToken)) {
-            return null;
-        }
-        final String userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail == null) {
-            return null;
-        }
-        var userOpt = this.userService.findByEmail(userEmail);
-        if (userOpt.isEmpty()) {
-            return null;
-        }
-        var user = userOpt.get();
-        if (!jwtService.isTokenValid(refreshToken, user)) {
-            return null;
-        }
+    @Transactional
+    public AuthenticationResponseDto refreshToken(String refreshTokenString) {
+        return refreshTokenService.findByToken(refreshTokenString)
+                .filter(token -> !token.isRevoked())
+                .map(refreshToken -> {
+                    UserDetails userDetails = refreshToken.getUser();
+                    if (!jwtService.isTokenValid(refreshTokenString, userDetails)) {
+                        throw new IllegalArgumentException("Refresh token is invalid");
+                    }
 
-        tokenService.revokeAllByRefreshToken(refreshToken);
-        var accessToken = jwtService.generateAndSaveToken(user, refreshToken);
-        return AuthenticationResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+                    accessTokenService.revokeAllByRefreshToken(refreshToken);
+
+                    String newAccessToken = jwtService.generateAccessToken(userDetails);
+                    accessTokenService.createToken(userDetails.getUsername(), newAccessToken, refreshToken);
+
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString);
+                })
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token not found or revoked"));
     }
 }

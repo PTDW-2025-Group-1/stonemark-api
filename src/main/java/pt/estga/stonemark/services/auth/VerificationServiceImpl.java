@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.VerificationToken;
+import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.repositories.UserRepository;
-import pt.estga.stonemark.repositories.VerificationTokenRepository;
+import pt.estga.stonemark.repositories.token.VerificationTokenRepository;
 import pt.estga.stonemark.services.EmailService;
 
 import java.time.Instant;
@@ -24,7 +24,7 @@ public class VerificationServiceImpl implements VerificationService {
     private final EmailService emailService;
     private final UserRepository userRepository;
 
-    @Value("${application.base-url:http://localhost:8080}")
+    @Value("${application.base-url}")
     private String backendBaseUrl;
 
     @Transactional
@@ -34,7 +34,7 @@ public class VerificationServiceImpl implements VerificationService {
         VerificationToken vt = VerificationToken.builder()
                 .token(token)
                 .user(user)
-                .expiryAt(Instant.now().plus(EXPIRY_HOURS, ChronoUnit.HOURS))
+                .expiresAt(Instant.now().plus(EXPIRY_HOURS, ChronoUnit.HOURS))
                 .build();
         tokenRepo.save(vt);
 
@@ -52,7 +52,7 @@ public class VerificationServiceImpl implements VerificationService {
     public boolean confirmToken(String token) {
         VerificationToken vt = tokenRepo.findByToken(token).orElse(null);
         if (vt == null) return false;
-        if (vt.getExpiryAt().isBefore(Instant.now())) {
+        if (vt.getExpiresAt().isBefore(Instant.now())) {
             tokenRepo.delete(vt);
             return false;
         }

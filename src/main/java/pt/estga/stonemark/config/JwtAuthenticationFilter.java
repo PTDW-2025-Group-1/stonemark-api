@@ -9,11 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pt.estga.stonemark.services.auth.TokenService;
+import pt.estga.stonemark.services.auth.AccessTokenService;
 
 import java.io.IOException;
 
@@ -22,8 +21,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
-    private final TokenService tokenService;
+    private final AccessTokenService accessTokenService;
 
     @Override
     protected void doFilterInternal(
@@ -33,35 +31,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
-
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-
-            // Check token validity in DB (revoked/expired)
-            boolean isTokenValidInDb = tokenService.findByToken(jwt)
-                    .filter(t -> !t.isRevoked())
-                    .isPresent();
-
-            // Check JWT signature/expiration
-            boolean isJwtValid = jwtService.isTokenValid(jwt, userDetails);
-
-            if (isJwtValid && isTokenValidInDb) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        final String jwt = authHeader.substring(7);
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        accessTokenService.findByTokenWithUser(jwt)
+                .filter(token -> !token.isRevoked())
+                .map(token -> (UserDetails) token.getUser())
+                .filter(userDetails -> jwtService.isTokenValid(jwt, userDetails))
+                .ifPresent(userDetails -> {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                });
 
         filterChain.doFilter(request, response);
     }
