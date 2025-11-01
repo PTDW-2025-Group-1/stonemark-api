@@ -1,5 +1,6 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.token;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.token.AccessToken;
@@ -12,26 +13,46 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
-public class AccessTokenService extends BaseTokenServiceImpl<AccessToken, AccessTokenRepository> {
+@RequiredArgsConstructor
+public class AccessTokenServiceImpl implements AccessTokenService {
 
     @Value("${application.security.jwt.access-token.expiration}")
     private long accessTokenExpiration;
 
+    private final AccessTokenRepository accessTokenRepository;
     private final UserRepository userRepository;
 
-    public AccessTokenService(AccessTokenRepository repository, UserRepository userRepository) {
-        super(repository);
-        this.userRepository = userRepository;
+    @Override
+    public Optional<AccessToken> findByToken(String token) {
+        return accessTokenRepository.findByToken(token);
     }
 
+    @Override
+    public boolean isTokenValid(String token) {
+        return findByToken(token)
+                .map(t -> !t.isRevoked() && t.getExpiresAt().isAfter(Instant.now()))
+                .orElse(false);
+    }
+
+    @Override
+    public void revokeToken(String token) {
+        findByToken(token).ifPresent(t -> {
+            t.setRevoked(true);
+            accessTokenRepository.save(t);
+        });
+    }
+
+    @Override
     public Optional<AccessToken> findByTokenWithUser(String token) {
-        return getRepository().findByTokenWithUser(token);
+        return accessTokenRepository.findByTokenWithUser(token);
     }
 
+    @Override
     public void revokeAllByRefreshToken(RefreshToken refreshToken) {
-        getRepository().revokeAllByRefreshToken(refreshToken);
+        accessTokenRepository.revokeAllByRefreshToken(refreshToken);
     }
 
+    @Override
     public AccessToken createToken(String username, String tokenValue, RefreshToken refreshToken) {
         return userRepository.findByEmail(username)
                 .map(user -> {
@@ -41,7 +62,7 @@ public class AccessTokenService extends BaseTokenServiceImpl<AccessToken, Access
                             .refreshToken(refreshToken)
                             .expiresAt(Instant.now().plus(accessTokenExpiration, ChronoUnit.MILLIS))
                             .build();
-                    return getRepository().save(accessToken);
+                    return accessTokenRepository.save(accessToken);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }

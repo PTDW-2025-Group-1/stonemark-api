@@ -21,11 +21,8 @@ public class Guild extends ContentEntity {
     private Long id;
 
     private String name;
-
     private String description;
-
     private Date foundedDate;
-
     private Date dissolvedDate;
 
     @OneToOne(cascade = CascadeType.ALL)

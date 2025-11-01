@@ -1,4 +1,4 @@
-package pt.estga.stonemark.dtos;
+package pt.estga.stonemark.dtos.auth;
 
 import lombok.*;
 import pt.estga.stonemark.enums.Role;

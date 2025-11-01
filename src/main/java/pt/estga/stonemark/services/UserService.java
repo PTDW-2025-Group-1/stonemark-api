@@ -25,7 +25,9 @@ public interface UserService {
 
     User updateRole(Long userId, Role newRole);
 
-    void changePassword(ChangePasswordRequestDto request, Principal connectedUser);
+    void processPasswordChangeRequest(ChangePasswordRequestDto request, Principal connectedUser);
+
+    void changePassword(User user, String newPassword);
 
     void deleteById(Long id);
 

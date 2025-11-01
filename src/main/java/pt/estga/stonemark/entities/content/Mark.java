@@ -32,9 +32,6 @@ public class Mark extends ContentEntity {
     @OneToOne
     private MediaFile cover;
 
-    @OneToMany
-    private List<MediaFile> images;
-
     @Override
     public String getDisplayName() {
         return title;

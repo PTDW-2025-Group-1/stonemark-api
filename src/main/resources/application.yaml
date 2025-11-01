@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/stonemark
     username: postgres
-    password: 1234pP
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -18,8 +18,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: envatoe985@gmail.com
-    password: "yoeu cchi nimn gzwu"
+    username: ${MAIL_ADDRESS}
+    password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -31,8 +31,8 @@ spring:
       client:
         registration:
           google:
-            client-id: google-client-id
-            client-secret: google-client-secret
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: profile, email
             redirect-uri: "{baseUrl}/login/oauth2/code/google"
         provider:
@@ -57,12 +57,15 @@ application:
   base-url: http://localhost:8080
   security:
     jwt:
-      secret-key: 81cb1c6f22512ee206b3e036613daa7b789c2a080793591ded73a34ef1344bdc
+      secret-key: ${JWT_SECRET_KEY}
       access-token:
         expiration: 3600000 # 1 hour
       refresh-token:
         expiration: 2592000000 # 30 days
       email-verification-token:
         expiration: 86400000 # 24 hours
+      two-factor-authentication-token:
+        expiration: 3600000 # 1 hour
       password-reset-token:
         expiration: 3600000 # 1 hour
+    email-verification-required: false

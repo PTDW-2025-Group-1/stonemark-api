@@ -1,6 +1,5 @@
-package pt.estga.stonemark.dtos;
+package pt.estga.stonemark.dtos.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Builder

@@ -1,15 +1,21 @@
 package pt.estga.stonemark.services.auth;
 
-import pt.estga.stonemark.dtos.AuthenticationRequestDto;
-import pt.estga.stonemark.dtos.AuthenticationResponseDto;
-import pt.estga.stonemark.dtos.RegisterRequestDto;
+import pt.estga.stonemark.dtos.auth.AuthenticationRequestDto;
+import pt.estga.stonemark.dtos.auth.AuthenticationResponseDto;
+import pt.estga.stonemark.dtos.auth.RegisterRequestDto;
+
+import java.util.Optional;
 
 public interface AuthenticationService {
 
-    AuthenticationResponseDto register(RegisterRequestDto request);
+    Optional<AuthenticationResponseDto> register(RegisterRequestDto request);
 
-    AuthenticationResponseDto authenticate(AuthenticationRequestDto request);
+    Optional<AuthenticationResponseDto> authenticate(AuthenticationRequestDto request);
 
-    AuthenticationResponseDto refreshToken(String refreshToken);
+    Optional<AuthenticationResponseDto> refreshToken(String refreshToken);
+
+    void requestPasswordReset(String email);
+
+    void resetPassword(String token, String newPassword);
 
 }

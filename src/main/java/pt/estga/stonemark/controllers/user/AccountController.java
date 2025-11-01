@@ -17,7 +17,7 @@ import java.security.Principal;
 @RequestMapping("/api/v1/user/account")
 @RequiredArgsConstructor
 @Tag(name = "User - Account", description = "Self-service operations for logged-in users.")
-public class UserController {
+public class AccountController {
 
     private final UserService service;
     private final UserMapper mapper;
@@ -39,7 +39,7 @@ public class UserController {
             @RequestBody ChangePasswordRequestDto request,
             Principal connectedUser
     ) {
-        service.changePassword(request, connectedUser);
+        service.processPasswordChangeRequest(request, connectedUser);
         return ResponseEntity.ok().build();
     }
 }

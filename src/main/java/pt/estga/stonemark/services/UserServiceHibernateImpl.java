@@ -3,12 +3,16 @@ package pt.estga.stonemark.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
+import pt.estga.stonemark.exceptions.PasswordMismatchException;
+import pt.estga.stonemark.exceptions.UserNotFoundException;
 import pt.estga.stonemark.repositories.UserRepository;
 
 import java.security.Principal;
@@ -54,21 +58,27 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public User updateRole(Long userId, Role newRole) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         user.setRole(newRole);
         return userRepository.save(user);
     }
 
     @Override
-    public void changePassword(ChangePasswordRequestDto request, Principal connectedUser) {
+    public void processPasswordChangeRequest(ChangePasswordRequestDto request, Principal connectedUser) {
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new IllegalStateException("Wrong password");
+            throw new BadCredentialsException("Wrong password");
         }
         if (!request.newPassword().equals(request.confirmationPassword())) {
-            throw new IllegalStateException("Passwords are not the same");
+            throw new PasswordMismatchException("Passwords are not the same");
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
