@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.file;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;

@@ -4,7 +4,7 @@ server:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/stonemark
-    username: postgres
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
@@ -59,7 +59,7 @@ application:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       access-token:
-        expiration: 3600000 # 1 hour
+        expiration: 900000 # 15 minutes
       refresh-token:
         expiration: 2592000000 # 30 days
       email-verification-token:
@@ -68,4 +68,8 @@ application:
         expiration: 3600000 # 1 hour
       password-reset-token:
         expiration: 3600000 # 1 hour
+      email-change-request-token:
+        expiration: 900000 # 15 minutes
+      email-change-confirm-token:
+        expiration: 900000 # 15 minutes
     email-verification-required: false

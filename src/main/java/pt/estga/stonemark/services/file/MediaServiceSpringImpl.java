@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.file;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

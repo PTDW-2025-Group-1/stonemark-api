@@ -27,6 +27,12 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     @Value("${application.security.jwt.two-factor-authentication-token.expiration}")
     private long twoFactorAuthenticationTokenExpiration;
 
+    @Value("${application.security.jwt.email-change-request-token.expiration}")
+    private long emailChangeRequestTokenExpiration;
+
+    @Value("${application.security.jwt.email-change-confirm-token.expiration}")
+    private long emailChangeConfirmTokenExpiration;
+
     @Override
     public VerificationToken createAndSaveToken(User user, VerificationTokenPurpose purpose) {
         long expirationMillis = getExpirationMillisFor(purpose);
@@ -67,7 +73,8 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
             case EMAIL_VERIFICATION -> emailVerificationTokenExpiration;
             case PASSWORD_RESET -> passwordResetTokenExpiration;
             case TWO_FACTOR_AUTHENTICATION -> twoFactorAuthenticationTokenExpiration;
-            default -> throw new IllegalArgumentException("Unsupported token purpose: " + purpose);
+            case EMAIL_CHANGE_REQUEST -> emailChangeRequestTokenExpiration;
+            case EMAIL_CHANGE_CONFIRM -> emailChangeConfirmTokenExpiration;
         };
     }
 }

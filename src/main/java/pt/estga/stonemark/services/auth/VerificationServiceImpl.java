@@ -5,25 +5,31 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
+import pt.estga.stonemark.entities.request.EmailChangeRequest;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
+import pt.estga.stonemark.models.email.Email;
+import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
 import pt.estga.stonemark.repositories.UserRepository;
-import pt.estga.stonemark.services.EmailService;
+import pt.estga.stonemark.services.email.EmailService;
 import pt.estga.stonemark.services.token.VerificationTokenService;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class VerificationServiceImpl implements VerificationService {
 
-    private record EmailDetails(String subject, String body) {}
+    private static final String CONFIRM_PATH = "/api/v1/auth/confirm?token=";
 
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final EmailChangeRequestRepository emailChangeRequestRepository;
 
     @Value("${application.base-url}")
     private String backendBaseUrl;
@@ -32,12 +38,7 @@ public class VerificationServiceImpl implements VerificationService {
     @Override
     public void createAndSendToken(User user, VerificationTokenPurpose purpose) {
         VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, purpose);
-
-        String link = backendBaseUrl + "/api/v1/auth/confirm?token=" + verificationToken.getToken();
-
-        EmailDetails emailDetails = composeEmailDetails(purpose, link, verificationToken);
-
-        emailService.sendEmail(user.getEmail(), emailDetails.subject(), emailDetails.body());
+        sendVerificationEmail(user.getEmail(), verificationToken);
     }
 
     @Transactional
@@ -52,118 +53,119 @@ public class VerificationServiceImpl implements VerificationService {
         }
 
         switch (vt.getPurpose()) {
-            case EMAIL_VERIFICATION:
-                handleEmailVerification(vt.getUser());
-                break;
-            case PASSWORD_RESET:
-                handlePasswordReset(vt.getUser());
-                break;
-            case TWO_FACTOR_AUTHENTICATION:
-                handleTwoFactorAuthentication(vt.getUser());
-                break;
-            default:
-                throw new IllegalStateException("Token has an unknown purpose: " + vt.getPurpose());
+            case EMAIL_VERIFICATION -> handleEmailVerification(vt);
+            case PASSWORD_RESET -> handlePasswordReset(vt);
+            case TWO_FACTOR_AUTHENTICATION -> handleTwoFactorAuthentication(vt);
+            case EMAIL_CHANGE_REQUEST -> handleEmailChangeRequest(vt);
+            case EMAIL_CHANGE_CONFIRM -> handleEmailChangeConfirm(vt);
+            default -> throw new IllegalStateException("Token has an unknown purpose: " + vt.getPurpose());
         }
 
         verificationTokenService.revokeToken(token);
     }
 
-    /**
-     * Enables the given user account after successful email verification.
-     *
-     * @param user the user whose email has been verified and should be enabled
-     */
-    private void handleEmailVerification(User user) {
+    @Override
+    public void requestEmailChange(User user, String newEmail) {
+        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.EMAIL_CHANGE_REQUEST);
+
+        EmailChangeRequest emailChangeRequest = EmailChangeRequest.builder()
+                .user(user)
+                .newEmail(newEmail)
+                .verificationToken(verificationToken)
+                .build();
+
+        emailChangeRequestRepository.save(emailChangeRequest);
+
+        sendVerificationEmail(user.getEmail(), verificationToken);
+    }
+
+    private void handleEmailVerification(VerificationToken verificationToken) {
+        User user = verificationToken.getUser();
         user.setEnabled(true);
         userRepository.save(user);
     }
 
-    /**
-     * Handles the password reset process for the given user when a password reset token is confirmed.
-     *
-     * @param user the user whose password is to be reset
-     */
-    private void handlePasswordReset(User user) {
+    private void handlePasswordReset(VerificationToken verificationToken) {
         // TODO: Implement password reset logic.
         throw new UnsupportedOperationException("Password reset functionality is not yet implemented.");
     }
 
-    /**
-     * Handles the logic for two-factor authentication (2FA) for the given user.
-     *
-     * @param user The user for whom two-factor authentication is being processed.
-     */
-    private void handleTwoFactorAuthentication(User user) {
+    private void handleTwoFactorAuthentication(VerificationToken verificationToken) {
         // TODO: Implement 2FA logic.
         throw new UnsupportedOperationException("2FA functionality is not yet implemented.");
     }
 
-    /**
-     * Composes the subject and body of an email based on the verification token purpose.
-     *
-     * @param purpose The purpose of the verification token (e.g., email verification, password reset, 2FA).
-     * @param link The link to be included in the email for the user to follow.
-     * @param token The verification token containing expiration and token value.
-     * @return An EmailDetails record containing the subject and body of the email.
-     * @throws UnsupportedOperationException if the password reset functionality is not yet implemented
-     */
-    private EmailDetails composeEmailDetails(
-            VerificationTokenPurpose purpose,
-            String link,
-            VerificationToken token
-    ) {
+    private void handleEmailChangeRequest(VerificationToken verificationToken) {
+        EmailChangeRequest emailChangeRequest = emailChangeRequestRepository.findByVerificationToken(verificationToken)
+                .orElseThrow(() -> new InvalidTokenException("Email change request not found."));
+
+        User user = emailChangeRequest.getUser();
+        String newEmail = emailChangeRequest.getNewEmail();
+
+        VerificationToken confirmationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.EMAIL_CHANGE_CONFIRM);
+        emailChangeRequest.setVerificationToken(confirmationToken);
+        emailChangeRequestRepository.save(emailChangeRequest);
+
+        sendVerificationEmail(newEmail, confirmationToken);
+    }
+
+    private void handleEmailChangeConfirm(VerificationToken verificationToken) {
+        EmailChangeRequest emailChangeRequest = emailChangeRequestRepository.findByVerificationToken(verificationToken)
+                .orElseThrow(() -> new InvalidTokenException("Email change request not found."));
+
+        User user = emailChangeRequest.getUser();
+        String newEmail = emailChangeRequest.getNewEmail();
+
+        emailService.sendEmail(Email.builder()
+                .to(user.getEmail())
+                .subject("Email Address Changed")
+                .template("email/email-changed-notification.html")
+                .build());
+
+        user.setEmail(newEmail);
+        userRepository.save(user);
+
+        emailChangeRequestRepository.delete(emailChangeRequest);
+    }
+
+    private void sendVerificationEmail(String to, VerificationToken token) {
+        String link = backendBaseUrl + CONFIRM_PATH + token.getToken();
         long remainingMillis = token.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
 
-        return switch (purpose) {
+        Email.EmailBuilder emailBuilder = Email.builder().to(to);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("link", link);
+        properties.put("token", token.getToken());
+
+        switch (token.getPurpose()) {
             case EMAIL_VERIFICATION -> {
-                long expirationHours = TimeUnit.MILLISECONDS.toHours(remainingMillis);
-                yield new EmailDetails(
-                        "Please verify your email",
-                        String.format("""
-                                Thank you for registering. Please click the link below to verify your account.
-                                
-                                Verification Link: %s
-                                
-                                If the link doesn't work, you can go to the verification page and enter the following token:
-                                %s
-                                
-                                This token will expire in %d hours.
-                                """, link, token.getToken(), expirationHours)
-                );
+                emailBuilder.subject("Please verify your email");
+                emailBuilder.template("email/email-verification.html");
+                properties.put("expiration", TimeUnit.MILLISECONDS.toHours(remainingMillis));
             }
             case PASSWORD_RESET -> {
-                long expirationMinutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis);
-                yield new EmailDetails(
-                        "Password Reset Request",
-                        String.format("""
-                                You requested a password reset. Please click the link below to proceed.
-                                
-                                Reset Link: %s
-                                
-                                If the link doesn't work, you can go to the password reset page and enter the following token:
-                                %s
-                                
-                                This token will expire in %d minutes. If you did not request this, please ignore this email.
-                                """, link, token.getToken(), expirationMinutes)
-                );
+                emailBuilder.subject("Password Reset Request");
+                emailBuilder.template("email/password-reset.html");
+                properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
             }
             case TWO_FACTOR_AUTHENTICATION -> {
-                long expirationMinutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis);
-                yield new EmailDetails(
-                        "Two-Factor Authentication",
-                        String.format("""
-                                Your two-factor authentication link is below.
-
-                                2FA Link: %s
-
-                                If the link doesn't work, you can go to the 2FA page and enter the following token:
-                                %s
-
-                                This token will expire in %d minutes.
-                                """, link, token.getToken(), expirationMinutes)
-                );
+                emailBuilder.subject("Two-Factor Authentication");
+                emailBuilder.template("email/two-factor-authentication.html");
+                properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
             }
-            default -> throw new IllegalArgumentException("Unsupported token purpose: " + purpose);
-        };
+            case EMAIL_CHANGE_REQUEST -> {
+                emailBuilder.subject("Confirm Your Email Change Request");
+                emailBuilder.template("email/email-change-request.html");
+                properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
+            }
+            case EMAIL_CHANGE_CONFIRM -> {
+                emailBuilder.subject("Confirm Your New Email Address");
+                emailBuilder.template("email/email-change-confirm.html");
+                properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
+            }
+        }
+
+        emailBuilder.properties(properties);
+        emailService.sendEmail(emailBuilder.build());
     }
 }

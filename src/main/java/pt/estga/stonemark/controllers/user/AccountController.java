@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.stonemark.dtos.ChangePasswordRequestDto;
+import pt.estga.stonemark.dtos.auth.ChangePasswordRequestDto;
 import pt.estga.stonemark.dtos.UserDto;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;

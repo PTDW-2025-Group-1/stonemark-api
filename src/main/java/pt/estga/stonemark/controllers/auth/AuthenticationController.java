@@ -1,12 +1,14 @@
 package pt.estga.stonemark.controllers.auth;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.auth.*;
+import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.services.auth.AuthenticationService;
 import pt.estga.stonemark.services.auth.VerificationService;
@@ -55,14 +57,22 @@ public class AuthenticationController {
     }
 
     @PostMapping("/request-password-reset")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody RequestPasswordResetDto request) {
+    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
         authService.requestPasswordReset(request.email());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto request) {
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto request) {
         authService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/request-email-change")
+    public ResponseEntity<?> requestEmailChange(
+            @Valid @RequestBody EmailChangeRequestDto request,
+            @AuthenticationPrincipal User user) {
+        verificationService.requestEmailChange(user, request.newEmail());
+        return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
     }
 }

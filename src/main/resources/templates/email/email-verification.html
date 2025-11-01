@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+</head>
+<body>
+    <p>Thank you for registering. Please click the link below to verify your account.</p>
+        <p>Verification Link: <a th:href="${link}">Click here to verify your account</a></p>
+    <p>If the link doesn't work, you can go to the verification page and enter the following token:<br><strong th:text="${token}"></strong></p>
+    <p>This token will expire in <span th:text="${expiration}"></span> hours.</p>
+</body>
+</html>
