@@ -8,28 +8,27 @@ import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.request.EmailChangeRequest;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
-import pt.estga.stonemark.exceptions.InvalidTokenException;
+import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.repositories.UserRepository;
+import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.email.EmailService;
 import pt.estga.stonemark.services.token.VerificationTokenService;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class VerificationServiceImpl implements VerificationService {
+public class VerificationInitiationServiceImpl implements VerificationInitiationService {
 
     private static final String CONFIRM_PATH = "/api/v1/auth/confirm?token=";
 
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
-    private final UserRepository userRepository;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
+    private final UserService userService;
 
     @Value("${application.base-url}")
     private String backendBaseUrl;
@@ -41,31 +40,12 @@ public class VerificationServiceImpl implements VerificationService {
         sendVerificationEmail(user.getEmail(), verificationToken);
     }
 
-    @Transactional
-    @Override
-    public void processTokenConfirmation(String token) {
-        VerificationToken vt = verificationTokenService.findByToken(token)
-                .orElseThrow(() -> new InvalidTokenException("Token not found."));
-
-        if (vt.getExpiresAt().isBefore(Instant.now())) {
-            verificationTokenService.revokeToken(token);
-            throw new InvalidTokenException("Token has expired.");
-        }
-
-        switch (vt.getPurpose()) {
-            case EMAIL_VERIFICATION -> handleEmailVerification(vt);
-            case PASSWORD_RESET -> handlePasswordReset(vt);
-            case TWO_FACTOR_AUTHENTICATION -> handleTwoFactorAuthentication(vt);
-            case EMAIL_CHANGE_REQUEST -> handleEmailChangeRequest(vt);
-            case EMAIL_CHANGE_CONFIRM -> handleEmailChangeConfirm(vt);
-            default -> throw new IllegalStateException("Token has an unknown purpose: " + vt.getPurpose());
-        }
-
-        verificationTokenService.revokeToken(token);
-    }
-
     @Override
     public void requestEmailChange(User user, String newEmail) {
+        if (userService.existsByEmail(newEmail)) {
+            throw new EmailAlreadyTakenException("Email is already taken.");
+        }
+
         VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.EMAIL_CHANGE_REQUEST);
 
         EmailChangeRequest emailChangeRequest = EmailChangeRequest.builder()
@@ -79,56 +59,9 @@ public class VerificationServiceImpl implements VerificationService {
         sendVerificationEmail(user.getEmail(), verificationToken);
     }
 
-    private void handleEmailVerification(VerificationToken verificationToken) {
-        User user = verificationToken.getUser();
-        user.setEnabled(true);
-        userRepository.save(user);
-    }
-
-    private void handlePasswordReset(VerificationToken verificationToken) {
-        // TODO: Implement password reset logic.
-        throw new UnsupportedOperationException("Password reset functionality is not yet implemented.");
-    }
-
-    private void handleTwoFactorAuthentication(VerificationToken verificationToken) {
-        // TODO: Implement 2FA logic.
-        throw new UnsupportedOperationException("2FA functionality is not yet implemented.");
-    }
-
-    private void handleEmailChangeRequest(VerificationToken verificationToken) {
-        EmailChangeRequest emailChangeRequest = emailChangeRequestRepository.findByVerificationToken(verificationToken)
-                .orElseThrow(() -> new InvalidTokenException("Email change request not found."));
-
-        User user = emailChangeRequest.getUser();
-        String newEmail = emailChangeRequest.getNewEmail();
-
-        VerificationToken confirmationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.EMAIL_CHANGE_CONFIRM);
-        emailChangeRequest.setVerificationToken(confirmationToken);
-        emailChangeRequestRepository.save(emailChangeRequest);
-
+    @Override
+    public void sendEmailChangeConfirmation(String newEmail, VerificationToken confirmationToken) {
         sendVerificationEmail(newEmail, confirmationToken);
-    }
-
-    private void handleEmailChangeConfirm(VerificationToken verificationToken) {
-        EmailChangeRequest emailChangeRequest = emailChangeRequestRepository.findByVerificationToken(verificationToken)
-                .orElseThrow(() -> new InvalidTokenException("Email change request not found."));
-
-        User user = emailChangeRequest.getUser();
-        String newEmail = emailChangeRequest.getNewEmail();
-
-        emailService.sendEmail(Email.builder()
-                .to(user.getEmail())
-                .subject("Email Address Changed")
-                .template("email/email-changed-notification.html")
-                .build());
-
-                user.setEmail(newEmail);
-        // When changing the user's email, unlink Google authentication to prevent account access conflicts,
-        // since Google authentication is tied to the previous email address.
-        user.setGoogleId(null);
-        userRepository.save(user);
-
-        emailChangeRequestRepository.delete(emailChangeRequest);
     }
 
     private void sendVerificationEmail(String to, VerificationToken token) {

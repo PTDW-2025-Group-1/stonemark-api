@@ -3,7 +3,10 @@ package pt.estga.stonemark.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
+import pt.estga.stonemark.dtos.account.SetPasswordDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.exceptions.UserNotFoundException;
@@ -16,6 +19,7 @@ import java.util.Optional;
 public class UserServiceHibernateImpl implements UserService {
 
     private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Page<User> findAll(Pageable pageable) {
@@ -58,5 +62,20 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public void changePassword(User user, PasswordChangeRequestDto request) {
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new IllegalStateException("Incorrect old password.");
+        }
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        repository.save(user);
+    }
+
+    @Override
+    public void setPassword(User user, SetPasswordDto request) {
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        repository.save(user);
     }
 }

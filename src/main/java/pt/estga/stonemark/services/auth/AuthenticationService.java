@@ -19,10 +19,6 @@ public interface AuthenticationService {
 
     void disconnectGoogle(User user);
 
-    void processPasswordChangeRequest(@Valid ChangePasswordRequestDto request, Principal connectedUser);
-
-    void setPassword(@Valid SetPasswordRequestDto request, Principal connectedUser);
-
     void requestPasswordReset(String email);
 
     void resetPassword(String token, String newPassword);

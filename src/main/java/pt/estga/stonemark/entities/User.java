@@ -54,7 +54,13 @@ public class User implements UserDetails {
                     () -> Role.USER.name(),
                     () -> Role.MODERATOR.name()
             );
-            default -> List.of(() -> Role.USER.name());
+            case REVIEWER ->  List.of(
+                    () -> Role.USER.name(),
+                    () -> Role.REVIEWER.name()
+            );
+            case USER -> List.of(
+                    () -> Role.USER.name()
+            );
         };
     }
 

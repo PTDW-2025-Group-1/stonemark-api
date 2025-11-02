@@ -52,10 +52,9 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITE_LIST_URL).permitAll()
-                        .requestMatchers("/api/v1/user/**").hasAnyRole(Role.USER.name(), Role.REVIEWER.name(), Role.MODERATOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/v1/reviewer/**").hasAnyRole(Role.REVIEWER.name(), Role.MODERATOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/v1/moderator/**").hasAnyRole(Role.MODERATOR.name(), Role.ADMIN.name())
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/reviewer/**").hasAnyRole(Role.REVIEWER.name())
+                        .requestMatchers("/api/v1/moderator/**").hasAnyRole(Role.MODERATOR.name())
+                        .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

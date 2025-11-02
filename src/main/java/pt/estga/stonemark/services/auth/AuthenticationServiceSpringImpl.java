@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,7 +21,6 @@ import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
-import pt.estga.stonemark.exceptions.PasswordMismatchException;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.token.AccessTokenService;
@@ -31,7 +29,6 @@ import pt.estga.stonemark.services.token.VerificationTokenService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.Principal;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -47,7 +44,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserMapper mapper;
-    private final VerificationService verificationService;
+    private final VerificationInitiationService verificationInitiationService;
+    private final VerificationProcessingService verificationProcessingService;
     private final VerificationTokenService verificationTokenService;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
@@ -79,7 +77,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         User user = userService.create(parsedUser);
 
         if (emailVerificationRequired) {
-            verificationService.createAndSendToken(user, VerificationTokenPurpose.EMAIL_VERIFICATION);
+            verificationInitiationService.createAndSendToken(user, VerificationTokenPurpose.EMAIL_VERIFICATION);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         } else {
             return generateAuthenticationResponse(user);
@@ -133,31 +131,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
-    public void processPasswordChangeRequest(ChangePasswordRequestDto request, Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Wrong password");
-        }
-        if (!request.newPassword().equals(request.confirmationPassword())) {
-            throw new PasswordMismatchException("Passwords are not the same");
-        }
-        changePassword(user, request.newPassword());
-    }
-
-    @Override
-    public void setPassword(SetPasswordRequestDto request, Principal connectedUser) {
-        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        if (!request.password().equals(request.confirmationPassword())) {
-            throw new PasswordMismatchException("Passwords are not the same");
-        }
-        changePassword(user, request.password());
-    }
-
-    @Override
     public void requestPasswordReset(String email) {
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        verificationService.createAndSendToken(user, VerificationTokenPurpose.PASSWORD_RESET);
+        verificationInitiationService.createAndSendToken(user, VerificationTokenPurpose.PASSWORD_RESET);
     }
 
     @Override

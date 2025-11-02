@@ -1,4 +1,4 @@
-package pt.estga.stonemark.dtos;
+package pt.estga.stonemark.dtos.user;
 
 import lombok.*;
 import pt.estga.stonemark.enums.Role;
@@ -12,6 +12,8 @@ public record UserDto(
         String lastName,
         String email,
         String telephone,
-        Role role,
-        Instant createdAt
+        String role,
+        Instant createdAt,
+        boolean accountLocked,
+        boolean enabled
 ) { }

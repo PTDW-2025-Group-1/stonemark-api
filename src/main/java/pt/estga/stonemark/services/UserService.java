@@ -2,6 +2,8 @@ package pt.estga.stonemark.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
+import pt.estga.stonemark.dtos.account.SetPasswordDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 
@@ -20,6 +22,10 @@ public interface UserService {
     User create(User user);
 
     User update(User user);
+
+    void setPassword(User user, SetPasswordDto request);
+
+    void changePassword(User user, PasswordChangeRequestDto request);
 
     User updateRole(Long userId, Role newRole);
 

@@ -1,19 +1,15 @@
 package pt.estga.stonemark.controllers.auth;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.auth.*;
-import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.services.auth.AuthenticationService;
-import pt.estga.stonemark.services.auth.VerificationService;
-
-import java.security.Principal;
+import pt.estga.stonemark.services.auth.VerificationInitiationService;
+import pt.estga.stonemark.services.auth.VerificationProcessingService;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,7 +17,8 @@ import java.security.Principal;
 public class AuthenticationController {
 
     private final AuthenticationService authService;
-    private final VerificationService verificationService;
+    private final VerificationProcessingService verificationProcessingService;
+    private final VerificationInitiationService verificationInitiationService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
@@ -52,12 +49,6 @@ public class AuthenticationController {
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
-    @DeleteMapping("/google")
-    public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
-        authService.disconnectGoogle(user);
-        return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
-    }
-
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request) {
         return authService.refreshToken(request.refreshToken())
@@ -67,24 +58,7 @@ public class AuthenticationController {
 
     @GetMapping("/confirm")
     public ResponseEntity<?> confirm(@RequestParam("token") String token) {
-        verificationService.processTokenConfirmation(token);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/set-password")
-    public ResponseEntity<?> setPassword(
-            @Valid @RequestBody SetPasswordRequestDto request,
-            Principal connectedUser) {
-        authService.setPassword(request, connectedUser);
-        return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
-    }
-
-    @PatchMapping("/change-password")
-    public ResponseEntity<?> changePassword(
-            @RequestBody ChangePasswordRequestDto request,
-            Principal connectedUser
-    ) {
-        authService.processPasswordChangeRequest(request, connectedUser);
+        verificationProcessingService.processTokenConfirmation(token);
         return ResponseEntity.ok().build();
     }
 
@@ -98,13 +72,5 @@ public class AuthenticationController {
     public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto request) {
         authService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/request-email-change")
-    public ResponseEntity<?> requestEmailChange(
-            @Valid @RequestBody EmailChangeRequestDto request,
-            @AuthenticationPrincipal User user) {
-        verificationService.requestEmailChange(user, request.newEmail());
-        return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
     }
 }
