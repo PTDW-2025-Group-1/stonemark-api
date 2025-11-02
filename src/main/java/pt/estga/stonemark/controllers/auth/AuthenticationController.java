@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
-import pt.estga.stonemark.services.auth.AuthenticationService;
-import pt.estga.stonemark.services.auth.VerificationInitiationService;
-import pt.estga.stonemark.services.auth.VerificationProcessingService;
+import pt.estga.stonemark.services.security.auth.AuthenticationService;
+import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
+import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
 
 @RestController
 @RequiredArgsConstructor
@@ -64,7 +64,7 @@ public class AuthenticationController {
 
     @PostMapping("/request-password-reset")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
-        authService.requestPasswordReset(request.email());
+        authService.requestPasswordReset(request);
         return ResponseEntity.ok().build();
     }
 

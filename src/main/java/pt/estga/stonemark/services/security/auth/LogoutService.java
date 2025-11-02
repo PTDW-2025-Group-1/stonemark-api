@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,8 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.services.token.AccessTokenService;
-import pt.estga.stonemark.services.token.RefreshTokenService;
+import pt.estga.stonemark.services.security.token.AccessTokenService;
+import pt.estga.stonemark.services.security.token.RefreshTokenService;
 
 @Service
 @RequiredArgsConstructor

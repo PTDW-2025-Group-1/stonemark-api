@@ -21,9 +21,4 @@ public class VerificationToken extends BaseToken {
 
     private Instant usedAt;
 
-    @Override
-    public void onRevoke() {
-        this.usedAt = Instant.now();
-    }
-
 }

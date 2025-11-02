@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.verification;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,14 +6,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.request.EmailChangeRequest;
+import pt.estga.stonemark.entities.request.PasswordResetRequest;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
+import pt.estga.stonemark.repositories.PasswordResetRequestRepository;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.email.EmailService;
-import pt.estga.stonemark.services.token.VerificationTokenService;
+import pt.estga.stonemark.services.security.token.VerificationTokenService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,7 @@ public class VerificationInitiationServiceImpl implements VerificationInitiation
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
+    private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final UserService userService;
 
     @Value("${application.base-url}")
@@ -55,6 +58,21 @@ public class VerificationInitiationServiceImpl implements VerificationInitiation
                 .build();
 
         emailChangeRequestRepository.save(emailChangeRequest);
+
+        sendVerificationEmail(user.getEmail(), verificationToken);
+    }
+
+    @Override
+    public void requestPasswordReset(User user, String newPassword) {
+        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.PASSWORD_RESET);
+
+        PasswordResetRequest passwordResetRequest = PasswordResetRequest.builder()
+                .user(user)
+                .newPassword(newPassword)
+                .verificationToken(verificationToken)
+                .build();
+
+        passwordResetRequestRepository.save(passwordResetRequest);
 
         sendVerificationEmail(user.getEmail(), verificationToken);
     }

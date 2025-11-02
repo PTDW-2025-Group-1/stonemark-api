@@ -11,14 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.EmailChangeRequestDto;
-import pt.estga.stonemark.dtos.account.SetPasswordDto;
+import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
 import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.mappers.UserMapper;
+import pt.estga.stonemark.services.PasswordService;
 import pt.estga.stonemark.services.UserService;
-import pt.estga.stonemark.services.auth.AuthenticationService;
-import pt.estga.stonemark.services.auth.VerificationInitiationService;
+import pt.estga.stonemark.services.security.auth.AuthenticationService;
+import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
 
 @RestController
 @RequestMapping("/api/v1/user/account")
@@ -30,6 +31,7 @@ public class AccountController {
     private final UserService userService;
     private final AuthenticationService authService;
     private final VerificationInitiationService verificationInitiationService;
+    private final PasswordService passwordService;
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getPersonalInfo(@AuthenticationPrincipal User connectedUser) {
@@ -44,15 +46,15 @@ public class AccountController {
     public ResponseEntity<?> changePassword(
             @Valid @RequestBody PasswordChangeRequestDto request,
             @AuthenticationPrincipal User connectedUser) {
-        userService.changePassword(connectedUser, request);
+        passwordService.changePassword(connectedUser, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been changed successfully."));
     }
 
     @PostMapping("/set-password")
     public ResponseEntity<?> setPassword(
-            @Valid @RequestBody SetPasswordDto request,
+            @Valid @RequestBody PasswordSetRequestDto request,
             @AuthenticationPrincipal User connectedUser) {
-        userService.setPassword(connectedUser, request);
+        passwordService.setPassword(connectedUser, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
     }
 

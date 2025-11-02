@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.token;
+package pt.estga.stonemark.services.security.token;
 
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.token.VerificationToken;

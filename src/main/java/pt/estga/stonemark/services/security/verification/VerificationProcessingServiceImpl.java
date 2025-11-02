@@ -1,18 +1,21 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.verification;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.request.EmailChangeRequest;
+import pt.estga.stonemark.entities.request.PasswordResetRequest;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
 import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.repositories.UserRepository;
+import pt.estga.stonemark.repositories.PasswordResetRequestRepository;
+import pt.estga.stonemark.services.PasswordService;
+import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.email.EmailService;
-import pt.estga.stonemark.services.token.VerificationTokenService;
+import pt.estga.stonemark.services.security.token.VerificationTokenService;
 
 import java.time.Instant;
 
@@ -22,9 +25,11 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
 
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
+    private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final VerificationInitiationService verificationInitiationService;
+    private final PasswordService passwordService;
 
     @Transactional
     @Override
@@ -52,12 +57,17 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     private void handleEmailVerification(VerificationToken verificationToken) {
         User user = verificationToken.getUser();
         user.setEnabled(true);
-        userRepository.save(user);
+        userService.update(user);
     }
 
     private void handlePasswordReset(VerificationToken verificationToken) {
-        // TODO: Implement password reset logic.
-        throw new UnsupportedOperationException("Password reset functionality is not yet implemented.");
+        PasswordResetRequest passwordResetRequest = passwordResetRequestRepository.findByVerificationToken(verificationToken)
+                .orElseThrow(() -> new InvalidTokenException("Password reset request not found."));
+
+        User user = passwordResetRequest.getUser();
+        passwordService.resetPassword(user, passwordResetRequest);
+
+        passwordResetRequestRepository.delete(passwordResetRequest);
     }
 
     private void handleTwoFactorAuthentication(VerificationToken verificationToken) {
@@ -95,7 +105,7 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
 
         user.setEmail(newEmail);
         user.setGoogleId(null);
-        userRepository.save(user);
+        userService.update(user);
 
         emailChangeRequestRepository.delete(emailChangeRequest);
     }

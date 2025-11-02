@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.auth;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -23,9 +23,11 @@ import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
-import pt.estga.stonemark.services.token.AccessTokenService;
-import pt.estga.stonemark.services.token.RefreshTokenService;
-import pt.estga.stonemark.services.token.VerificationTokenService;
+import pt.estga.stonemark.services.security.token.AccessTokenService;
+import pt.estga.stonemark.services.security.token.RefreshTokenService;
+import pt.estga.stonemark.services.security.token.VerificationTokenService;
+import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
+import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -131,10 +133,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
-    public void requestPasswordReset(String email) {
-        User user = userService.findByEmail(email)
+    public void requestPasswordReset(PasswordResetRequestDto request) {
+        User user = userService.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        verificationInitiationService.createAndSendToken(user, VerificationTokenPurpose.PASSWORD_RESET);
+        verificationInitiationService.requestPasswordReset(user, request.newPassword());
     }
 
     @Override

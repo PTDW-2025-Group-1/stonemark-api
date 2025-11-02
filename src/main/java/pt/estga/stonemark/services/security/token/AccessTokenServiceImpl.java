@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.token;
+package pt.estga.stonemark.services.security.token;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

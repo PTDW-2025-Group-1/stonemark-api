@@ -11,14 +11,13 @@ import pt.estga.stonemark.entities.token.VerificationToken;
 @Getter
 @Setter
 @Builder
-public class EmailChangeRequest {
+public class PasswordResetRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue
+    private Long id;
 
-    @Column(nullable = false)
-    private String newEmail;
+    private String newPassword;
 
     @OneToOne
     @JoinColumn(nullable = false)

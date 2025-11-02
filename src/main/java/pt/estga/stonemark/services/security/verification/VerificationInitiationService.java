@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.verification;
 
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
@@ -11,6 +11,8 @@ public interface VerificationInitiationService {
     void createAndSendToken(User user, VerificationTokenPurpose purpose);
 
     void requestEmailChange(User user, String newEmail);
+
+    void requestPasswordReset(User user, String newPassword);
 
     void sendEmailChangeConfirmation(String newEmail, VerificationToken confirmationToken);
 

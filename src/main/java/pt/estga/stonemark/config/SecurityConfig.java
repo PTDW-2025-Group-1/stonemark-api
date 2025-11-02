@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import pt.estga.stonemark.enums.Role;
-import pt.estga.stonemark.services.auth.LogoutService;
+import pt.estga.stonemark.services.security.auth.LogoutService;
 
 import java.util.List;
 

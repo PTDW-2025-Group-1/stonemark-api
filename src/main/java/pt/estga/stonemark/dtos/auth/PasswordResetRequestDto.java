@@ -4,5 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record PasswordResetRequestDto(
-        String email
+        String email,
+        String newPassword
 ) { }

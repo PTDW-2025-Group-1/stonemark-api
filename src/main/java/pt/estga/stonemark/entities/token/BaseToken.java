@@ -35,11 +35,4 @@ public abstract class BaseToken {
 
     private boolean revoked = false;
 
-    protected void onRevoke() {}
-
-    public void revoke() {
-        this.revoked = true;
-        onRevoke();
-    }
-
 }

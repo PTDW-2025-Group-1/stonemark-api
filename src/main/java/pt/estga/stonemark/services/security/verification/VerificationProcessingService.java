@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.verification;
 
 import org.springframework.transaction.annotation.Transactional;
 

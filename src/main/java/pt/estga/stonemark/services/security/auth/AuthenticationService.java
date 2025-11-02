@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.auth;
+package pt.estga.stonemark.services.security.auth;
 
 import jakarta.validation.Valid;
 import pt.estga.stonemark.dtos.auth.*;
@@ -19,7 +19,7 @@ public interface AuthenticationService {
 
     void disconnectGoogle(User user);
 
-    void requestPasswordReset(String email);
+    void requestPasswordReset(PasswordResetRequestDto passwordResetRequestDto);
 
     void resetPassword(String token, String newPassword);
 
