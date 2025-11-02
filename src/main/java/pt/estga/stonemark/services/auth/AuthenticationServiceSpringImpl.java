@@ -1,5 +1,7 @@
 package pt.estga.stonemark.services.auth;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,8 @@ import pt.estga.stonemark.services.token.AccessTokenService;
 import pt.estga.stonemark.services.token.RefreshTokenService;
 import pt.estga.stonemark.services.token.VerificationTokenService;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -44,6 +48,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final UserMapper mapper;
     private final VerificationService verificationService;
     private final VerificationTokenService verificationTokenService;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     @Value("${application.security.email-verification-required:true}")
     private boolean emailVerificationRequired;
@@ -151,5 +156,33 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         userService.changePassword(user, newPassword);
 
         verificationTokenService.revokeToken(token);
+    }
+
+    @Override
+    @Transactional
+    public Optional<AuthenticationResponseDto> authenticateWithGoogle(String token) {
+        try {
+            GoogleIdToken idToken = googleIdTokenVerifier.verify(token);
+            if (idToken == null) {
+                return Optional.empty();
+            }
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+
+            User user = userService.findByEmail(email).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(email);
+                newUser.setFirstName((String) payload.get("given_name"));
+                newUser.setLastName((String) payload.get("family_name"));
+                newUser.setRole(Role.USER);
+                newUser.setEnabled(true);
+                return userService.create(newUser);
+            });
+
+            return generateAuthenticationResponse(user);
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Error while authenticating with Google", e);
+            return Optional.empty();
+        }
     }
 }

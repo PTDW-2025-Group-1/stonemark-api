@@ -1,4 +1,4 @@
-package pt.estga.stonemark.models.email;
+package pt.estga.stonemark.models;
 
 import lombok.Builder;
 import lombok.Data;

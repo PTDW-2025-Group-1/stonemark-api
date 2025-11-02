@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import pt.estga.stonemark.models.email.Email;
+import pt.estga.stonemark.models.Email;
 
 @Service
 @RequiredArgsConstructor

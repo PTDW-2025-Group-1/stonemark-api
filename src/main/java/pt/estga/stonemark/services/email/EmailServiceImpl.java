@@ -8,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.models.email.Email;
+import pt.estga.stonemark.models.Email;
 
 @Service
 @AllArgsConstructor

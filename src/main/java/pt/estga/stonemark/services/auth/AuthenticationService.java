@@ -18,4 +18,6 @@ public interface AuthenticationService {
 
     void resetPassword(String token, String newPassword);
 
+    Optional<AuthenticationResponseDto> authenticateWithGoogle(String googleToken);
+
 }

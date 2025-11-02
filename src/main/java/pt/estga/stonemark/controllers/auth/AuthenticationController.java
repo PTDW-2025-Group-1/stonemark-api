@@ -75,4 +75,11 @@ public class AuthenticationController {
         verificationService.requestEmailChange(user, request.newEmail());
         return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthenticationResponseDto> google(@RequestBody GoogleAuthenticationRequestDto request) {
+        return authService.authenticateWithGoogle(request.token())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
 }
