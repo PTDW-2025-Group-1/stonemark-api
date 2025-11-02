@@ -13,6 +13,8 @@ import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.services.auth.AuthenticationService;
 import pt.estga.stonemark.services.auth.VerificationService;
 
+import java.security.Principal;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -43,6 +45,19 @@ public class AuthenticationController {
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<AuthenticationResponseDto> google(@RequestBody GoogleAuthenticationRequestDto request) {
+        return authService.authenticateWithGoogle(request.token())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @DeleteMapping("/google")
+    public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
+        authService.disconnectGoogle(user);
+        return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
+    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request) {
         return authService.refreshToken(request.refreshToken())
@@ -53,6 +68,23 @@ public class AuthenticationController {
     @GetMapping("/confirm")
     public ResponseEntity<?> confirm(@RequestParam("token") String token) {
         verificationService.processTokenConfirmation(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/set-password")
+    public ResponseEntity<?> setPassword(
+            @Valid @RequestBody SetPasswordRequestDto request,
+            Principal connectedUser) {
+        authService.setPassword(request, connectedUser);
+        return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
+    }
+
+    @PatchMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody ChangePasswordRequestDto request,
+            Principal connectedUser
+    ) {
+        authService.processPasswordChangeRequest(request, connectedUser);
         return ResponseEntity.ok().build();
     }
 
@@ -74,12 +106,5 @@ public class AuthenticationController {
             @AuthenticationPrincipal User user) {
         verificationService.requestEmailChange(user, request.newEmail());
         return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
-    }
-
-    @PostMapping("/google")
-    public ResponseEntity<AuthenticationResponseDto> google(@RequestBody GoogleAuthenticationRequestDto request) {
-        return authService.authenticateWithGoogle(request.token())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 }

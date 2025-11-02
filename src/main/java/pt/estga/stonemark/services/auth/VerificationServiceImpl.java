@@ -122,7 +122,10 @@ public class VerificationServiceImpl implements VerificationService {
                 .template("email/email-changed-notification.html")
                 .build());
 
-        user.setEmail(newEmail);
+                user.setEmail(newEmail);
+        // When changing the user's email, unlink Google authentication to prevent account access conflicts,
+        // since Google authentication is tied to the previous email address.
+        user.setGoogleId(null);
         userRepository.save(user);
 
         emailChangeRequestRepository.delete(emailChangeRequest);

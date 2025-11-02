@@ -13,5 +13,4 @@ public interface VerificationService {
     void processTokenConfirmation(String token);
 
     void requestEmailChange(User user, String newEmail);
-
 }

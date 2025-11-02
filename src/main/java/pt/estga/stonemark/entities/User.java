@@ -31,6 +31,8 @@ public class User implements UserDetails {
     private String telephone;
     private String password;
 
+    private String googleId;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -88,13 +90,14 @@ public class User implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && role == user.role && Objects.equals(createdAt, user.createdAt);
+        return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && Objects.equals(googleId, user.googleId) && role == user.role && Objects.equals(createdAt, user.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, lastName, email, telephone, password, role, createdAt);
+        return Objects.hash(id, firstName, lastName, email, telephone, password, googleId, role, accountLocked, enabled, createdAt);
     }
 }

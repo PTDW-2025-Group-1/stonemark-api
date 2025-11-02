@@ -8,21 +8,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.config.JwtService;
-import pt.estga.stonemark.dtos.auth.AuthenticationRequestDto;
-import pt.estga.stonemark.dtos.auth.AuthenticationResponseDto;
-import pt.estga.stonemark.dtos.auth.RegisterRequestDto;
+import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
+import pt.estga.stonemark.exceptions.PasswordMismatchException;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.token.AccessTokenService;
@@ -31,6 +31,7 @@ import pt.estga.stonemark.services.token.VerificationTokenService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -132,6 +133,27 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
+    public void processPasswordChangeRequest(ChangePasswordRequestDto request, Principal connectedUser) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Wrong password");
+        }
+        if (!request.newPassword().equals(request.confirmationPassword())) {
+            throw new PasswordMismatchException("Passwords are not the same");
+        }
+        changePassword(user, request.newPassword());
+    }
+
+    @Override
+    public void setPassword(SetPasswordRequestDto request, Principal connectedUser) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        if (!request.password().equals(request.confirmationPassword())) {
+            throw new PasswordMismatchException("Passwords are not the same");
+        }
+        changePassword(user, request.password());
+    }
+
+    @Override
     public void requestPasswordReset(String email) {
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -153,9 +175,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
 
         User user = verificationToken.getUser();
-        userService.changePassword(user, newPassword);
+        changePassword(user, newPassword);
 
         verificationTokenService.revokeToken(token);
+    }
+
+    private void changePassword(User user, String newPassword) {
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userService.update(user);
     }
 
     @Override
@@ -168,21 +195,37 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             }
             GoogleIdToken.Payload payload = idToken.getPayload();
             String email = payload.getEmail();
+            String googleId = payload.getSubject();
 
-            User user = userService.findByEmail(email).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(email);
-                newUser.setFirstName((String) payload.get("given_name"));
-                newUser.setLastName((String) payload.get("family_name"));
-                newUser.setRole(Role.USER);
-                newUser.setEnabled(true);
-                return userService.create(newUser);
-            });
+            User user = userService.findByEmail(email)
+                    .map(existingUser -> {
+                        existingUser.setGoogleId(googleId);
+                        return userService.update(existingUser);
+                    })
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setFirstName((String) payload.get("given_name"));
+                        newUser.setLastName((String) payload.get("family_name"));
+                        newUser.setRole(Role.USER);
+                        newUser.setEnabled(true);
+                        newUser.setGoogleId(googleId);
+                        return userService.create(newUser);
+                    });
 
             return generateAuthenticationResponse(user);
         } catch (GeneralSecurityException | IOException e) {
             log.error("Error while authenticating with Google", e);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public void disconnectGoogle(User user) {
+                if (user.getPassword() == null) {
+            throw new IllegalStateException("You must set a password before disconnecting your Google account.");
+        }
+        user.setGoogleId(null);
+        userService.update(user);
     }
 }
