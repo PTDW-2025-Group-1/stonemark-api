@@ -21,6 +21,4 @@ public interface AuthenticationService {
 
     void requestPasswordReset(PasswordResetRequestDto passwordResetRequestDto);
 
-    void resetPassword(String token, String newPassword);
-
 }

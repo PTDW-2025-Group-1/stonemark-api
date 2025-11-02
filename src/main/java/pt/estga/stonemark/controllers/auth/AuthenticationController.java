@@ -8,7 +8,6 @@ import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.services.security.auth.AuthenticationService;
-import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
 import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
 
 @RestController
@@ -18,7 +17,6 @@ public class AuthenticationController {
 
     private final AuthenticationService authService;
     private final VerificationProcessingService verificationProcessingService;
-    private final VerificationInitiationService verificationInitiationService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
@@ -65,12 +63,6 @@ public class AuthenticationController {
     @PostMapping("/request-password-reset")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
         authService.requestPasswordReset(request);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetDto request) {
-        authService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.ok().build();
     }
 }

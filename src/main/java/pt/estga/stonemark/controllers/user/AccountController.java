@@ -20,6 +20,7 @@ import pt.estga.stonemark.services.PasswordService;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.security.auth.AuthenticationService;
 import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
+import pt.estga.stonemark.services.security.verification.commands.VerificationCommandFactory;
 
 @RestController
 @RequestMapping("/api/v1/user/account")
@@ -31,6 +32,7 @@ public class AccountController {
     private final UserService userService;
     private final AuthenticationService authService;
     private final VerificationInitiationService verificationInitiationService;
+    private final VerificationCommandFactory verificationCommandFactory;
     private final PasswordService passwordService;
 
     @GetMapping("/me")
@@ -69,7 +71,8 @@ public class AccountController {
             @Valid @RequestBody EmailChangeRequestDto request,
             @AuthenticationPrincipal User user) {
         try {
-            verificationInitiationService.requestEmailChange(user, request.newEmail());
+            var command = verificationCommandFactory.createEmailChangeCommand(user, request.newEmail());
+            verificationInitiationService.initiate(command);
             return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
         } catch (EmailAlreadyTakenException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
