@@ -14,6 +14,7 @@ import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.security.token.VerificationTokenService;
 import pt.estga.stonemark.services.security.verification.processing.VerificationProcessor;
 import pt.estga.stonemark.services.security.verification.processing.VerificationProcessorFactory;
+import pt.estga.stonemark.exceptions.VerificationErrorMessages;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -32,25 +33,26 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     public ConfirmationResponseDto processTokenConfirmation(String token) {
         try {
             VerificationToken vt = verificationTokenService.findByToken(token)
-                    .orElseThrow(() -> new InvalidTokenException("Token not found."));
+                    .orElseThrow(() -> new InvalidTokenException(VerificationErrorMessages.TOKEN_NOT_FOUND));
 
             if (vt.getExpiresAt().isBefore(Instant.now())) {
                 verificationTokenService.revokeToken(vt);
-                throw new InvalidTokenException("Token has expired.");
+                throw new InvalidTokenException(VerificationErrorMessages.TOKEN_EXPIRED);
+            }
+
+            if (vt.isRevoked()) {
+                throw new InvalidTokenException(VerificationErrorMessages.TOKEN_REVOKED);
             }
 
             VerificationProcessor processor = verificationProcessorFactory.getProcessor(vt.getPurpose());
             Optional<String> resultToken = processor.process(vt);
 
-            if (resultToken.isPresent()) {
-                return ConfirmationResponseDto.passwordResetRequired(resultToken.get());
-            } else {
-                return ConfirmationResponseDto.success("Confirmation successful.");
-            }
+            return resultToken.map(ConfirmationResponseDto::passwordResetRequired)
+                    .orElseGet(() -> ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL));
         } catch (InvalidTokenException e) {
             return ConfirmationResponseDto.error(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ConfirmationResponseDto.error("Invalid token purpose: " + e.getMessage());
+            return ConfirmationResponseDto.error(VerificationErrorMessages.INVALID_TOKEN_PURPOSE + e.getMessage());
         }
     }
 
@@ -59,25 +61,26 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     public ConfirmationResponseDto processCodeConfirmation(String code) {
         try {
             VerificationToken vt = verificationTokenService.findByCode(code)
-                    .orElseThrow(() -> new InvalidTokenException("Code not found."));
+                    .orElseThrow(() -> new InvalidTokenException(VerificationErrorMessages.CODE_NOT_FOUND));
 
             if (vt.getExpiresAt().isBefore(Instant.now())) {
                 verificationTokenService.revokeToken(vt);
-                throw new InvalidTokenException("Code has expired.");
+                throw new InvalidTokenException(VerificationErrorMessages.CODE_EXPIRED);
+            }
+
+            if (vt.isRevoked()) {
+                throw new InvalidTokenException(VerificationErrorMessages.CODE_REVOKED);
             }
 
             VerificationProcessor processor = verificationProcessorFactory.getProcessor(vt.getPurpose());
             Optional<String> resultToken = processor.process(vt);
 
-            if (resultToken.isPresent()) {
-                return ConfirmationResponseDto.passwordResetRequired(resultToken.get());
-            } else {
-                return ConfirmationResponseDto.success("Confirmation successful.");
-            }
+            return resultToken.map(ConfirmationResponseDto::passwordResetRequired)
+                    .orElseGet(() -> ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL));
         } catch (InvalidTokenException e) {
             return ConfirmationResponseDto.error(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ConfirmationResponseDto.error("Invalid code purpose: " + e.getMessage());
+            return ConfirmationResponseDto.error(VerificationErrorMessages.INVALID_CODE_PURPOSE + e.getMessage());
         }
     }
 
@@ -85,22 +88,26 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     @Override
     public void processPasswordReset(String token, String newPassword) {
         VerificationToken vt = verificationTokenService.findByToken(token)
-                .orElseThrow(() -> new InvalidTokenException("Token not found."));
+                .orElseThrow(() -> new InvalidTokenException(VerificationErrorMessages.TOKEN_NOT_FOUND));
 
         if (vt.getExpiresAt().isBefore(Instant.now())) {
             verificationTokenService.revokeToken(vt);
-            throw new InvalidTokenException("Token has expired.");
+            throw new InvalidTokenException(VerificationErrorMessages.TOKEN_EXPIRED);
+        }
+
+        if (vt.isRevoked()) {
+            throw new InvalidTokenException(VerificationErrorMessages.TOKEN_REVOKED);
         }
 
         if (vt.getPurpose() != VerificationTokenPurpose.PASSWORD_RESET) {
-            throw new InvalidTokenException("Invalid token purpose for password reset.");
+            throw new InvalidTokenException(VerificationErrorMessages.INVALID_TOKEN_PURPOSE_PASSWORD_RESET);
         }
 
         User user = vt.getUser();
 
         // Check if the new password is the same as the current password
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            throw new SamePasswordException("New password cannot be the same as the old password.");
+            throw new SamePasswordException(VerificationErrorMessages.SAME_PASSWORD);
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
