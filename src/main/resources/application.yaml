@@ -25,7 +25,7 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
       mail.smtp.ssl.trust: smtp.gmail.com
-      mail.debug: true
+      mail.debug: false
   security:
     oauth2:
       client:

@@ -12,8 +12,10 @@ public interface VerificationTokenService {
 
     Optional<VerificationToken> findByToken(String token);
 
+    Optional<VerificationToken> findByCode(String code);
+
     boolean isTokenValid(String token);
 
-    void revokeToken(String token);
+    void revokeToken(VerificationToken token);
 
 }

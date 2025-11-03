@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
+import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
 
@@ -37,8 +38,8 @@ public class LogoutService implements LogoutHandler {
         accessTokenService.findByToken(jwtToken).ifPresent(token -> {
             accessTokenService.revokeToken(jwtToken);
 
-            String refreshToken = token.getRefreshToken().getToken();
-            if (refreshToken != null && !refreshToken.isBlank()) {
+            RefreshToken refreshToken = token.getRefreshToken();
+            if (refreshToken != null) {
                 refreshTokenService.revokeToken(refreshToken);
             }
 

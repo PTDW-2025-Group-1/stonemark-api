@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.request.PasswordResetRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +26,6 @@ public class PasswordServiceImpl implements PasswordService {
     @Override
     public void setPassword(User user, PasswordSetRequestDto request) {
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        userService.update(user);
-    }
-
-    @Override
-    public void resetPassword(User user, PasswordResetRequest request) {
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userService.update(user);
     }
 }

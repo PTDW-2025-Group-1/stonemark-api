@@ -19,6 +19,9 @@ public class VerificationToken extends BaseToken {
     @Enumerated(EnumType.STRING)
     private VerificationTokenPurpose purpose;
 
+    @Column(unique = true)
+    private String code;
+
     private Instant usedAt;
 
 }

@@ -1,5 +1,6 @@
 package pt.estga.stonemark.services.security.verification.processing;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
@@ -7,16 +8,18 @@ import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import java.util.Optional;
 
 @Component
-public class TwoFactorAuthenticationProcessor implements VerificationProcessor {
+@RequiredArgsConstructor
+public class PasswordResetConfirmationProcessor implements VerificationProcessor {
 
     @Override
     public Optional<String> process(VerificationToken token) {
-        // TODO: Implement 2FA logic.
-        throw new UnsupportedOperationException("2FA functionality is not yet implemented.");
+        // For password reset, we just validate the token and return it.
+        // The actual password change and token revocation happens via the /reset-password endpoint.
+        return Optional.of(token.getToken());
     }
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.TWO_FACTOR_AUTHENTICATION;
+        return VerificationTokenPurpose.PASSWORD_RESET;
     }
 }

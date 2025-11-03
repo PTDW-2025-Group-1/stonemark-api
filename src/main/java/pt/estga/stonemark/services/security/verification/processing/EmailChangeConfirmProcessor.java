@@ -11,6 +11,9 @@ import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.email.EmailService;
+import pt.estga.stonemark.services.security.token.VerificationTokenService;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -19,9 +22,10 @@ public class EmailChangeConfirmProcessor implements VerificationProcessor {
     private final EmailChangeRequestRepository emailChangeRequestRepository;
     private final UserService userService;
     private final EmailService emailService;
+    private final VerificationTokenService verificationTokenService;
 
     @Override
-    public void process(VerificationToken token) {
+    public Optional<String> process(VerificationToken token) {
         EmailChangeRequest emailChangeRequest = emailChangeRequestRepository.findByVerificationToken(token)
                 .orElseThrow(() -> new InvalidTokenException("Email change request not found."));
 
@@ -39,6 +43,9 @@ public class EmailChangeConfirmProcessor implements VerificationProcessor {
         userService.update(user);
 
         emailChangeRequestRepository.delete(emailChangeRequest);
+        verificationTokenService.revokeToken(token);
+
+        return Optional.empty();
     }
 
     @Override

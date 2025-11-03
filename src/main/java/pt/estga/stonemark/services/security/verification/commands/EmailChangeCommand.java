@@ -1,5 +1,6 @@
 package pt.estga.stonemark.services.security.verification.commands;
 
+import lombok.RequiredArgsConstructor;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.request.EmailChangeRequest;
 import pt.estga.stonemark.entities.token.VerificationToken;
@@ -10,6 +11,7 @@ import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.security.token.VerificationTokenService;
 import pt.estga.stonemark.services.security.verification.VerificationEmailService;
 
+@RequiredArgsConstructor
 public class EmailChangeCommand implements VerificationCommand {
 
     private final User user;
@@ -18,15 +20,6 @@ public class EmailChangeCommand implements VerificationCommand {
     private final VerificationEmailService verificationEmailService;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
     private final UserService userService;
-
-    public EmailChangeCommand(User user, String newEmail, VerificationTokenService verificationTokenService, VerificationEmailService verificationEmailService, EmailChangeRequestRepository emailChangeRequestRepository, UserService userService) {
-        this.user = user;
-        this.newEmail = newEmail;
-        this.verificationTokenService = verificationTokenService;
-        this.verificationEmailService = verificationEmailService;
-        this.emailChangeRequestRepository = emailChangeRequestRepository;
-        this.userService = userService;
-    }
 
     @Override
     public void execute() {

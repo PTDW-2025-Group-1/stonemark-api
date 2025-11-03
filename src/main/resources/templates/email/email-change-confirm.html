@@ -7,7 +7,7 @@
 <body>
     <p>Please click the link below to confirm your new email address.</p>
     <p>Confirmation Link: <a th:href="${link}" th:text="${link}"></a></p>
-    <p>If the link doesn't work, you can go to the email change confirmation page and enter the following token:<br><strong th:text="${token}"></strong></p>
-    <p>This token will expire in <span th:text="${expiration}"></span> minutes. If you did not request this, please ignore this email.</p>
+    <p>If the link doesn't work, you can use the following 6-character code on the email change confirmation page:<br><strong th:text="${code}"></strong></p>
+    <p>This link and code will expire in <span th:text="${expiration}"></span> minutes. If you did not request this, please ignore this email.</p>
 </body>
 </html>

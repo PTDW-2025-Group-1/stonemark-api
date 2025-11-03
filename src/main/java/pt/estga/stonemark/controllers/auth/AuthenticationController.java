@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.auth.*;
+import pt.estga.stonemark.enums.ConfirmationStatus;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.services.security.auth.AuthenticationService;
 import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
@@ -55,14 +56,32 @@ public class AuthenticationController {
     }
 
     @GetMapping("/confirm")
-    public ResponseEntity<?> confirm(@RequestParam("token") String token) {
-        verificationProcessingService.processTokenConfirmation(token);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ConfirmationResponseDto> confirmToken(@RequestParam("token") String token) {
+        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(token);
+        if (ConfirmationStatus.ERROR.equals(response.status())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/confirm-code")
+    public ResponseEntity<ConfirmationResponseDto> confirmCode(@RequestBody CodeConfirmationRequestDto request) {
+        ConfirmationResponseDto response = verificationProcessingService.processCodeConfirmation(request.code());
+        if (ConfirmationStatus.ERROR.equals(response.status())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/request-password-reset")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
         authService.requestPasswordReset(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
+        authService.resetPassword(request);
         return ResponseEntity.ok().build();
     }
 }

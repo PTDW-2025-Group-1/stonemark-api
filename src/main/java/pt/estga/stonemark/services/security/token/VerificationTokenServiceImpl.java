@@ -1,6 +1,7 @@
 package pt.estga.stonemark.services.security.token;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.User;
@@ -37,9 +38,15 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     public VerificationToken createAndSaveToken(User user, VerificationTokenPurpose purpose) {
         long expirationMillis = getExpirationMillisFor(purpose);
         String token = UUID.randomUUID().toString();
+        
+        String code;
+        do {
+            code = RandomStringUtils.randomAlphanumeric(6).toUpperCase();
+        } while (verificationTokenRepository.findByCodeAndRevokedFalse(code).isPresent());
 
         VerificationToken vt = VerificationToken.builder()
                 .token(token)
+                .code(code)
                 .user(user)
                 .purpose(purpose)
                 .expiresAt(Instant.now().plusMillis(expirationMillis))
@@ -50,7 +57,12 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
 
     @Override
     public Optional<VerificationToken> findByToken(String token) {
-        return verificationTokenRepository.findByToken(token);
+        return verificationTokenRepository.findByTokenAndRevokedFalse(token);
+    }
+
+    @Override
+    public Optional<VerificationToken> findByCode(String code) {
+        return verificationTokenRepository.findByCodeAndRevokedFalse(code);
     }
 
     @Override
@@ -61,11 +73,9 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     }
 
     @Override
-    public void revokeToken(String token) {
-        findByToken(token).ifPresent(t -> {
-            t.setRevoked(true);
-            verificationTokenRepository.save(t);
-        });
+    public void revokeToken(VerificationToken token) {
+        token.setRevoked(true);
+        verificationTokenRepository.save(token);
     }
 
     private long getExpirationMillisFor(VerificationTokenPurpose purpose) {

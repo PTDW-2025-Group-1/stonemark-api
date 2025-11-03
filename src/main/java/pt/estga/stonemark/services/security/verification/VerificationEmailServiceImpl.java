@@ -36,6 +36,7 @@ public class VerificationEmailServiceImpl implements VerificationEmailService {
         Map<String, Object> properties = provider.getProperties(remainingMillis);
         properties.put("link", link);
         properties.put("token", token.getToken());
+        properties.put("code", token.getCode());
 
         Email email = Email.builder()
                 .to(to)

@@ -21,4 +21,10 @@ public interface AuthenticationService {
 
     void requestPasswordReset(PasswordResetRequestDto passwordResetRequestDto);
 
+    void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
+
+    void logoutFromAllDevices(User user);
+
+    void logoutFromAllOtherDevices(User user, String currentToken);
+
 }

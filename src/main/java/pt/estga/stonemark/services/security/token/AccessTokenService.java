@@ -1,8 +1,10 @@
 package pt.estga.stonemark.services.security.token;
 
+import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.token.AccessToken;
 import pt.estga.stonemark.entities.token.RefreshToken;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AccessTokenService {
@@ -18,5 +20,7 @@ public interface AccessTokenService {
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
     AccessToken createToken(String username, String tokenValue, RefreshToken refreshToken);
+
+    void revokeAllByUser(User user);
 
 }

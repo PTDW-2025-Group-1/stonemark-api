@@ -1,10 +1,17 @@
 package pt.estga.stonemark.services.security.verification;
 
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.stonemark.dtos.auth.ConfirmationResponseDto;
 
 public interface VerificationProcessingService {
 
     @Transactional
-    void processTokenConfirmation(String token);
+    ConfirmationResponseDto processTokenConfirmation(String token);
+
+    @Transactional
+    ConfirmationResponseDto processCodeConfirmation(String code);
+
+    @Transactional
+    void processPasswordReset(String token, String newPassword);
 
 }

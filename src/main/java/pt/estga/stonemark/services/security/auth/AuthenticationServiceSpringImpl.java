@@ -16,17 +16,21 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.config.JwtService;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.entities.User;
+import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.enums.Role;
+import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.UserService;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
+import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
 import pt.estga.stonemark.services.security.verification.commands.VerificationCommandFactory;
 import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -44,6 +48,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final VerificationInitiationService verificationInitiationService;
     private final VerificationCommandFactory verificationCommandFactory;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
+    private final VerificationProcessingService verificationProcessingService;
 
     @Value("${application.security.email-verification-required:true}")
     private boolean emailVerificationRequired;
@@ -59,7 +64,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new IllegalArgumentException("email must not be null or blank");
         }
         if (userService.existsByEmail(email)) {
-            throw new IllegalArgumentException("email already in use");
+            throw new EmailAlreadyTakenException("email already in use");
         }
 
         User parsedUser = mapper.registerRequestToUser(request);
@@ -136,9 +141,15 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public void requestPasswordReset(PasswordResetRequestDto request) {
         User user = userService.findByEmail(request.email())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        var command = verificationCommandFactory.createPasswordResetCommand(user, request.newPassword());
+        var command = verificationCommandFactory.createPasswordResetCommand(user);
         verificationInitiationService.initiate(command);
     }
+
+    @Override
+    public void resetPassword(ResetPasswordRequestDto request) {
+        verificationProcessingService.processPasswordReset(request.token(), request.newPassword());
+    }
+
 
     @Override
     @Transactional
@@ -169,10 +180,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                     });
 
             if (emailVerificationRequired && !user.isEnabled()) {
-                // If email verification is required and the user is not enabled,
-                                // and it's a new user, send a verification email.
-                // If it's an existing user who isn't enabled, they should have already received one.
-                // For simplicity, we'll just throw the exception here.
                 throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
             }
 
@@ -190,5 +197,19 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
         user.setGoogleId(null);
         userService.update(user);
+    }
+
+    @Override
+    public void logoutFromAllDevices(User user) {
+        refreshTokenService.revokeAllByUser(user);
+        accessTokenService.revokeAllByUser(user);
+    }
+
+    @Override
+    public void logoutFromAllOtherDevices(User user, String currentToken) {
+        List<RefreshToken> refreshTokens = refreshTokenService.findAllValidByUser(user);
+        refreshTokens.removeIf(token -> token.getToken().equals(currentToken));
+        refreshTokenService.revokeAll(refreshTokens);
+        accessTokenService.revokeAllByUser(user);
     }
 }

@@ -3,6 +3,7 @@ package pt.estga.stonemark.services.security.token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.token.AccessToken;
 import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.repositories.UserRepository;
@@ -10,6 +11,7 @@ import pt.estga.stonemark.repositories.token.AccessTokenRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -65,5 +67,12 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     return accessTokenRepository.save(accessToken);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    @Override
+    public void revokeAllByUser(User user) {
+        List<AccessToken> accessTokens = accessTokenRepository.findAllByUser(user);
+        accessTokens.forEach(t -> t.setRevoked(true));
+        accessTokenRepository.saveAll(accessTokens);
     }
 }
