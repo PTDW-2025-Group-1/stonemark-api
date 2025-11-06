@@ -112,10 +112,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
         var user = userService.findByEmail(request.email()).orElseThrow();
 
-        if (emailVerificationRequired && !user.isEnabled()) {
-            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-        }
-
         return generateAuthenticationResponse(user);
     }
 
@@ -160,24 +156,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                 return Optional.empty();
             }
             GoogleIdToken.Payload payload = idToken.getPayload();
-            String email = payload.getEmail();
-            String googleId = payload.getSubject();
-
-            User user = userService.findByEmail(email)
-                    .map(existingUser -> {
-                        existingUser.setGoogleId(googleId);
-                        return userService.update(existingUser);
-                    })
-                    .orElseGet(() -> {
-                        User newUser = new User();
-                        newUser.setEmail(email);
-                        newUser.setFirstName((String) payload.get("given_name"));
-                        newUser.setLastName((String) payload.get("family_name"));
-                        newUser.setRole(Role.USER);
-                        newUser.setEnabled(!emailVerificationRequired); // Set enabled based on config
-                        newUser.setGoogleId(googleId);
-                        return userService.create(newUser);
-                    });
+            User user = upsertUserFromGooglePayload(payload);
 
             if (emailVerificationRequired && !user.isEnabled()) {
                 throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
@@ -186,13 +165,35 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return generateAuthenticationResponse(user);
         } catch (GeneralSecurityException | IOException e) {
             log.error("Error while authenticating with Google", e);
-            return Optional.empty();
+            throw new RuntimeException("Google authentication failed.", e);
         }
+    }
+
+    private User upsertUserFromGooglePayload(GoogleIdToken.Payload payload) {
+        String email = payload.getEmail();
+        String googleId = payload.getSubject();
+
+        return userService.findByEmail(email)
+                .map(existingUser -> {
+                    existingUser.setGoogleId(googleId);
+                    return userService.update(existingUser);
+                })
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .email(email)
+                            .firstName((String) payload.get("given_name"))
+                            .lastName((String) payload.get("family_name"))
+                            .role(Role.USER)
+                            .enabled(!emailVerificationRequired)
+                            .googleId(googleId)
+                            .build();
+                    return userService.create(newUser);
+                });
     }
 
     @Override
     public void disconnectGoogle(User user) {
-                if (user.getPassword() == null) {
+        if (user.getPassword() == null) {
             throw new IllegalStateException("You must set a password before disconnecting your Google account.");
         }
         user.setGoogleId(null);
@@ -207,9 +208,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     public void logoutFromAllOtherDevices(User user, String currentToken) {
-        List<RefreshToken> refreshTokens = refreshTokenService.findAllValidByUser(user);
-        refreshTokens.removeIf(token -> token.getToken().equals(currentToken));
-        refreshTokenService.revokeAll(refreshTokens);
-        accessTokenService.revokeAllByUser(user);
+        List<RefreshToken> otherRefreshTokens = refreshTokenService.findAllValidByUser(user);
+        otherRefreshTokens.removeIf(token -> token.getToken().equals(currentToken));
+
+        otherRefreshTokens.forEach(accessTokenService::revokeAllByRefreshToken);
+        refreshTokenService.revokeAll(otherRefreshTokens);
     }
 }

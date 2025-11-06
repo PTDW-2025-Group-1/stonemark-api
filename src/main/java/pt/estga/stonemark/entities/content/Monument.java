@@ -2,7 +2,6 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pt.estga.stonemark.entities.AuditableEntity;
 
 @Entity
 @NoArgsConstructor
@@ -10,7 +9,7 @@ import pt.estga.stonemark.entities.AuditableEntity;
 @Getter
 @Setter
 @Builder
-public class Monument extends ContentEntity {
+public class Monument extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -21,8 +20,4 @@ public class Monument extends ContentEntity {
     private Double latitude;
     private Double longitude;
 
-    @Override
-    public String getDisplayName() {
-        return name;
-    }
 }

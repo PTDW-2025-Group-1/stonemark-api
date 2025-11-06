@@ -3,7 +3,6 @@ package pt.estga.stonemark.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import pt.estga.stonemark.entities.content.MarkOccurrence;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
 

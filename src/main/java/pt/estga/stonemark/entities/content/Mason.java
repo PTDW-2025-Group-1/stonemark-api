@@ -2,7 +2,6 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pt.estga.stonemark.entities.AuditableEntity;
 
 import java.util.Date;
 
@@ -12,7 +11,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Builder
-public class Mason extends ContentEntity {
+public class Mason extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -26,8 +25,4 @@ public class Mason extends ContentEntity {
     private Date deathDate;
     private String biography;
 
-    @Override
-    public String getDisplayName() {
-        return fullName;
-    }
 }

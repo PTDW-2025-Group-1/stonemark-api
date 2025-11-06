@@ -2,12 +2,9 @@ package pt.estga.stonemark.entities.content;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pt.estga.stonemark.entities.AuditableEntity;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.enums.MarkCategory;
 import pt.estga.stonemark.enums.MarkShape;
-
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -15,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Mark extends ContentEntity {
+public class Mark extends AuditableEntity {
 
     @Id
     @GeneratedValue
@@ -32,8 +29,4 @@ public class Mark extends ContentEntity {
     @OneToOne
     private MediaFile cover;
 
-    @Override
-    public String getDisplayName() {
-        return title;
-    }
 }
