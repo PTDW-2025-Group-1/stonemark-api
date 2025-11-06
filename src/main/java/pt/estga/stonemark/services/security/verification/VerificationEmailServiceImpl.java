@@ -25,7 +25,7 @@ public class VerificationEmailServiceImpl implements VerificationEmailService {
 
     @Override
     public void sendVerificationEmail(String to, VerificationToken token) {
-                EmailContentProvider provider = emailContentProviderFactory.getProvider(token.getPurpose());
+        EmailContentProvider provider = emailContentProviderFactory.getProvider(token.getPurpose());
         if (provider == null) {
             throw new IllegalArgumentException("No EmailContentProvider found for token purpose: " + token.getPurpose());
         }

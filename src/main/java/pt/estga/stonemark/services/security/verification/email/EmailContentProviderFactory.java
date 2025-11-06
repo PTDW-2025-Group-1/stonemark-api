@@ -19,7 +19,7 @@ public class EmailContentProviderFactory {
     }
 
     public EmailContentProvider getProvider(VerificationTokenPurpose purpose) {
-                EmailContentProvider provider = providers.get(purpose);
+        EmailContentProvider provider = providers.get(purpose);
         if (provider == null) {
             throw new IllegalArgumentException("No EmailContentProvider found for purpose: " + purpose);
         }

@@ -19,7 +19,7 @@ public class VerificationProcessorFactory {
     }
 
     public VerificationProcessor getProcessor(VerificationTokenPurpose purpose) {
-                VerificationProcessor processor = processors.get(purpose);
+        VerificationProcessor processor = processors.get(purpose);
         if (processor == null) {
             throw new IllegalArgumentException("No VerificationProcessor found for purpose: " + purpose);
         }

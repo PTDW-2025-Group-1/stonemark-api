@@ -112,6 +112,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
         var user = userService.findByEmail(request.email()).orElseThrow();
 
+        if (emailVerificationRequired && !user.isEnabled()) {
+            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
+        }
+
         return generateAuthenticationResponse(user);
     }
 
