@@ -1,18 +1,32 @@
 package pt.estga.stonemark.entities.content;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.*;
+import pt.estga.stonemark.entities.MediaFile;
+import pt.estga.stonemark.enums.MarkCategory;
+import pt.estga.stonemark.enums.MarkShape;
 
 @Entity
-public class Mark {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
+public class Mark extends AuditableEntity {
+
     @Id
     @GeneratedValue
     private Long id;
-    private Long guildId;
-    private Long monumentId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    private MarkCategory category;
+
+    @Enumerated(EnumType.STRING)
+    private MarkShape shape;
+
+    @OneToOne
+    private MediaFile cover;
+
 }

@@ -1,11 +1,21 @@
 package pt.estga.stonemark.entities;
 
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import pt.estga.stonemark.enums.StorageProvider;
+import pt.estga.stonemark.enums.TargetType;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
 public class MediaFile {
+
     @Id
     @GeneratedValue
     private Long id;
@@ -15,9 +25,6 @@ public class MediaFile {
 
     @Column
     private String originalFileName;
-
-    @Column(length = 100)
-    private String contentType;
 
     private Long size;
 
@@ -44,19 +51,7 @@ public class MediaFile {
     @Column(nullable = false)
     private int sortOrder;
 
-    @Column(nullable = false)
-    private LocalDateTime uploadedAt;
+    @CreationTimestamp
+    private Instant uploadedAt;
 
-    @PrePersist
-    void onCreate() {
-        uploadedAt = LocalDateTime.now();
-    }
-
-    public enum TargetType {
-        MONUMENT, MARK, GUILD, MASON
-    }
-
-    public enum StorageProvider {
-        LOCAL, AZURE
-    }
 }

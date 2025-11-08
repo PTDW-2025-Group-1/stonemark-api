@@ -1,17 +1,22 @@
 package pt.estga.stonemark.entities.content;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.*;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-public class Mason {
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
+public class Mason extends AuditableEntity {
+
     @Id
     @GeneratedValue
     private Long id;
+
     private String firstName;
     private String lastName;
     private String fullName;
@@ -19,7 +24,5 @@ public class Mason {
     private Date birthDate;
     private Date deathDate;
     private String biography;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-}
 
+}

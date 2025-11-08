@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Factor Authentication</title>
+</head>
+<body>
+    <p>Your two-factor authentication link is below.</p>
+        <p>2FA Link: <a th:href="${link}">Click here</a></p>
+    <p>If the link doesn't work, you can go to the 2FA page and enter the following token:<br><strong th:text="${token}"></strong></p>
+    <p>This token will expire in <span th:text="${expiration}"></span> minutes.</p>
+</body>
+</html>

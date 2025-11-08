@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stonemark
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_ADDRESS}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.trust: smtp.gmail.com
+      mail.debug: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+  flyway:
+    enabled: false
+
+storage:
+  local:
+    root-path: uploads
+
+logging:
+  level:
+    org.springframework: INFO
+    pt.estga: DEBUG
+
+application:
+  base-url: http://localhost:8080
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      access-token:
+        expiration: 900000 # 15 minutes
+      refresh-token:
+        expiration: 2592000000 # 30 days
+      email-verification-token:
+        expiration: 86400000 # 24 hours
+      two-factor-authentication-token:
+        expiration: 3600000 # 1 hour
+      password-reset-token:
+        expiration: 3600000 # 1 hour
+      email-change-request-token:
+        expiration: 900000 # 15 minutes
+      email-change-confirm-token:
+        expiration: 900000 # 15 minutes
+    email-verification-required: false
