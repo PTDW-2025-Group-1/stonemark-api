@@ -3,6 +3,7 @@ package pt.estga.stonemark.services.security.token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.entities.token.AccessToken;
 import pt.estga.stonemark.entities.token.RefreshToken;
@@ -26,7 +27,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 
     @Override
     public Optional<AccessToken> findByToken(String token) {
-        return accessTokenRepository.findByToken(token);
+        return accessTokenRepository.findByTokenWithRefreshToken(token);
     }
 
     @Override
@@ -37,6 +38,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
+    @Transactional
     public void revokeToken(String token) {
         findByToken(token).ifPresent(t -> {
             t.setRevoked(true);

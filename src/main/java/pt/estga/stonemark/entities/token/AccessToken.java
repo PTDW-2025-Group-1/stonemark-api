@@ -15,7 +15,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
 public class AccessToken extends BaseToken {
 
     @ManyToOne(fetch = FetchType.LAZY)

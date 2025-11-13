@@ -12,7 +12,7 @@ import pt.estga.stonemark.enums.MarkShape;
 @Getter
 @Setter
 @Builder
-public class Mark extends AuditableEntity {
+public class Mark extends AuditableContentEntity {
 
     @Id
     @GeneratedValue

@@ -14,7 +14,6 @@ import java.time.Instant;
 @Getter
 @Setter
 @SuperBuilder
-@EqualsAndHashCode
 public abstract class BaseToken {
 
     @Id

@@ -14,7 +14,7 @@ import java.time.Instant;
 @MappedSuperclass
 @Getter
 @EntityListeners(AuditingEntityListener.class)
-public abstract class AuditableEntity {
+public abstract class AuditableContentEntity {
 
     @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)

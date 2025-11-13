@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
@@ -22,6 +23,7 @@ public class LogoutService implements LogoutHandler {
     private final RefreshTokenService refreshTokenService;
 
     @Override
+    @Transactional
     public void logout(
             HttpServletRequest request,
             HttpServletResponse response,

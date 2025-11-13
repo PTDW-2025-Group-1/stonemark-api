@@ -16,6 +16,9 @@ public interface AccessTokenRepository extends BaseTokenRepository<AccessToken> 
     @Query("SELECT t FROM AccessToken t JOIN FETCH t.user WHERE t.token = :token")
     Optional<AccessToken> findByTokenWithUser(String token);
 
+    @Query("SELECT t FROM AccessToken t JOIN FETCH t.refreshToken WHERE t.token = :token")
+    Optional<AccessToken> findByTokenWithRefreshToken(String token);
+
     @Modifying
     @Query("UPDATE AccessToken t SET t.revoked = true WHERE t.refreshToken = :refreshToken")
     void revokeAllByRefreshToken(RefreshToken refreshToken);

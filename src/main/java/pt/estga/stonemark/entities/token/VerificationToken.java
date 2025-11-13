@@ -13,7 +13,6 @@ import java.time.Instant;
 @Getter
 @Setter
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true)
 public class VerificationToken extends BaseToken {
 
     @Enumerated(EnumType.STRING)

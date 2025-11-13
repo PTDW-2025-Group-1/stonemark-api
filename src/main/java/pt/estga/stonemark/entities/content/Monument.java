@@ -9,7 +9,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class Monument extends AuditableEntity {
+public class Monument extends AuditableContentEntity {
 
     @Id
     @GeneratedValue

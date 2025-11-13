@@ -34,6 +34,16 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"
     };
+    private static final  String[] ALLOWED_ORIGINS = {
+            "http://localhost:4200",
+            "http://localhost:4201",
+            "http://localhost:4202",
+            "http://localhost:4220",
+            "https://stonemark.pt",
+            "https://auth.stonemark.pt",
+            "https://account.stonemark.pt",
+            "https://staff.stonemark.pt"
+    };
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutService logoutService;
@@ -44,7 +54,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:4200", "https://staff.stonemark.pt"));
+                    config.setAllowedOrigins(List.of(ALLOWED_ORIGINS));
                     config.setAllowedMethods(List.of("*"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);

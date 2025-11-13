@@ -10,7 +10,7 @@ import pt.estga.stonemark.entities.MediaFile;
 @Getter
 @Setter
 @Builder
-public class MarkOccurrence extends AuditableEntity {
+public class MarkOccurrence extends AuditableContentEntity {
 
     @Id
     @GeneratedValue

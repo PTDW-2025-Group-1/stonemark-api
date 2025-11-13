@@ -28,6 +28,9 @@ public class MediaFile {
 
     private Long size;
 
+    @Column(columnDefinition = "TEXT")
+    private String metadata;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StorageProvider storageProvider;

@@ -11,7 +11,7 @@ import java.util.Date;
 @Getter
 @Setter
 @Builder
-public class Mason extends AuditableEntity {
+public class Mason extends AuditableContentEntity {
 
     @Id
     @GeneratedValue

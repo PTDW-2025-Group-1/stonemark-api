@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Guild extends AuditableEntity {
+public class Guild extends AuditableContentEntity {
 
     @Id
     @GeneratedValue
