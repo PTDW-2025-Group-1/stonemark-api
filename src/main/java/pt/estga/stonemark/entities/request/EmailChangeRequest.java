@@ -14,7 +14,7 @@ import pt.estga.stonemark.entities.token.VerificationToken;
 public class EmailChangeRequest {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)

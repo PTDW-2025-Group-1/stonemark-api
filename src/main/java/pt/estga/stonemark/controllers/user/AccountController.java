@@ -12,6 +12,7 @@ import pt.estga.stonemark.dtos.MessageResponseDto;
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.EmailChangeRequestDto;
 import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
+import pt.estga.stonemark.dtos.account.ProfileUpdateRequestDto;
 import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
@@ -40,9 +41,22 @@ public class AccountController {
         if (connectedUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
         return ResponseEntity.ok(mapper.toDto(connectedUser));
     }
+
+    @PutMapping("/account")
+    public ResponseEntity<?> updateAccount(
+            @Valid @RequestBody ProfileUpdateRequestDto request,
+            @AuthenticationPrincipal User connectedUser) {
+
+        if (connectedUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        userService.updateAccount(connectedUser, request);
+        return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
+    }
+
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(

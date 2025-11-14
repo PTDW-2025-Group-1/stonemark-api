@@ -15,13 +15,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VerificationEmailServiceImpl implements VerificationEmailService {
 
-    private static final String CONFIRM_PATH = "/api/v1/auth/confirm?token=";
+    private static final String CONFIRM_PATH = "/confirm?token=";
 
     private final EmailService emailService;
     private final EmailContentProviderFactory emailContentProviderFactory;
 
-    @Value("${application.base-url}")
-    private String backendBaseUrl;
+    @Value("${application.frontend-url}")
+    private String frontendBaseUrl;
 
     @Override
     public void sendVerificationEmail(String to, VerificationToken token) {
@@ -30,7 +30,7 @@ public class VerificationEmailServiceImpl implements VerificationEmailService {
             throw new IllegalArgumentException("No EmailContentProvider found for token purpose: " + token.getPurpose());
         }
 
-        String link = backendBaseUrl + CONFIRM_PATH + token.getToken();
+        String link = frontendBaseUrl + CONFIRM_PATH + token.getToken();
         long remainingMillis = token.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
 
         Map<String, Object> properties = provider.getProperties(remainingMillis);

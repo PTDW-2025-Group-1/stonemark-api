@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
+import pt.estga.stonemark.dtos.account.ProfileUpdateRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.exceptions.UserNotFoundException;
@@ -43,6 +44,14 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public User update(User user) {
         return repository.save(user);
+    }
+
+    @Override
+    public void updateAccount(User user, ProfileUpdateRequestDto requestDto) {
+        user.setFirstName(requestDto.firstName());
+        user.setLastName(requestDto.lastName());
+        user.setTelephone(requestDto.telephone());
+        repository.save(user);
     }
 
     @Override
