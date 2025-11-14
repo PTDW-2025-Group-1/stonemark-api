@@ -54,7 +54,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private boolean emailVerificationRequired;
 
     @Override
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(noRollbackFor = EmailVerificationRequiredException.class)
     public Optional<AuthenticationResponseDto> register(RegisterRequestDto request) {
         if (request == null) {
             throw new IllegalArgumentException("request must not be null");
