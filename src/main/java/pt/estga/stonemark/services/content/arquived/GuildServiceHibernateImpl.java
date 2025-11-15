@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.stonemark.services.content.arquived;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -40,6 +40,8 @@ public class SecurityConfig {
             "http://localhost:4202",
             "http://localhost:4220",
             "https://stonemark.pt",
+            "https://api.stonemark.pt",
+            "https://www.stonemark.pt",
             "https://auth.stonemark.pt",
             "https://account.stonemark.pt",
             "https://staff.stonemark.pt"

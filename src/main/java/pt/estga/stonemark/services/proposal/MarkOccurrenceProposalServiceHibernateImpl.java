@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.stonemark.services.proposal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService {
+public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenceProposalService {
 
     private final MarkOccurrenceRepository repository;
 
@@ -27,11 +27,6 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     public MarkOccurrence create(MarkOccurrence occurrence) {
-        return repository.save(occurrence);
-    }
-
-    @Override
-    public MarkOccurrence update(MarkOccurrence occurrence) {
         return repository.save(occurrence);
     }
 

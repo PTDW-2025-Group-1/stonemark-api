@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.content.Monument;
 import pt.estga.stonemark.repositories.content.MonumentRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,6 +24,26 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Override
     public Optional<Monument> findById(Long id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public Optional<Monument> findByName(String name) {
+        return repository.findByName(name);
+    }
+
+    @Override
+    public List<Monument> findByNameContaining(String name) {
+        return repository.findByNameContaining(name);
+    }
+
+    @Override
+    public Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude) {
+        return repository.findByLatitudeAndLongitude(latitude, longitude);
+    }
+
+    @Override
+    public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
+        return repository.findByCoordinatesInRange(latitude, longitude, range);
     }
 
     @Override

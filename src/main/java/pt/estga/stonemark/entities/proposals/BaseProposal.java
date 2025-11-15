@@ -1,20 +1,16 @@
 package pt.estga.stonemark.entities.proposals;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.ProposalStatus;
 import pt.estga.stonemark.enums.SubmissionSource;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -33,7 +29,7 @@ public abstract class BaseProposal extends AuditableProposalEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProposalStatus status = ProposalStatus.PENDING;
+    private ProposalStatus status = ProposalStatus.IN_PROGRESS;
 
     @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
@@ -46,5 +42,8 @@ public abstract class BaseProposal extends AuditableProposalEntity {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant submittedAt;
+
+    @OneToMany
+    private List<DecisionRecord> decisionRecords;
 
 }

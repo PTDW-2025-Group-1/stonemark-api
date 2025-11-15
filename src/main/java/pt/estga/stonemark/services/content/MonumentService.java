@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pt.estga.stonemark.entities.content.Monument;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MonumentService {
@@ -11,6 +12,14 @@ public interface MonumentService {
     Page<Monument> findAll(Pageable pageable);
 
     Optional<Monument> findById(Long id);
+
+    Optional<Monument> findByName(String name);
+
+    List<Monument> findByNameContaining(String name);
+
+    Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
+
+    List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range);
 
     Monument create(Monument monument);
 

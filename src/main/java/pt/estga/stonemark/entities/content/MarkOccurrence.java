@@ -16,11 +16,13 @@ public class MarkOccurrence extends AuditableContentEntity {
     @GeneratedValue
     private Long id;
 
-    private Long markId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Mark mark;
 
-    private Long monumentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Monument monument;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private MediaFile cover;
+    private MediaFile image;
 
 }

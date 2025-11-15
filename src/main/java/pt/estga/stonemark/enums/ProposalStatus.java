@@ -1,7 +1,11 @@
 package pt.estga.stonemark.enums;
 
 public enum ProposalStatus {
-    PENDING,
+    IN_PROGRESS,
+    AWAITING_MONUMENT_INFO,
+    AWAITING_MARK_INFO,
+    READY_TO_SUBMIT,
+    SUBMITTED,
     APPROVED,
     REJECTED
 }

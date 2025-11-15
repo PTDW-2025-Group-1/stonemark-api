@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.stonemark.services.content.arquived;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

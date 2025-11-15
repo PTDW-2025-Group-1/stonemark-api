@@ -29,6 +29,14 @@ public class OpenApiConfig {
     }
 
     @Bean
+    public GroupedOpenApi contributorApi() {
+        return GroupedOpenApi.builder()
+                .group("Contributor API")
+                .pathsToMatch("/api/v1/contributor/**")
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
                 .group("User API")
