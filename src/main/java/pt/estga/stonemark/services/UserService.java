@@ -2,6 +2,7 @@ package pt.estga.stonemark.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import pt.estga.stonemark.dtos.account.ProfileUpdateRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 
@@ -20,6 +21,8 @@ public interface UserService {
     User create(User user);
 
     User update(User user);
+
+    void updateAccount(User user, ProfileUpdateRequestDto requestDto);
 
     User updateRole(Long userId, Role newRole);
 
