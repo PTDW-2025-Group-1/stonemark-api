@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.services.UserService;
+import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.security.token.VerificationTokenService;
 import pt.estga.stonemark.services.security.verification.VerificationEmailService;
 

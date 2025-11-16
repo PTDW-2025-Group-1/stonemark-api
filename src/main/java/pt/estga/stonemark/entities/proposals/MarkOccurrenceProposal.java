@@ -6,7 +6,6 @@ import lombok.experimental.SuperBuilder;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.entities.content.Mark;
 import pt.estga.stonemark.entities.content.Monument;
-import pt.estga.stonemark.enums.ProposalStatus;
 
 @Entity
 @NoArgsConstructor
@@ -16,10 +15,7 @@ import pt.estga.stonemark.enums.ProposalStatus;
 @SuperBuilder
 public class MarkOccurrenceProposal extends BaseProposal {
 
-    @Enumerated(EnumType.STRING)
-    private ProposalStatus status;
-
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -28,20 +24,10 @@ public class MarkOccurrenceProposal extends BaseProposal {
     @ManyToOne(fetch = FetchType.LAZY)
     private Monument existingMonument;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "proposed_mark_name")),
-            @AttributeOverride(name = "description", column = @Column(name = "proposed_mark_description"))
-    })
-    private MarkData proposedMarkData;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProposedMark proposedMark;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "proposed_monument_name")),
-            @AttributeOverride(name = "description", column = @Column(name = "proposed_monument_description")),
-            @AttributeOverride(name = "latitude", column = @Column(name = "proposed_monument_latitude")),
-            @AttributeOverride(name = "longitude", column = @Column(name = "proposed_monument_longitude"))
-    })
-    private MonumentData proposedMonumentData;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProposedMonument proposedMonument;
 
 }

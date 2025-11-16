@@ -18,7 +18,7 @@ public abstract class AuditableContentEntity {
 
     @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(updatable = false)
+    @JoinColumn(updatable = false, nullable = true)
     protected User createdBy;
 
     @CreatedDate
@@ -27,7 +27,7 @@ public abstract class AuditableContentEntity {
 
     @LastModifiedBy
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn()
+    @JoinColumn(nullable = true)
     protected User lastModifiedBy;
 
     @LastModifiedDate

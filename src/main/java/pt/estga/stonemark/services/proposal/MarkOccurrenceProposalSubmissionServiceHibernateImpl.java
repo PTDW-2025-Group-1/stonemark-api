@@ -6,9 +6,11 @@ import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.entities.content.Mark;
 import pt.estga.stonemark.entities.content.Monument;
 import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
-import pt.estga.stonemark.entities.proposals.MonumentData;
+import pt.estga.stonemark.entities.proposals.ProposedMonument; // Corrected import
+import pt.estga.stonemark.models.Location; // Added import for Location
 import pt.estga.stonemark.repositories.MediaRepository;
 import pt.estga.stonemark.repositories.proposals.MarkOccurrenceProposalRepository;
+import pt.estga.stonemark.repositories.proposals.ProposedMonumentRepository; // Added import
 import pt.estga.stonemark.services.content.MonumentService;
 
 import java.util.List;
@@ -23,6 +25,7 @@ public class MarkOccurrenceProposalSubmissionServiceHibernateImpl implements Mar
     private final GpsExtractorService gpsExtractorService;
     private final MonumentService monumentService;
     private final MockMarkPatternSearchService markPatternSearchService;
+    private final ProposedMonumentRepository proposedMonumentRepository; // Injected repository
     private static final double COORDINATE_SEARCH_RANGE = 0.01; // Approx 1.11km
 
     @Override
@@ -30,7 +33,7 @@ public class MarkOccurrenceProposalSubmissionServiceHibernateImpl implements Mar
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(photo);
 
-        Optional<MonumentData> gpsData = gpsExtractorService.extractGpsData(photo);
+        Optional<Location> gpsData = gpsExtractorService.extractGpsData(photo); // Changed to Location
 
         Optional<Monument> foundMonument = Optional.empty();
 
@@ -54,21 +57,19 @@ public class MarkOccurrenceProposalSubmissionServiceHibernateImpl implements Mar
         if (foundMonument.isPresent()) {
             proposal.setExistingMonument(foundMonument.get());
         } else {
-            proposal.setProposedMonumentData(MonumentData.builder()
+            // Create and save ProposedMonument
+            ProposedMonument newProposedMonument = ProposedMonument.builder()
                     .name(monumentName)
                     .latitude(latitude)
                     .longitude(longitude)
-                    .build());
+                    .build();
+            newProposedMonument = proposedMonumentRepository.save(newProposedMonument);
+            proposal.setProposedMonument(newProposedMonument); // Set ProposedMonument
         }
 
         Optional<Mark> foundMark = markPatternSearchService.findMatchingMark(photo);
         foundMark.ifPresent(proposal::setExistingMark);
 
-        MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
-
-        photo.setTargetId(savedProposal.getId());
-        mediaRepository.save(photo);
-
-        return savedProposal;
+        return proposalRepository.save(proposal);
     }
 }

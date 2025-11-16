@@ -3,6 +3,8 @@ package pt.estga.stonemark.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
 
@@ -45,16 +47,11 @@ public class MediaFile {
     @Column(nullable = false, length = 20)
     private TargetType targetType;
 
-    @Column(nullable = false)
-    private Long targetId;
-
-    @Column(nullable = false)
-    private boolean primaryImage;
-
-    @Column(nullable = false)
-    private int sortOrder;
-
-    @CreationTimestamp
+    @CreatedDate
     private Instant uploadedAt;
+
+    @CreatedBy
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User uploadedBy;
 
 }

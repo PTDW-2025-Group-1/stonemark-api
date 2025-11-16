@@ -1,10 +1,10 @@
 package pt.estga.stonemark.services.file;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,6 +12,7 @@ import java.nio.file.*;
 import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "storage.provider", havingValue = "local", matchIfMissing = true)
 public class FileStorageServiceLocalImpl implements FileStorageService {
 
     private final Path rootPath;
@@ -27,8 +28,8 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
     }
 
     @Override
-    public String storeFile(MultipartFile file, String directory) {
-        if (file.isEmpty()) {
+    public String storeFile(byte[] fileData, String filename, String directory) {
+        if (fileData == null || fileData.length == 0) {
             throw new RuntimeException("Cannot store empty file");
         }
 
@@ -41,7 +42,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
             }
 
             // Generate safe unique filename
-            String originalName = file.getOriginalFilename();
+            String originalName = filename;
             String extension = "";
             if (originalName != null && originalName.contains(".")) {
                 extension = originalName.substring(originalName.lastIndexOf('.'));
@@ -51,7 +52,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
             Path targetPath = targetDir.resolve(newFileName).normalize();
 
             // Save file
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.write(targetPath, fileData, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             // Return relative path (for DB storage)
             return rootPath.relativize(targetPath).toString().replace("\\", "/");

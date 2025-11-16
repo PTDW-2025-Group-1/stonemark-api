@@ -2,7 +2,6 @@ package pt.estga.stonemark.services.file;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
@@ -18,18 +17,17 @@ public class MediaServiceSpringImpl implements MediaService {
     private final FileStorageService fileStorageService;
 
     @Override
-    public MediaFile save(MultipartFile file, TargetType targetType, Long targetId) throws IOException {
-        String directory = targetType.name().toLowerCase() + "/" + targetId;
-        String storagePath = fileStorageService.storeFile(file, directory);
+    public MediaFile save(byte[] fileData, String filename, TargetType targetType) throws IOException {
+        String directory = targetType.name().toLowerCase();
+        String storagePath = fileStorageService.storeFile(fileData, filename, directory);
 
         MediaFile media = MediaFile.builder()
-                .fileName(file.getOriginalFilename())
-                .originalFileName(file.getOriginalFilename())
-                .size(file.getSize())
+                .fileName(filename)
+                .originalFileName(filename)
+                .size((long) fileData.length)
                 .storageProvider(StorageProvider.LOCAL)
                 .storagePath(storagePath)
                 .targetType(targetType)
-                .targetId(targetId)
                 .build();
 
         return mediaRepository.save(media);

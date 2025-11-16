@@ -58,6 +58,10 @@ public class User implements UserDetails {
                     () -> Role.USER.name(),
                     () -> Role.REVIEWER.name()
             );
+            case CONTRIBUTOR -> List.of(
+                    () -> Role.USER.name(),
+                    () -> Role.CONTRIBUTOR.name()
+            );
             case USER -> List.of(
                     () -> Role.USER.name()
             );
@@ -96,7 +100,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && Objects.equals(googleId, user.googleId) && role == user.role && Objects.equals(createdAt, user.createdAt);

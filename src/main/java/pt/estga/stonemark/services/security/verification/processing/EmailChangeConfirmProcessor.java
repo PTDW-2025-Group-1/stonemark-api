@@ -9,7 +9,7 @@ import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
 import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.services.UserService;
+import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.email.EmailService;
 import pt.estga.stonemark.services.security.token.VerificationTokenService;
 

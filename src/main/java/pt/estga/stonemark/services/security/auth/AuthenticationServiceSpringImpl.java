@@ -21,7 +21,7 @@ import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
 import pt.estga.stonemark.mappers.UserMapper;
-import pt.estga.stonemark.services.UserService;
+import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
 import pt.estga.stonemark.services.security.verification.VerificationProcessingService;

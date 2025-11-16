@@ -1,12 +1,9 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
-import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
 import pt.estga.stonemark.dtos.account.ProfileUpdateRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;

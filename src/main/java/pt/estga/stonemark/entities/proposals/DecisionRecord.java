@@ -2,7 +2,13 @@ package pt.estga.stonemark.entities.proposals;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.DecisionType;
+
+import java.time.Instant;
 
 @Entity
 @NoArgsConstructor
@@ -10,7 +16,8 @@ import pt.estga.stonemark.enums.DecisionType;
 @Getter
 @Setter
 @Builder
-public class DecisionRecord extends AuditableProposalEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class DecisionRecord {
 
     @Id
     @GeneratedValue
@@ -19,9 +26,18 @@ public class DecisionRecord extends AuditableProposalEntity {
     @Enumerated(EnumType.STRING)
     private DecisionType decisionType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private BaseProposal baseProposal;
 
     private String comments;
+
+    @CreatedBy
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(updatable = false)
+    protected User createdBy;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    protected Instant createdAt;
 
 }

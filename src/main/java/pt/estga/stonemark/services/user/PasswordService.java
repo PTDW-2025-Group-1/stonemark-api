@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services;
+package pt.estga.stonemark.services.user;
 
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;

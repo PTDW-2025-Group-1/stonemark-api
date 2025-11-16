@@ -10,7 +10,7 @@ import pt.estga.stonemark.entities.token.VerificationToken;
 import pt.estga.stonemark.enums.VerificationTokenPurpose;
 import pt.estga.stonemark.exceptions.InvalidTokenException;
 import pt.estga.stonemark.exceptions.SamePasswordException;
-import pt.estga.stonemark.services.UserService;
+import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.security.token.VerificationTokenService;
 import pt.estga.stonemark.services.security.verification.processing.VerificationProcessor;
 import pt.estga.stonemark.services.security.verification.processing.VerificationProcessorFactory;

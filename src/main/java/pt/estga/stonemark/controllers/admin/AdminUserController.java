@@ -11,7 +11,7 @@ import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.mappers.UserMapper;
-import pt.estga.stonemark.services.UserService;
+import pt.estga.stonemark.services.user.UserService;
 
 @RestController
 @RequestMapping("/api/v1/admin/users")

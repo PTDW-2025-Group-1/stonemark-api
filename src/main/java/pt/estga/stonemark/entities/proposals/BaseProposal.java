@@ -5,24 +5,24 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.ProposalStatus;
 import pt.estga.stonemark.enums.SubmissionSource;
 
 import java.time.Instant;
-import java.util.List;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Inheritance
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @SuperBuilder
-public abstract class BaseProposal extends AuditableProposalEntity {
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseProposal {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String userNotes;
@@ -36,14 +36,11 @@ public abstract class BaseProposal extends AuditableProposalEntity {
 
     @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private User submittedBy;
+    @JoinColumn(updatable = false)
+    protected User createdBy;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private Instant submittedAt;
-
-    @OneToMany
-    private List<DecisionRecord> decisionRecords;
+    protected Instant createdAt;
 
 }

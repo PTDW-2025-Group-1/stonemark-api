@@ -45,16 +45,26 @@ spring:
     enabled: false
 
 storage:
+  storage:
+    provider: local # or minio
   local:
     root-path: uploads
+
+minio:
+  endpoint: http://localhost:9000
+  bucket-name: stonemark
+  access-key: access
+  secret-key: secret
 
 logging:
   level:
     org.springframework: INFO
+#    org.hibernate: DEBUG
     pt.estga: DEBUG
 
 application:
   base-url: http://localhost:8080
+  frontend-url: https://stonemark.pt
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}

@@ -19,12 +19,7 @@ public class Mark extends AuditableContentEntity {
     private Long id;
 
     private String title;
-
-    @Enumerated(EnumType.STRING)
-    private MarkCategory category;
-
-    @Enumerated(EnumType.STRING)
-    private MarkShape shape;
+    private String description;
 
     @OneToOne
     private MediaFile cover;
