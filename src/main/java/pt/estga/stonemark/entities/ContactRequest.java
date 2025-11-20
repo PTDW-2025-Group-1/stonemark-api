@@ -8,13 +8,12 @@ import pt.estga.stonemark.enums.ContactStatus;
 import java.time.Instant;
 
 @Entity
-@Table(name = "contact_messages")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class Contact {
+public class ContactRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

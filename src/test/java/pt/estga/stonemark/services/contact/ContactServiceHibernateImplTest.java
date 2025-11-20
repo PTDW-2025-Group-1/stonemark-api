@@ -9,10 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pt.estga.stonemark.dtos.contact.ContactRequestDto;
-import pt.estga.stonemark.entities.Contact;
+import pt.estga.stonemark.entities.ContactRequest;
 import pt.estga.stonemark.enums.ContactStatus;
 import pt.estga.stonemark.exceptions.ContactNotFoundException;
-import pt.estga.stonemark.repositories.ContactRepository;
+import pt.estga.stonemark.repositories.ContactRequestRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,13 +25,13 @@ import static org.mockito.Mockito.*;
 class ContactServiceHibernateImplTest {
 
     @Mock
-    private ContactRepository repository;
+    private ContactRequestRepository repository;
 
     @InjectMocks
     private ContactServiceHibernateImpl service;
 
     private ContactRequestDto requestDto;
-    private Contact testContact;
+    private ContactRequest testContact;
 
     @BeforeEach
     void setUp() {
@@ -42,7 +42,7 @@ class ContactServiceHibernateImplTest {
                 "Hello test message!"
         );
 
-        testContact = Contact.builder()
+        testContact = ContactRequest.builder()
                 .id(1L)
                 .name("John Doe")
                 .email("john@example.com")
@@ -57,20 +57,20 @@ class ContactServiceHibernateImplTest {
     @DisplayName("Should create a new contact message")
     void testCreateContact() {
         // Given
-        when(repository.save(any(Contact.class))).thenReturn(testContact);
+        when(repository.save(any(ContactRequest.class))).thenReturn(testContact);
 
         // When
-        Contact saved = service.create(requestDto);
+        ContactRequest saved = service.create(requestDto);
 
         // Then
         assertThat(saved).isNotNull();
         assertThat(saved.getName()).isEqualTo("John Doe");
         assertThat(saved.getEmail()).isEqualTo("john@example.com");
 
-        ArgumentCaptor<Contact> captor = ArgumentCaptor.forClass(Contact.class);
+        ArgumentCaptor<ContactRequest> captor = ArgumentCaptor.forClass(ContactRequest.class);
         verify(repository).save(captor.capture());
 
-        Contact captured = captor.getValue();
+        ContactRequest captured = captor.getValue();
 
         assertThat(captured.getStatus()).isEqualTo(ContactStatus.PENDING);
         assertThat(captured.getCreatedAt()).isNotNull();
@@ -81,10 +81,10 @@ class ContactServiceHibernateImplTest {
     void testFindAll() {
         when(repository.findAll()).thenReturn(List.of(testContact));
 
-        List<Contact> result = service.findAll();
+        List<ContactRequest> result = service.findAll();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
+        assertThat(result.getFirst().getId()).isEqualTo(1L);
 
         verify(repository).findAll();
     }
@@ -94,7 +94,7 @@ class ContactServiceHibernateImplTest {
     void testFindById() {
         when(repository.findById(1L)).thenReturn(Optional.of(testContact));
 
-        Optional<Contact> found = service.findById(1L);
+        Optional<ContactRequest> found = service.findById(1L);
 
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo("john@example.com");
@@ -104,9 +104,9 @@ class ContactServiceHibernateImplTest {
     @DisplayName("Should update contact status")
     void testUpdateStatus() {
         when(repository.findById(1L)).thenReturn(Optional.of(testContact));
-        when(repository.save(any(Contact.class))).thenReturn(testContact);
+        when(repository.save(any(ContactRequest.class))).thenReturn(testContact);
 
-        Contact updated = service.updateStatus(1L, ContactStatus.RESOLVED);
+        ContactRequest updated = service.updateStatus(1L, ContactStatus.RESOLVED);
 
         assertThat(updated.getStatus()).isEqualTo(ContactStatus.RESOLVED);
     }

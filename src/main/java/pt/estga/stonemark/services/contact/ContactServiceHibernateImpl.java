@@ -3,10 +3,10 @@ package pt.estga.stonemark.services.contact;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.contact.ContactRequestDto;
-import pt.estga.stonemark.entities.Contact;
+import pt.estga.stonemark.entities.ContactRequest;
 import pt.estga.stonemark.enums.ContactStatus;
 import pt.estga.stonemark.exceptions.ContactNotFoundException;
-import pt.estga.stonemark.repositories.ContactRepository;
+import pt.estga.stonemark.repositories.ContactRequestRepository;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,13 +14,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ContactServiceHibernateImpl implements ContactService {
+public class ContactServiceHibernateImpl implements ContactRequestService {
 
-    private final ContactRepository repository;
+    private final ContactRequestRepository repository;
 
     @Override
-    public Contact create(ContactRequestDto dto) {
-        Contact contact = new Contact();
+    public ContactRequest create(ContactRequestDto dto) {
+        ContactRequest contact = new ContactRequest();
 
         contact.setName(dto.name());
         contact.setEmail(dto.email());
@@ -33,18 +33,18 @@ public class ContactServiceHibernateImpl implements ContactService {
     }
 
     @Override
-    public List<Contact> findAll() {
+    public List<ContactRequest> findAll() {
         return repository.findAll();
     }
 
     @Override
-    public Optional<Contact> findById(Long id) {
+    public Optional<ContactRequest> findById(Long id) {
         return repository.findById(id);
     }
 
     @Override
-    public Contact updateStatus(Long id, ContactStatus status) {
-        Contact contact = repository.findById(id)
+    public ContactRequest updateStatus(Long id, ContactStatus status) {
+        ContactRequest contact = repository.findById(id)
                 .orElseThrow(() -> new ContactNotFoundException(id));
 
         contact.setStatus(status);

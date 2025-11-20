@@ -3,42 +3,42 @@ package pt.estga.stonemark.controllers.contact;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.stonemark.entities.Contact;
+import pt.estga.stonemark.entities.ContactRequest;
 import pt.estga.stonemark.enums.ContactStatus;
-import pt.estga.stonemark.services.contact.ContactService;
+import pt.estga.stonemark.services.contact.ContactRequestService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/moderator/contact")
+@RequestMapping("/api/v1/moderator/contact-requests")
 @RequiredArgsConstructor
 public class InternalContactController {
 
-    private final ContactService contactService;
+    private final ContactRequestService service;
 
     @GetMapping
-    public ResponseEntity<List<Contact>> getAll() {
-        return ResponseEntity.ok(contactService.findAll());
+    public ResponseEntity<List<ContactRequest>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Contact> getById(@PathVariable Long id) {
-        return contactService.findById(id)
+    public ResponseEntity<ContactRequest> getById(@PathVariable Long id) {
+        return service.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Contact> updateStatus(
+    public ResponseEntity<ContactRequest> updateStatus(
             @PathVariable Long id,
             @RequestParam ContactStatus status
     ) {
-        return ResponseEntity.ok(contactService.updateStatus(id, status));
+        return ResponseEntity.ok(service.updateStatus(id, status));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        contactService.delete(id);
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
