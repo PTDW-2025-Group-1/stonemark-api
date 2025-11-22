@@ -20,7 +20,7 @@ spring:
         ddl-auto: update
         show-sql: true
         format_sql: true
-        hbm2ddl.auto: validate
+        hbm2ddl.auto: update
     open-in-view: false
   h2:
     console:

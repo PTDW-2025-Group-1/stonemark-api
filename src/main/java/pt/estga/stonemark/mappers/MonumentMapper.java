@@ -10,4 +10,5 @@ public interface MonumentMapper {
     MonumentDto toDto(Monument monument);
 
     Monument toEntity(MonumentDto dto);
+
 }
