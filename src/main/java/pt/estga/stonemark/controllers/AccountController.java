@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.MessageResponseDto;
@@ -19,7 +20,6 @@ import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.user.PasswordService;
 import pt.estga.stonemark.services.user.UserService;
-import pt.estga.stonemark.services.security.auth.AuthenticationService;
 import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
 import pt.estga.stonemark.services.security.verification.commands.VerificationCommandFactory;
 
@@ -27,6 +27,7 @@ import pt.estga.stonemark.services.security.verification.commands.VerificationCo
 @RequestMapping("/api/v1/account")
 @RequiredArgsConstructor
 @Tag(name = "User Account", description = "Self-service operations for logged-in users.")
+@PreAuthorize("isAuthenticated()")
 public class AccountController {
 
     private final UserService userService;

@@ -15,6 +15,7 @@ public class Monument extends AuditableContentEntity {
     @GeneratedValue
     private Long id;
 
+    @Column(unique = true)
     private String name;
     private String description;
     private Double latitude;

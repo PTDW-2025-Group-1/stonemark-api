@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.entities.User;
 
-import java.security.Principal;
 import java.util.Optional;
 
 public interface AuthenticationService {

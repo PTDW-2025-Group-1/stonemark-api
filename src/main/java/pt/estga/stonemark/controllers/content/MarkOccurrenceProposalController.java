@@ -1,5 +1,6 @@
-package pt.estga.stonemark.controllers.proposals;
+package pt.estga.stonemark.controllers.content;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,9 @@ import pt.estga.stonemark.services.proposal.MarkOccurrenceProposalFlowService;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/contributor/proposals/mark-occurrences")
+@RequestMapping("/api/v1/proposals/mark-occurrences")
 @RequiredArgsConstructor
+@Tag(name = "Mark Occurrence Proposals", description = "Endpoints for mark occurrence proposals.")
 public class MarkOccurrenceProposalController {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;

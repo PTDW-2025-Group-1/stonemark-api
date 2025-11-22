@@ -1,5 +1,6 @@
 package pt.estga.stonemark.controllers.content;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,7 @@ import pt.estga.stonemark.services.content.MarkOccurrenceService;
 @RestController
 @RequestMapping("/api/v1/mark-occurrences")
 @RequiredArgsConstructor
+@Tag(name = "Mark Occurrences", description = "Endpoints for mark occurrences.")
 public class MarkOccurrenceController {
 
     private final MarkOccurrenceService service;

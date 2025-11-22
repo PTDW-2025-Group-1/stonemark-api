@@ -9,14 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.user.UserService;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Users Management", description = "User CRUD for other users.")
+@Tag(name = "Users", description = "Endpoints for managing users.")
 public class UserController {
 
     private final UserService service;

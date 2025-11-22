@@ -1,5 +1,6 @@
 package pt.estga.stonemark.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/contact-requests")
 @RequiredArgsConstructor
+@Tag(name = "Contact Requests", description = "Endpoints for contact requests.")
 public class ContactRequestController {
 
     private final ContactRequestService service;
