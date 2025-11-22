@@ -34,33 +34,17 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
+    public boolean existsByEmail(String email) {
+        return repository.findByEmail(email).isPresent();
+    }
+
+    @Override
     public User create(User user) {
         return repository.save(user);
     }
 
     @Override
     public User update(User user) {
-        return repository.save(user);
-    }
-
-    @Override
-    public void updateAccount(User user, ProfileUpdateRequestDto requestDto) {
-        user.setFirstName(requestDto.firstName());
-        user.setLastName(requestDto.lastName());
-        user.setTelephone(requestDto.telephone());
-        repository.save(user);
-    }
-
-    @Override
-    public boolean existsByEmail(String email) {
-        return repository.findByEmail(email).isPresent();
-    }
-
-    @Override
-    public User updateRole(Long userId, Role newRole) {
-        User user = repository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-        user.setRole(newRole);
         return repository.save(user);
     }
 

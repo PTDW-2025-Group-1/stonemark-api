@@ -1,16 +1,18 @@
 package pt.estga.stonemark.dtos.proposals;
 
+import lombok.Data;
 import pt.estga.stonemark.dtos.content.MarkDto;
 import pt.estga.stonemark.dtos.content.MonumentDto;
 import pt.estga.stonemark.dtos.file.MediaFileDto;
 import pt.estga.stonemark.enums.ProposalStatus;
 
-public record MarkOccurrenceProposalDto(
-        Long id,
-        ProposalStatus status,
-        MediaFileDto originalMediaFile,
-        MarkDto existingMark,
-        MonumentDto existingMonument,
-        ProposedMarkDto proposedMark,
-        ProposedMonumentDto proposedMonument
-) { }
+@Data
+public class MarkOccurrenceProposalDto {
+    private Long id;
+    private ProposalStatus status;
+    private MediaFileDto originalMediaFile;
+    private MonumentDto existingMonument;
+    private ProposedMonumentDto proposedMonument;
+    private MarkDto existingMark;
+    private ProposedMarkDto proposedMark;
+}

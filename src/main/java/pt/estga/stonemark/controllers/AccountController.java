@@ -1,4 +1,4 @@
-package pt.estga.stonemark.controllers.user;
+package pt.estga.stonemark.controllers;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,39 +24,30 @@ import pt.estga.stonemark.services.security.verification.VerificationInitiationS
 import pt.estga.stonemark.services.security.verification.commands.VerificationCommandFactory;
 
 @RestController
-@RequestMapping("/api/v1/user/account")
+@RequestMapping("/api/v1/account")
 @RequiredArgsConstructor
-@Tag(name = "User - Account", description = "Self-service operations for logged-in users.")
+@Tag(name = "User Account", description = "Self-service operations for logged-in users.")
 public class AccountController {
 
-    private final UserMapper mapper;
     private final UserService userService;
-    private final AuthenticationService authService;
+    private final UserMapper mapper;
     private final VerificationInitiationService verificationInitiationService;
     private final VerificationCommandFactory verificationCommandFactory;
     private final PasswordService passwordService;
 
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getPersonalInfo(@AuthenticationPrincipal User connectedUser) {
-        if (connectedUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    @GetMapping("/profile")
+    public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal User connectedUser) {
         return ResponseEntity.ok(mapper.toDto(connectedUser));
     }
 
-    @PutMapping("/account")
-    public ResponseEntity<?> updateAccount(
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
             @Valid @RequestBody ProfileUpdateRequestDto request,
-            @AuthenticationPrincipal User connectedUser) {
-
-        if (connectedUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        userService.updateAccount(connectedUser, request);
+            @AuthenticationPrincipal User user) {
+        mapper.update(user, request);
+        userService.update(user);
         return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
     }
-
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
@@ -76,7 +67,7 @@ public class AccountController {
 
     @DeleteMapping("/google")
     public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
-        authService.disconnectGoogle(user);
+
         return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
     }
 

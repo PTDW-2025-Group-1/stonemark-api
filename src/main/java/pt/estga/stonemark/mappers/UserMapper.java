@@ -1,6 +1,8 @@
 package pt.estga.stonemark.mappers;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import pt.estga.stonemark.dtos.account.ProfileUpdateRequestDto;
 import pt.estga.stonemark.dtos.auth.RegisterRequestDto;
 import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
@@ -10,6 +12,10 @@ public interface UserMapper {
 
     UserDto toDto(User user);
 
-    User registerRequestToUser(RegisterRequestDto request);
+    User toEntity(UserDto dto);
+
+    User registerRequestToEntity(RegisterRequestDto request);
+
+    void update(@MappingTarget User user, ProfileUpdateRequestDto dto);
 
 }

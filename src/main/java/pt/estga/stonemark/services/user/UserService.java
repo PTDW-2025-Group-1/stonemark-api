@@ -22,10 +22,6 @@ public interface UserService {
 
     User update(User user);
 
-    void updateAccount(User user, ProfileUpdateRequestDto requestDto);
-
-    User updateRole(Long userId, Role newRole);
-
     void deleteById(Long id);
 
 }

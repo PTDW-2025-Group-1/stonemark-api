@@ -2,7 +2,6 @@ package pt.estga.stonemark.services.security.auth;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.config.JwtService;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.entities.User;
@@ -50,11 +50,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final VerificationProcessingService verificationProcessingService;
 
-    @Value("${application.security.email-verification-required:true}")
+    @Value("${application.security.email-verification-required:false}")
     private boolean emailVerificationRequired;
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(noRollbackFor = EmailVerificationRequiredException.class)
+    @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
     public Optional<AuthenticationResponseDto> register(RegisterRequestDto request) {
         if (request == null) {
             throw new IllegalArgumentException("request must not be null");
@@ -67,7 +67,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new EmailAlreadyTakenException("email already in use");
         }
 
-        User parsedUser = mapper.registerRequestToUser(request);
+        User parsedUser = mapper.registerRequestToEntity(request);
         parsedUser.setPassword(passwordEncoder.encode(request.password()));
         if (parsedUser.getRole() == null) {
             parsedUser.setRole(Role.USER);
@@ -111,6 +111,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.empty();
         }
         var user = userService.findByEmail(request.email()).orElseThrow();
+
+        if (emailVerificationRequired && !user.isEnabled()) {
+            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
+        }
 
         return generateAuthenticationResponse(user);
     }
@@ -189,15 +193,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                             .build();
                     return userService.create(newUser);
                 });
-    }
-
-    @Override
-    public void disconnectGoogle(User user) {
-        if (user.getPassword() == null) {
-            throw new IllegalStateException("You must set a password before disconnecting your Google account.");
-        }
-        user.setGoogleId(null);
-        userService.update(user);
     }
 
     @Override

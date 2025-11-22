@@ -17,8 +17,6 @@ public interface AuthenticationService {
 
     Optional<AuthenticationResponseDto> authenticateWithGoogle(String googleToken);
 
-    void disconnectGoogle(User user);
-
     void requestPasswordReset(PasswordResetRequestDto passwordResetRequestDto);
 
     void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);

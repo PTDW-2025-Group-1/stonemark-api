@@ -48,9 +48,6 @@ public class JwtService {
 
     public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
-        if (userDetails instanceof User) {
-            extraClaims.put("role", ((User) userDetails).getRole().name());
-        }
         return buildToken(extraClaims, userDetails, accessTokenExpiration);
     }
 

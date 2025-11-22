@@ -22,6 +22,7 @@ public interface MarkOccurrenceProposalFlowService {
 
     ProposalStateDto submitProposal(Long proposalId);
 
-    ProposalStateDto rejectProposal(Long proposalId);
+    ProposalStateDto approveProposal(Long proposalId);
 
+    ProposalStateDto rejectProposal(Long proposalId);
 }

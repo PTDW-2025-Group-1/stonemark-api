@@ -6,12 +6,13 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
 import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
 import pt.estga.stonemark.entities.User;
+import pt.estga.stonemark.repositories.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class PasswordServiceImpl implements PasswordService {
 
-    private final UserService userService;
+    private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -20,12 +21,12 @@ public class PasswordServiceImpl implements PasswordService {
             throw new IllegalStateException("Incorrect old password.");
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        userService.update(user);
+        repository.save(user);
     }
 
     @Override
     public void setPassword(User user, PasswordSetRequestDto request) {
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        userService.update(user);
+        repository.save(user);
     }
 }

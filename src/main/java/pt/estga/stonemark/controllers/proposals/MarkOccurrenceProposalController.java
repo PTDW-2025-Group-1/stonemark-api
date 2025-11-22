@@ -1,4 +1,4 @@
-package pt.estga.stonemark.controllers.proposal;
+package pt.estga.stonemark.controllers.proposals;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import pt.estga.stonemark.services.proposal.MarkOccurrenceProposalFlowService;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/contributor/proposals/mark-occurrence")
+@RequestMapping("/api/v1/contributor/proposals/mark-occurrences")
 @RequiredArgsConstructor
 public class MarkOccurrenceProposalController {
 
@@ -70,6 +70,12 @@ public class MarkOccurrenceProposalController {
     @PostMapping("/{proposalId}/submit")
     public ResponseEntity<ProposalStateDto> submitProposal(@PathVariable Long proposalId) {
         ProposalStateDto state = proposalFlowService.submitProposal(proposalId);
+        return ResponseEntity.ok(state);
+    }
+
+    @PostMapping("/{proposalId}/approve")
+    public ResponseEntity<ProposalStateDto> approveProposal(@PathVariable Long proposalId) {
+        ProposalStateDto state = proposalFlowService.approveProposal(proposalId);
         return ResponseEntity.ok(state);
     }
 

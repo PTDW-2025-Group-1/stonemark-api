@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ContactServiceHibernateImpl implements ContactRequestService {
+public class ContactRequestServiceHibernateImpl implements ContactRequestService {
 
     private final ContactRequestRepository repository;
 

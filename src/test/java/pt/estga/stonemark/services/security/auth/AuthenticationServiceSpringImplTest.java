@@ -120,7 +120,7 @@ class AuthenticationServiceSpringImplTest {
                 .build();
 
         when(userService.existsByEmail(request.email())).thenReturn(false);
-        when(mapper.registerRequestToUser(request)).thenReturn(testUser); // Mapper returns a user, then we set password
+        when(mapper.registerRequestToEntity(request)).thenReturn(testUser); // Mapper returns a user, then we set password
         when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser); // userService.create returns the saved user
         when(verificationCommandFactory.createEmailVerificationCommand(any(User.class)))
@@ -135,7 +135,7 @@ class AuthenticationServiceSpringImplTest {
 
         // Then
         verify(userService).existsByEmail(request.email());
-        verify(mapper).registerRequestToUser(request);
+        verify(mapper).registerRequestToEntity(request);
         verify(passwordEncoder).encode(request.password());
 
         // Use ArgumentCaptor to verify the User object passed to userService.create
@@ -160,7 +160,7 @@ class AuthenticationServiceSpringImplTest {
                 .build();
 
         when(userService.existsByEmail(request.email())).thenReturn(false);
-        when(mapper.registerRequestToUser(request)).thenReturn(testUser);
+        when(mapper.registerRequestToEntity(request)).thenReturn(testUser);
         when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
@@ -181,7 +181,7 @@ class AuthenticationServiceSpringImplTest {
         assertThat(response.refreshToken()).isEqualTo("refreshTokenString");
 
         verify(userService).existsByEmail(request.email());
-        verify(mapper).registerRequestToUser(request);
+        verify(mapper).registerRequestToEntity(request);
         verify(passwordEncoder).encode(request.password());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);

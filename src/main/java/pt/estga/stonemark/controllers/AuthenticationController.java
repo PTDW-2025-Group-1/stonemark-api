@@ -1,4 +1,4 @@
-package pt.estga.stonemark.controllers.auth;
+package pt.estga.stonemark.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
