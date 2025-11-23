@@ -13,50 +13,58 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public GroupedOpenApi adminApi() {
+    public GroupedOpenApi auth() {
         return GroupedOpenApi.builder()
-                .group("Admin API")
-                .pathsToMatch("/api/v1/admin/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi moderatorApi() {
-        return GroupedOpenApi.builder()
-                .group("Moderator API")
-                .pathsToMatch("/api/v1/moderator/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi contributorApi() {
-        return GroupedOpenApi.builder()
-                .group("Contributor API")
-                .pathsToMatch("/api/v1/contributor/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi userApi() {
-        return GroupedOpenApi.builder()
-                .group("User API")
-                .pathsToMatch("/api/v1/user/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi authApi() {
-        return GroupedOpenApi.builder()
-                .group("Auth API")
+                .group("Authentication")
                 .pathsToMatch("/api/v1/auth/**")
                 .build();
     }
 
     @Bean
-    public GroupedOpenApi publicApi() {
+    public GroupedOpenApi account() {
         return GroupedOpenApi.builder()
-                .group("Public API")
-                .pathsToMatch("/api/v1/public/**")
+                .group("Account")
+                .pathsToMatch("/api/v1/account/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi users() {
+        return GroupedOpenApi.builder()
+                .group("Users")
+                .pathsToMatch("/api/v1/users/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi monuments() {
+        return GroupedOpenApi.builder()
+                .group("Monuments")
+                .pathsToMatch("/api/v1/monuments/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi marks() {
+        return GroupedOpenApi.builder()
+                .group("Marks")
+                .pathsToMatch("/api/v1/marks/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi markOccurrences() {
+        return GroupedOpenApi.builder()
+                .group("Mark Occurrences")
+                .pathsToMatch("/api/v1/mark-occurrences/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi contactRequests() {
+        return GroupedOpenApi.builder()
+                .group("Contact Requests")
+                .pathsToMatch("/api/v1/contact-requests/**")
                 .build();
     }
 
@@ -73,6 +81,6 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("StoneMark API")
                         .version("v1.0")
-                        .description("REST API for StoneMark system with Admin, Moderator, User, Auth, and Public zones."));
+                        .description("REST API for StoneMark application."));
     }
 }

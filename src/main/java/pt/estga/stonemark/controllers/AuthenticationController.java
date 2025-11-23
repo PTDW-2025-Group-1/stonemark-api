@@ -1,5 +1,6 @@
-package pt.estga.stonemark.controllers.auth;
+package pt.estga.stonemark.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import pt.estga.stonemark.services.security.verification.VerificationProcessingS
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
+@Tag(name = "Authentication", description = "Endpoints for user authentication.")
 public class AuthenticationController {
 
     private final AuthenticationService authService;

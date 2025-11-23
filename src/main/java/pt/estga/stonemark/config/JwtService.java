@@ -48,15 +48,11 @@ public class JwtService {
 
     public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
-        if (userDetails instanceof User) {
-            extraClaims.put("role", ((User) userDetails).getRole().name());
-        }
         return buildToken(extraClaims, userDetails, accessTokenExpiration);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("type", TokenType.REFRESH);
         return buildToken(extraClaims, userDetails, refreshTokenExpiration);
     }
 
@@ -65,11 +61,12 @@ public class JwtService {
             UserDetails userDetails,
             long expiration
     ) {
+        long current = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date(current))
+                .expiration(new Date(current + expiration))
                 .signWith(getSigningKey())
                 .compact();
     }

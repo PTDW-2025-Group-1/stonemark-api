@@ -1,4 +1,4 @@
-package pt.estga.stonemark.controllers.admin;
+package pt.estga.stonemark.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -9,44 +9,42 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.stonemark.dtos.user.UserDto;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.mappers.UserMapper;
 import pt.estga.stonemark.services.user.UserService;
 
 @RestController
-@RequestMapping("/api/v1/admin/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Admin - User Management", description = "Full user CRUD for administrators.")
-public class AdminUserController {
+@Tag(name = "Users", description = "Endpoints for managing users.")
+public class UserController {
 
     private final UserService service;
     private final UserMapper mapper;
 
     @GetMapping
-    public ResponseEntity<Page<User>> getAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+    public ResponseEntity<Page<UserDto>> getAll(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable Long id) {
+    public ResponseEntity<UserDto> getById(@PathVariable Long id) {
         return service.findById(id)
+                .map(mapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<User> create(@RequestBody User user) {
-        return ResponseEntity.ok(service.create(user));
+    public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
+        User user = mapper.toEntity(userDto);
+        return ResponseEntity.ok(mapper.toDto(service.create(user)));
     }
 
-    @PatchMapping("/{id}/role")
-    public ResponseEntity<UserDto> updateRole(
-            @PathVariable Long id,
-            @RequestParam Role newRole
-    ) {
-        User updatedUser = service.updateRole(id, newRole);
-        UserDto userDto = mapper.toDto(updatedUser);
-        return ResponseEntity.ok(userDto);
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto userDto) {
+        User user = mapper.toEntity(userDto);
+        user.setId(id);
+        return ResponseEntity.ok(mapper.toDto(service.update(user)));
     }
 
     @DeleteMapping("/{id}")

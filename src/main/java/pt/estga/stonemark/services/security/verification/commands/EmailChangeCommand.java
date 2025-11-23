@@ -29,6 +29,7 @@ public class EmailChangeCommand implements VerificationCommand {
 
         VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.EMAIL_CHANGE_REQUEST);
 
+        // Todo: get reed of EmailChangeRequest entity
         EmailChangeRequest emailChangeRequest = EmailChangeRequest.builder()
                 .user(user)
                 .newEmail(newEmail)

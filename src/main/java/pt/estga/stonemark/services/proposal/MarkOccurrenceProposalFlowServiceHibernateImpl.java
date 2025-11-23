@@ -222,6 +222,12 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     }
 
     @Override
+    public ProposalStateDto approveProposal(Long proposalId) {
+        // Todo: implement approveProposal
+        return null;
+    }
+
+    @Override
     @Transactional
     public ProposalStateDto rejectProposal(Long proposalId) {
         log.info("Rejecting proposal with ID: {}", proposalId);

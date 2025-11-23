@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Size;
 
 public record ProfileUpdateRequestDto(
         @NotBlank() @Size(max = 100) String firstName,
-        @NotBlank() @Size(max = 100) String lastName,
-        String telephone
+        @NotBlank() @Size(max = 100) String lastName
 ) {
 }

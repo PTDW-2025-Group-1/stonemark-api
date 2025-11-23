@@ -22,13 +22,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ContactServiceHibernateImplTest {
+class ContactRequestServiceHibernateImplTest {
 
     @Mock
     private ContactRequestRepository repository;
 
     @InjectMocks
-    private ContactServiceHibernateImpl service;
+    private ContactRequestServiceHibernateImpl service;
 
     private ContactRequestDto requestDto;
     private ContactRequest testContact;

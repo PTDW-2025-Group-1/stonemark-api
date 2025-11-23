@@ -11,7 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.services.security.auth.LogoutService;
 
 import java.util.List;
@@ -20,9 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] WHITE_LIST_URL = {
-            "/api/v1/auth/**",
-            "/api/v1/public/**",
+    private static final String[] OPEN_API_ROUTES = {
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
@@ -34,17 +31,17 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"
     };
-    private static final  String[] ALLOWED_ORIGINS = {
-            "http://localhost:4200",
-            "http://localhost:4201",
-            "http://localhost:4202",
-            "http://localhost:4220",
+    private static final String[] PUBLIC_ROUTES = {
+            "/api/v1/auth/**",
+            "/api/v1/monuments/**",
+            "/api/v1/marks/**",
+            "/api/v1/mark-occurrences/**",
+            "/api/v1/contact-requests/**"
+    };
+    private static final String[] ALLOWED_ORIGINS = {
+            "http://localhost:*",
             "https://stonemark.pt",
-            "https://api.stonemark.pt",
-            "https://www.stonemark.pt",
-            "https://auth.stonemark.pt",
-            "https://account.stonemark.pt",
-            "https://staff.stonemark.pt"
+            "https://*.stonemark.pt"
     };
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -56,17 +53,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of(ALLOWED_ORIGINS));
+                    config.setAllowedOriginPatterns(List.of(ALLOWED_ORIGINS));
                     config.setAllowedMethods(List.of("*"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(WHITE_LIST_URL).permitAll()
-                        .requestMatchers("/api/v1/reviewer/**").hasAnyRole(Role.REVIEWER.name())
-                        .requestMatchers("/api/v1/moderator/**").hasAnyRole(Role.MODERATOR.name())
-                        .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(OPEN_API_ROUTES).permitAll()
+                        .requestMatchers(PUBLIC_ROUTES).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
@@ -77,9 +72,13 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
                         .addLogoutHandler(logoutService)
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                        })
+                        .logoutSuccessHandler(
+                                (
+                                        request,
+                                        response,
+                                        authentication
+                                ) -> response.setStatus(HttpServletResponse.SC_OK)
+                        )
                 );
 
         return http.build();

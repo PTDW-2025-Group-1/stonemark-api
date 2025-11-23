@@ -1,5 +1,6 @@
-package pt.estga.stonemark.controllers.proposal;
+package pt.estga.stonemark.controllers.content;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,9 @@ import pt.estga.stonemark.services.proposal.MarkOccurrenceProposalFlowService;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/v1/contributor/proposals/mark-occurrence")
+@RequestMapping("/api/v1/proposals/mark-occurrences")
 @RequiredArgsConstructor
+@Tag(name = "Mark Occurrence Proposals", description = "Endpoints for mark occurrence proposals.")
 public class MarkOccurrenceProposalController {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
@@ -70,6 +72,12 @@ public class MarkOccurrenceProposalController {
     @PostMapping("/{proposalId}/submit")
     public ResponseEntity<ProposalStateDto> submitProposal(@PathVariable Long proposalId) {
         ProposalStateDto state = proposalFlowService.submitProposal(proposalId);
+        return ResponseEntity.ok(state);
+    }
+
+    @PostMapping("/{proposalId}/approve")
+    public ResponseEntity<ProposalStateDto> approveProposal(@PathVariable Long proposalId) {
+        ProposalStateDto state = proposalFlowService.approveProposal(proposalId);
         return ResponseEntity.ok(state);
     }
 
