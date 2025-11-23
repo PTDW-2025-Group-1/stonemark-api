@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.MediaFile;
 import pt.estga.stonemark.enums.StorageProvider;
 import pt.estga.stonemark.enums.TargetType;
-import pt.estga.stonemark.repositories.MediaRepository;
+import pt.estga.stonemark.repositories.MediaFileRepository;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class MediaServiceSpringImpl implements MediaService {
 
-    private final MediaRepository mediaRepository;
+    private final MediaFileRepository mediaFileRepository;
     private final FileStorageService fileStorageService;
 
     @Override
@@ -30,14 +30,14 @@ public class MediaServiceSpringImpl implements MediaService {
                 .targetType(targetType)
                 .build();
 
-        return mediaRepository.save(media);
+        return mediaFileRepository.save(media);
     }
 
     @Override
     public void delete(Long mediaId) {
-        MediaFile media = mediaRepository.findById(mediaId)
+        MediaFile media = mediaFileRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Media not found with id: " + mediaId));
         fileStorageService.deleteFile(media.getStoragePath());
-        mediaRepository.delete(media);
+        mediaFileRepository.delete(media);
     }
 }

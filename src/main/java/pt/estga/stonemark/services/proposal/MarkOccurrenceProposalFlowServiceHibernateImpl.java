@@ -10,7 +10,6 @@ import pt.estga.stonemark.dtos.proposal.ProposeNewMarkRequestDto;
 import pt.estga.stonemark.dtos.proposal.SelectExistingMonumentRequestDto;
 import pt.estga.stonemark.dtos.proposal.ProposeNewMonumentRequestDto;
 import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.entities.content.Mark;
 import pt.estga.stonemark.entities.content.Monument;
 import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
 import pt.estga.stonemark.entities.proposals.ProposedMark;

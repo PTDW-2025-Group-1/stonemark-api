@@ -7,9 +7,11 @@ import pt.estga.stonemark.entities.content.Mark;
 
 @Mapper(componentModel = "spring")
 public interface MarkMapper {
-    @Mapping(source = "cover.id", target = "coverId")
+    @Mapping(source = "photo.id", target = "photoId")
+    @Mapping(source = "vector.id", target = "vectorId")
     MarkDto markToMarkDto(Mark mark);
 
-    @Mapping(source = "coverId", target = "cover.id")
+    @Mapping(source = "photoId", target = "photo.id")
+    @Mapping(source = "vectorId", target = "vector.id")
     Mark markDtoToMark(MarkDto markDto);
 }

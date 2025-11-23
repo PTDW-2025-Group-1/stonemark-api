@@ -11,5 +11,6 @@ public class MarkDto {
     private Long id;
     private String title;
     private String description;
-    private Long coverId;
+    private Long photoId;
+    private Long vectorId;
 }

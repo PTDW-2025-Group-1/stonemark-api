@@ -2,6 +2,7 @@ package pt.estga.stonemark.config;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -19,7 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${telegram.bot.webhook-path}")
+    private String telegramWebhookPath;
+
     private static final String[] OPEN_API_ROUTES = {
+            "/",
             "/v2/api-docs",
             "/v3/api-docs",
             "/v3/api-docs/**",
@@ -62,6 +67,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(OPEN_API_ROUTES).permitAll()
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
+                        .requestMatchers(telegramWebhookPath).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import pt.estga.stonemark.entities.MediaFile;
 
 @Repository
-public interface MediaRepository extends JpaRepository<MediaFile, Long> {
+public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
 }

@@ -3,8 +3,6 @@ package pt.estga.stonemark.entities.content;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.enums.MarkCategory;
-import pt.estga.stonemark.enums.MarkShape;
 
 @Entity
 @NoArgsConstructor
@@ -22,6 +20,9 @@ public class Mark extends AuditableContentEntity {
     private String description;
 
     @OneToOne
-    private MediaFile cover;
+    private MediaFile photo;
+
+    @OneToOne
+    private MediaFile vector;
 
 }

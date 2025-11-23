@@ -70,11 +70,11 @@ minio:
 logging:
   level:
     org.springframework: INFO
-#    org.hibernate: DEBUG
     pt.estga: DEBUG
 
 application:
-  base-url: http://localhost:8080
+#  base-url: http://localhost:8080
+  base-url: https://api.stonemark.pt
   frontend-url: https://stonemark.pt
   security:
     jwt:
@@ -94,3 +94,9 @@ application:
       email-change-confirm-token:
         expiration: 900000 # 15 minutes
     email-verification-required: false
+
+telegram:
+  bot:
+    username: stonemarkbot
+    token: ${TELEGRAM_BOT_TOKEN}
+    webhook-path: /webhook
