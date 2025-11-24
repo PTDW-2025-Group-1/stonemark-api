@@ -17,7 +17,7 @@ public class EmailChangeRequestContentProvider implements EmailContentProvider {
 
     @Override
     public String getTemplate() {
-        return "email/email-change-request.html";
+        return "templates/email/email-change-request.html";
     }
 
     @Override

@@ -17,7 +17,7 @@ public class EmailChangeConfirmContentProvider implements EmailContentProvider {
 
     @Override
     public String getTemplate() {
-        return "email/email-change-confirm.html";
+        return "templates/email/email-change-confirm.html";
     }
 
     @Override

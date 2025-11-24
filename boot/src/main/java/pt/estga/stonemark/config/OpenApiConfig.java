@@ -5,12 +5,17 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfig {
+
+    @Value("${application.base-url}")
+    private String baseUrl;
 
     @Bean
     public GroupedOpenApi auth() {
@@ -71,6 +76,7 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI securedOpenAPI() {
         return new OpenAPI()
+                .addServersItem(new Server().url(baseUrl))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new Components().addSecuritySchemes("bearerAuth",
                         new SecurityScheme()
