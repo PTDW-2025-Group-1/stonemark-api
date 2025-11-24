@@ -11,6 +11,8 @@ import pt.estga.stonemark.dtos.proposal.SelectExistingMarkRequestDto;
 import pt.estga.stonemark.dtos.proposal.ProposeNewMarkRequestDto;
 import pt.estga.stonemark.dtos.proposal.SelectExistingMonumentRequestDto;
 import pt.estga.stonemark.dtos.proposal.ProposeNewMonumentRequestDto;
+import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
+import pt.estga.stonemark.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.stonemark.services.proposal.MarkOccurrenceProposalFlowService;
 
 import java.io.IOException;
@@ -22,68 +24,69 @@ import java.io.IOException;
 public class MarkOccurrenceProposalController {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PostMapping("/initiate")
     public ResponseEntity<ProposalStateDto> initiateProposal(@RequestParam("photo") MultipartFile photo) throws IOException {
-        ProposalStateDto state = proposalFlowService.initiateProposal(photo.getBytes(), photo.getOriginalFilename());
-        return ResponseEntity.ok(state);
+        MarkOccurrenceProposal proposal = proposalFlowService.initiateProposal(photo.getBytes(), photo.getOriginalFilename());
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal initiated."));
     }
 
     @PostMapping("/{proposalId}/select-existing-monument")
     public ResponseEntity<ProposalStateDto> handleExistingMonumentSelection(
             @PathVariable Long proposalId,
             @Valid @RequestBody SelectExistingMonumentRequestDto requestDto) {
-        ProposalStateDto state = proposalFlowService.handleExistingMonumentSelection(
+        MarkOccurrenceProposal proposal = proposalFlowService.handleExistingMonumentSelection(
                 proposalId,
                 requestDto);
-        return ResponseEntity.ok(state);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Existing monument selected."));
     }
 
     @PostMapping("/{proposalId}/propose-new-monument")
     public ResponseEntity<ProposalStateDto> handleNewMonumentProposal(
             @PathVariable Long proposalId,
             @Valid @RequestBody ProposeNewMonumentRequestDto requestDto) {
-        ProposalStateDto state = proposalFlowService.handleNewMonumentProposal(
+        MarkOccurrenceProposal proposal = proposalFlowService.handleNewMonumentProposal(
                 proposalId,
                 requestDto);
-        return ResponseEntity.ok(state);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "New monument proposed."));
     }
 
     @PostMapping("/{proposalId}/select-existing-mark")
     public ResponseEntity<ProposalStateDto> handleExistingMarkSelection(
             @PathVariable Long proposalId,
             @Valid @RequestBody SelectExistingMarkRequestDto requestDto) {
-        ProposalStateDto state = proposalFlowService.handleExistingMarkSelection(
+        MarkOccurrenceProposal proposal = proposalFlowService.handleExistingMarkSelection(
                 proposalId,
                 requestDto);
-        return ResponseEntity.ok(state);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Existing mark selected."));
     }
 
     @PostMapping("/{proposalId}/propose-new-mark")
     public ResponseEntity<ProposalStateDto> handleNewMarkProposal(
             @PathVariable Long proposalId,
             @Valid @RequestBody ProposeNewMarkRequestDto requestDto) {
-        ProposalStateDto state = proposalFlowService.handleNewMarkProposal(
+        MarkOccurrenceProposal proposal = proposalFlowService.handleNewMarkProposal(
                 proposalId,
                 requestDto);
-        return ResponseEntity.ok(state);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "New mark proposed."));
     }
 
     @PostMapping("/{proposalId}/submit")
     public ResponseEntity<ProposalStateDto> submitProposal(@PathVariable Long proposalId) {
-        ProposalStateDto state = proposalFlowService.submitProposal(proposalId);
-        return ResponseEntity.ok(state);
+        MarkOccurrenceProposal proposal = proposalFlowService.submitProposal(proposalId);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal submitted."));
     }
 
     @PostMapping("/{proposalId}/approve")
     public ResponseEntity<ProposalStateDto> approveProposal(@PathVariable Long proposalId) {
-        ProposalStateDto state = proposalFlowService.approveProposal(proposalId);
-        return ResponseEntity.ok(state);
+        MarkOccurrenceProposal proposal = proposalFlowService.approveProposal(proposalId);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal approved."));
     }
 
     @DeleteMapping("/{proposalId}/reject")
     public ResponseEntity<ProposalStateDto> rejectProposal(@PathVariable Long proposalId) {
-        ProposalStateDto state = proposalFlowService.rejectProposal(proposalId);
-        return ResponseEntity.ok(state);
+        MarkOccurrenceProposal proposal = proposalFlowService.rejectProposal(proposalId);
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal rejected."));
     }
 }

@@ -10,17 +10,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.stonemark.dtos.auth.*;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.config.JwtService;
 import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
-import pt.estga.stonemark.mappers.UserMapper;
+import pt.estga.stonemark.services.security.JwtService;
 import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
@@ -41,10 +39,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final UserService userService;
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
-    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final UserMapper mapper;
     private final VerificationInitiationService verificationInitiationService;
     private final VerificationCommandFactory verificationCommandFactory;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
@@ -55,11 +51,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
-    public Optional<AuthenticationResponseDto> register(RegisterRequestDto request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request must not be null");
+    public Optional<AuthenticationResponseDto> register(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("user must not be null");
         }
-        var email = request.email();
+        var email = user.getEmail();
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("email must not be null or blank");
         }
@@ -67,22 +63,16 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new EmailAlreadyTakenException("email already in use");
         }
 
-        User parsedUser = mapper.registerRequestToEntity(request);
-        parsedUser.setPassword(passwordEncoder.encode(request.password()));
-        if (parsedUser.getRole() == null) {
-            parsedUser.setRole(Role.USER);
-        }
+        user.setEnabled(!emailVerificationRequired);
 
-        parsedUser.setEnabled(!emailVerificationRequired);
-
-        User user = userService.create(parsedUser);
+        User createdUser = userService.create(user);
 
         if (emailVerificationRequired) {
-            var command = verificationCommandFactory.createEmailVerificationCommand(user);
+            var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         } else {
-            return generateAuthenticationResponse(user);
+            return generateAuthenticationResponse(createdUser);
         }
     }
 
@@ -99,18 +89,18 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @Override
     @Transactional
-    public Optional<AuthenticationResponseDto> authenticate(AuthenticationRequestDto request) {
+    public Optional<AuthenticationResponseDto> authenticate(String email, String password) {
         try {
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    request.email(),
-                    request.password()
+                    email,
+                    password
                 )
             );
         } catch (AuthenticationException e) {
             return Optional.empty();
         }
-        var user = userService.findByEmail(request.email()).orElseThrow();
+        var user = userService.findByEmail(email).orElseThrow();
 
         if (emailVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
@@ -138,16 +128,16 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
-    public void requestPasswordReset(PasswordResetRequestDto request) {
-        User user = userService.findByEmail(request.email())
+    public void requestPasswordReset(String email) {
+        User user = userService.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         var command = verificationCommandFactory.createPasswordResetCommand(user);
         verificationInitiationService.initiate(command);
     }
 
     @Override
-    public void resetPassword(ResetPasswordRequestDto request) {
-        verificationProcessingService.processPasswordReset(request.token(), request.newPassword());
+    public void resetPassword(String token, String newPassword) {
+        verificationProcessingService.processPasswordReset(token, newPassword);
     }
 
 

@@ -8,17 +8,17 @@ import java.util.Optional;
 
 public interface AuthenticationService {
 
-    Optional<AuthenticationResponseDto> register(@Valid RegisterRequestDto request);
+    Optional<AuthenticationResponseDto> register(@Valid User user);
 
-    Optional<AuthenticationResponseDto> authenticate(@Valid AuthenticationRequestDto request);
+    Optional<AuthenticationResponseDto> authenticate(String email, String password);
 
     Optional<AuthenticationResponseDto> refreshToken(String refreshToken);
 
     Optional<AuthenticationResponseDto> authenticateWithGoogle(String googleToken);
 
-    void requestPasswordReset(PasswordResetRequestDto passwordResetRequestDto);
+    void requestPasswordReset(String email);
 
-    void resetPassword(ResetPasswordRequestDto resetPasswordRequestDto);
+    void resetPassword(String token, String newPassword);
 
     void logoutFromAllDevices(User user);
 

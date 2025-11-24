@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.AccessToken;
 import pt.estga.stonemark.entities.token.RefreshToken;
 import pt.estga.stonemark.repositories.UserRepository;
 import pt.estga.stonemark.repositories.token.RefreshTokenRepository;

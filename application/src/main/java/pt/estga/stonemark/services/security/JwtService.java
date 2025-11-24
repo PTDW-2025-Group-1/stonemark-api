@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.stonemark.services.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.User;
 
 import javax.crypto.SecretKey;
 import java.util.Date;

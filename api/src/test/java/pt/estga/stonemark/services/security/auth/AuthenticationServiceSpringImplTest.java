@@ -13,18 +13,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import pt.estga.stonemark.config.JwtService;
-import pt.estga.stonemark.dtos.auth.AuthenticationRequestDto;
 import pt.estga.stonemark.dtos.auth.AuthenticationResponseDto;
-import pt.estga.stonemark.dtos.auth.PasswordResetRequestDto;
-import pt.estga.stonemark.dtos.auth.RegisterRequestDto;
-import pt.estga.stonemark.dtos.auth.ResetPasswordRequestDto;
 import pt.estga.stonemark.entities.User;
 import pt.estga.stonemark.enums.Role;
 import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
 import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
-import pt.estga.stonemark.mappers.UserMapper;
+import pt.estga.stonemark.services.security.JwtService;
 import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.security.token.AccessTokenService;
 import pt.estga.stonemark.services.security.token.RefreshTokenService;
@@ -52,13 +46,9 @@ class AuthenticationServiceSpringImplTest {
     @Mock
     private RefreshTokenService refreshTokenService;
     @Mock
-    private PasswordEncoder passwordEncoder;
-    @Mock
     private JwtService jwtService;
     @Mock
     private AuthenticationManager authenticationManager;
-    @Mock
-    private UserMapper mapper;
     @Mock
     private VerificationInitiationService verificationInitiationService;
     @Mock
@@ -112,17 +102,8 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should register user and require email verification when enabled")
     void testRegister_success_emailVerificationRequired() {
         // Given
-        RegisterRequestDto request = RegisterRequestDto.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email("test@example.com")
-                .password("password")
-                .build();
-
-        when(userService.existsByEmail(request.email())).thenReturn(false);
-        when(mapper.registerRequestToEntity(request)).thenReturn(testUser); // Mapper returns a user, then we set password
-        when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
-        when(userService.create(any(User.class))).thenReturn(testUser); // userService.create returns the saved user
+        when(userService.existsByEmail(testUser.getEmail())).thenReturn(false);
+        when(userService.create(any(User.class))).thenReturn(testUser);
         when(verificationCommandFactory.createEmailVerificationCommand(any(User.class)))
                 .thenReturn(mock(VerificationCommand.class));
 
@@ -131,12 +112,10 @@ class AuthenticationServiceSpringImplTest {
 
         // When
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
-                .isThrownBy(() -> authenticationService.register(request));
+                .isThrownBy(() -> authenticationService.register(testUser));
 
         // Then
-        verify(userService).existsByEmail(request.email());
-        verify(mapper).registerRequestToEntity(request);
-        verify(passwordEncoder).encode(request.password());
+        verify(userService).existsByEmail(testUser.getEmail());
 
         // Use ArgumentCaptor to verify the User object passed to userService.create
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -152,16 +131,7 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should register user and return tokens when email verification is not required")
     void testRegister_success_noEmailVerificationRequired() {
         // Given
-        RegisterRequestDto request = RegisterRequestDto.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email("test@example.com")
-                .password("password")
-                .build();
-
-        when(userService.existsByEmail(request.email())).thenReturn(false);
-        when(mapper.registerRequestToEntity(request)).thenReturn(testUser);
-        when(passwordEncoder.encode(request.password())).thenReturn("encodedPassword");
+        when(userService.existsByEmail(testUser.getEmail())).thenReturn(false);
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -172,7 +142,7 @@ class AuthenticationServiceSpringImplTest {
         setEmailVerificationRequired(false);
 
         // When
-        Optional<AuthenticationResponseDto> optionalResponse = authenticationService.register(request);
+        Optional<AuthenticationResponseDto> optionalResponse = authenticationService.register(testUser);
 
         // Then
         assertThat(optionalResponse).isPresent();
@@ -180,9 +150,7 @@ class AuthenticationServiceSpringImplTest {
         assertThat(response.accessToken()).isEqualTo("accessTokenString");
         assertThat(response.refreshToken()).isEqualTo("refreshTokenString");
 
-        verify(userService).existsByEmail(request.email());
-        verify(mapper).registerRequestToEntity(request);
-        verify(passwordEncoder).encode(request.password());
+        verify(userService).existsByEmail(testUser.getEmail());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userService).create(userCaptor.capture());
@@ -199,31 +167,24 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should throw EmailAlreadyTakenException if email exists")
     void testRegister_emailAlreadyTaken() {
         // Given
-        RegisterRequestDto request = RegisterRequestDto.builder()
-                .firstName("Test")
-                .lastName("User")
-                .email("test@example.com")
-                .password("password")
-                .build();
-        when(userService.existsByEmail(request.email())).thenReturn(true);
+        when(userService.existsByEmail(testUser.getEmail())).thenReturn(true);
 
         // When
         assertThatExceptionOfType(EmailAlreadyTakenException.class)
-                .isThrownBy(() -> authenticationService.register(request));
+                .isThrownBy(() -> authenticationService.register(testUser));
 
         // Then
-        verify(userService).existsByEmail(request.email());
+        verify(userService).existsByEmail(testUser.getEmail());
         verifyNoMoreInteractions(userService); // No further calls to userService
-        verifyNoInteractions(mapper, passwordEncoder, verificationCommandFactory, verificationInitiationService);
+        verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
     }
 
     @Test
     @DisplayName("Should authenticate user successfully when email verification is not required")
     void testAuthenticate_success_noEmailVerificationRequired() {
         // Given
-        AuthenticationRequestDto request = new AuthenticationRequestDto("test@example.com", "password");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
+        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
         
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -234,14 +195,14 @@ class AuthenticationServiceSpringImplTest {
         setEmailVerificationRequired(false);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(request);
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testUser.getEmail(), testUser.getPassword());
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(request.email());
+        verify(userService).findByEmail(testUser.getEmail());
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
@@ -252,20 +213,19 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should throw EmailVerificationRequiredException when email verification is required and user is not enabled")
     void testAuthenticate_emailVerificationRequired_userNotEnabled() {
         // Given
-        AuthenticationRequestDto request = new AuthenticationRequestDto("test@example.com", "password");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(request.email())).thenReturn(Optional.of(disabledTestUser)); // User is disabled
+        when(userService.findByEmail(disabledTestUser.getEmail())).thenReturn(Optional.of(disabledTestUser)); // User is disabled
 
         // Simulate emailVerificationRequired = true
         setEmailVerificationRequired(true);
 
         // When
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
-                .isThrownBy(() -> authenticationService.authenticate(request));
+                .isThrownBy(() -> authenticationService.authenticate(disabledTestUser.getEmail(), disabledTestUser.getPassword()));
 
         // Then
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(request.email());
+        verify(userService).findByEmail(disabledTestUser.getEmail());
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService); // No tokens generated
     }
 
@@ -273,9 +233,8 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should authenticate user successfully when email verification is required and user is enabled")
     void testAuthenticate_emailVerificationRequired_userEnabled() {
         // Given
-        AuthenticationRequestDto request = new AuthenticationRequestDto("test@example.com", "password");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser)); // User is enabled
+        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser)); // User is enabled
         
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -286,14 +245,14 @@ class AuthenticationServiceSpringImplTest {
         setEmailVerificationRequired(true);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(request);
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testUser.getEmail(), testUser.getPassword());
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(request.email());
+        verify(userService).findByEmail(testUser.getEmail());
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
@@ -304,12 +263,11 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should return empty optional for invalid credentials")
     void testAuthenticate_invalidCredentials() {
         // Given
-        AuthenticationRequestDto request = new AuthenticationRequestDto("test@example.com", "wrongpassword");
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(mock(AuthenticationException.class));
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(request);
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "wrongpassword");
 
         // Then
         assertThat(response).isNotPresent();
@@ -321,16 +279,15 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should initiate password reset request")
     void testRequestPasswordReset_success() {
         // Given
-        PasswordResetRequestDto request = new PasswordResetRequestDto("test@example.com");
-        when(userService.findByEmail(request.email())).thenReturn(Optional.of(testUser));
+        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
         when(verificationCommandFactory.createPasswordResetCommand(any(User.class)))
                 .thenReturn(mock(VerificationCommand.class));
 
         // When
-        authenticationService.requestPasswordReset(request);
+        authenticationService.requestPasswordReset(testUser.getEmail());
 
         // Then
-        verify(userService).findByEmail(request.email());
+        verify(userService).findByEmail(testUser.getEmail());
         verify(verificationCommandFactory).createPasswordResetCommand(testUser);
         verify(verificationInitiationService).initiate(any(VerificationCommand.class));
     }
@@ -339,16 +296,16 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should throw IllegalArgumentException if user not found for password reset")
     void testRequestPasswordReset_userNotFound() {
         // Given
-        PasswordResetRequestDto request = new PasswordResetRequestDto("nonexistent@example.com");
-        when(userService.findByEmail(request.email())).thenReturn(Optional.empty());
+        String email = "nonexistent@example.com";
+        when(userService.findByEmail(email)).thenReturn(Optional.empty());
 
         // When
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> authenticationService.requestPasswordReset(request))
+                .isThrownBy(() -> authenticationService.requestPasswordReset(email))
                 .withMessage("User not found");
 
         // Then
-        verify(userService).findByEmail(request.email());
+        verify(userService).findByEmail(email);
         verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
     }
 
@@ -356,12 +313,13 @@ class AuthenticationServiceSpringImplTest {
     @DisplayName("Should delegate password reset to verification processing service")
     void testResetPassword_success() {
         // Given
-        ResetPasswordRequestDto request = new ResetPasswordRequestDto("validToken", "newPassword");
+        String token = "validToken";
+        String newPassword = "newPassword";
 
         // When
-        authenticationService.resetPassword(request);
+        authenticationService.resetPassword(token, newPassword);
 
         // Then
-        verify(verificationProcessingService).processPasswordReset(request.token(), request.newPassword());
+        verify(verificationProcessingService).processPasswordReset(token, newPassword);
     }
 }
