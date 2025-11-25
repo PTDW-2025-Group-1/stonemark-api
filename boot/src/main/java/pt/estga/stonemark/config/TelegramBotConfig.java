@@ -3,7 +3,7 @@ package pt.estga.stonemark.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pt.estga.stonemark.bots.telegram.StonemarkTelegramBot;
+import pt.estga.stonemark.telegram.StonemarkTelegramBot;
 
 @Configuration
 public class TelegramBotConfig {

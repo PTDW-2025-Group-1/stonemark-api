@@ -7,7 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pt.estga.stonemark.bots.telegram.StonemarkTelegramBot;
+import pt.estga.stonemark.telegram.StonemarkTelegramBot;
 
 @Slf4j
 @Component

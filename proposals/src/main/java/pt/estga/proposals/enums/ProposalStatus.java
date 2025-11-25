@@ -1,0 +1,11 @@
+package pt.estga.proposals.enums;
+
+public enum ProposalStatus {
+    IN_PROGRESS,
+    AWAITING_MONUMENT_INFO,
+    AWAITING_MARK_INFO,
+    READY_TO_SUBMIT,
+    SUBMITTED,
+    APPROVED,
+    REJECTED
+}
