@@ -1,9 +1,9 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pt.estga.stonemark.telegram.StonemarkTelegramBot;
+import pt.estga.bots.telegram.StonemarkTelegramBot;
 
 @Configuration
 public class TelegramBotConfig {

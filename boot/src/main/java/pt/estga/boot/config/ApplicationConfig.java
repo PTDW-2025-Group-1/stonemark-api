@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pt.estga.stonemark.services.user.UserService;
+import pt.estga.user.service.UserService;
 
 @Configuration
 @RequiredArgsConstructor

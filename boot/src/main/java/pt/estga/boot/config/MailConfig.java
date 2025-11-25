@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.mail.MailProperties;

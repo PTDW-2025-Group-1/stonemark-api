@@ -1,8 +1,8 @@
 package pt.estga.auth.services.verification.processing;
 
 import org.springframework.stereotype.Component;
-import pt.estga.stonemark.entities.token.VerificationToken;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
+import pt.estga.auth.entities.token.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.Optional;
 

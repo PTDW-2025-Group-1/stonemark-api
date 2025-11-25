@@ -1,11 +1,11 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.Mark;
-import pt.estga.stonemark.repositories.content.MarkRepository;
+import pt.estga.content.entities.Mark;
+import pt.estga.content.repositories.MarkRepository;
 
 import java.util.Optional;
 

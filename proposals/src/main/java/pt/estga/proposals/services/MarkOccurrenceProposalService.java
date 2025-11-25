@@ -2,7 +2,7 @@ package pt.estga.proposals.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.stonemark.entities.content.MarkOccurrence;
+import pt.estga.content.entities.MarkOccurrence;
 
 import java.util.Optional;
 

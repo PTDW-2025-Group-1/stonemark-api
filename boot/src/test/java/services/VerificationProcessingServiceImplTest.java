@@ -11,7 +11,7 @@ import org.mockito.quality.Strictness;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.dtos.ConfirmationResponseDto;
-import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.ConfirmationStatus;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;

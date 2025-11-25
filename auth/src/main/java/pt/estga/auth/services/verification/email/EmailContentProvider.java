@@ -1,6 +1,6 @@
 package pt.estga.auth.services.verification.email;
 
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.Map;
 

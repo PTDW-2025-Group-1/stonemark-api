@@ -1,8 +1,8 @@
 package pt.estga.proposals.services;
 
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.models.Location;
+import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.models.Location;
 
 import java.util.Optional;
 

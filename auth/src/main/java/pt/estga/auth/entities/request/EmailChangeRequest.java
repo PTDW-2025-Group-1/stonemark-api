@@ -1,7 +1,8 @@
-package pt.estga.user.entities.request;
+package pt.estga.auth.entities.request;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.user.entities.User;
 
 @Entity

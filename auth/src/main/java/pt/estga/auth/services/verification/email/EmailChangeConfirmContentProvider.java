@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.email;
 
 import org.springframework.stereotype.Component;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.HashMap;
 import java.util.Map;

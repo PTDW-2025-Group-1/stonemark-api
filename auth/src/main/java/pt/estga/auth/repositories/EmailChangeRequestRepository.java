@@ -1,7 +1,8 @@
-package pt.estga.user;
+package pt.estga.auth.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import pt.estga.user.entities.request.EmailChangeRequest;
+import pt.estga.auth.entities.request.EmailChangeRequest;
+import pt.estga.auth.entities.token.VerificationToken;
 
 import java.util.Optional;
 

@@ -1,15 +1,15 @@
 package pt.estga.auth.services.verification.commands;
 
 import lombok.RequiredArgsConstructor;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.request.EmailChangeRequest;
-import pt.estga.stonemark.entities.token.VerificationToken;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
-import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
-import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.services.user.UserService;
+import pt.estga.auth.entities.request.EmailChangeRequest;
+import pt.estga.auth.entities.token.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationEmailService;
+import pt.estga.shared.exceptions.EmailAlreadyTakenException;
+import pt.estga.user.entities.User;
+import pt.estga.user.service.UserService;
 
 @RequiredArgsConstructor
 public class EmailChangeCommand implements VerificationCommand {

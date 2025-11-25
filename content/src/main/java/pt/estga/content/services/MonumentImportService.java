@@ -1,11 +1,11 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.content.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.Monument;
+import pt.estga.content.entities.Monument;
 import pt.estga.stonemark.repositories.content.MonumentRepository;
 
 import java.util.ArrayList;

@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MonumentDto;
-import pt.estga.stonemark.entities.content.Monument;
-import pt.estga.stonemark.mappers.MonumentMapper;
-import pt.estga.stonemark.services.content.MonumentService;
+import pt.estga.content.entities.Monument;
+import pt.estga.content.mappers.MonumentMapper;
+import pt.estga.content.services.MonumentService;
 
 import java.net.URI;
 

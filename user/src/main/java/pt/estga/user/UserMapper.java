@@ -13,8 +13,6 @@ public interface UserMapper {
 
     User toEntity(UserDto dto);
 
-    User registerRequestToEntity(RegisterRequestDto request);
-
     void update(@MappingTarget User user, ProfileUpdateRequestDto dto);
 
 }

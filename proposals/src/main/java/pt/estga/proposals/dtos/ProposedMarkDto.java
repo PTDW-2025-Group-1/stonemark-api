@@ -1,6 +1,6 @@
 package pt.estga.proposals.dtos;
 
-import pt.estga.shared.dtos.file.MediaFileDto;
+import pt.estga.file.dtos.MediaFileDto;
 
 public record ProposedMarkDto(
         Long id,

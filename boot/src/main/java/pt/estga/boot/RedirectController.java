@@ -1,4 +1,4 @@
-package pt.estga.stonemark;
+package pt.estga.boot;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

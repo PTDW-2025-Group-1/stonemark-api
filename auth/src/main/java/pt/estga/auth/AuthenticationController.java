@@ -8,12 +8,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.*;
 import pt.estga.auth.enums.ConfirmationStatus;
+import pt.estga.auth.mappers.AuthMapper;
 import pt.estga.auth.services.AuthenticationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.user.Role;
-import pt.estga.user.UserMapper;
 import pt.estga.user.entities.User;
 
 @RestController
@@ -24,13 +24,13 @@ public class AuthenticationController {
 
     private final AuthenticationService authService;
     private final VerificationProcessingService verificationProcessingService;
-    private final UserMapper mapper;
+    private final AuthMapper authMapper;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
         try {
-            User parsedUser = mapper.registerRequestToEntity(request);
+            User parsedUser = authMapper.toUser(request);
             parsedUser.setPassword(passwordEncoder.encode(request.password()));
             if (parsedUser.getRole() == null) {
                 parsedUser.setRole(Role.USER);

@@ -1,6 +1,6 @@
 package pt.estga.auth.services.token;
 
-import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.user.entities.User;
 

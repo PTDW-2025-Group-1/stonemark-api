@@ -2,7 +2,7 @@ package pt.estga.auth.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
-import pt.estga.auth.entities.BaseToken;
+import pt.estga.auth.entities.token.BaseToken;
 import pt.estga.user.entities.User;
 
 import java.util.List;

@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkDto;
-import pt.estga.stonemark.entities.Mark;
-import pt.estga.stonemark.mappers.MarkMapper;
-import pt.estga.stonemark.services.content.MarkService;
+import pt.estga.content.entities.Mark;
+import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.services.MarkService;
 
 @RestController
 @RequestMapping("/api/v1/marks")

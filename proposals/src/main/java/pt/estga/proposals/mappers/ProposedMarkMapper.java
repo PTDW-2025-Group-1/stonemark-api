@@ -1,9 +1,9 @@
 package pt.estga.proposals.mappers;
 
 import org.mapstruct.Mapper;
-import pt.estga.shared.mappers.MediaFileMapper;
-import pt.estga.stonemark.dtos.proposals.ProposedMarkDto;
-import pt.estga.stonemark.entities.proposals.ProposedMark;
+import pt.estga.file.MediaFileMapper;
+import pt.estga.proposals.dtos.ProposedMarkDto;
+import pt.estga.proposals.entities.ProposedMark;
 
 @Mapper(componentModel = "spring", uses = {MediaFileMapper.class})
 public interface ProposedMarkMapper {

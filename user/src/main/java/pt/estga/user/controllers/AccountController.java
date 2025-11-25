@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
+import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.user.UserMapper;
 import pt.estga.user.dtos.PasswordChangeRequestDto;
 import pt.estga.user.dtos.EmailChangeRequestDto;
@@ -16,6 +17,7 @@ import pt.estga.user.dtos.PasswordSetRequestDto;
 import pt.estga.user.dtos.ProfileUpdateRequestDto;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;
+import pt.estga.user.service.AccountManagementService;
 import pt.estga.user.service.PasswordService;
 import pt.estga.user.service.UserService;
 
@@ -28,8 +30,7 @@ public class AccountController {
 
     private final UserService userService;
     private final UserMapper mapper;
-    private final VerificationInitiationService verificationInitiationService;
-    private final VerificationCommandFactory verificationCommandFactory;
+    private final AccountManagementService accountManagementService;
     private final PasswordService passwordService;
 
     @GetMapping("/profile")
@@ -73,9 +74,8 @@ public class AccountController {
             @Valid @RequestBody EmailChangeRequestDto request,
             @AuthenticationPrincipal User user) {
         try {
-            var command = verificationCommandFactory.createEmailChangeCommand(user, request.newEmail());
-            verificationInitiationService.initiate(command);
-            return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your current email address."));
+            accountManagementService.requestEmailChange(user, request);
+            return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your new email address."));
         } catch (EmailAlreadyTakenException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }

@@ -1,9 +1,9 @@
 package pt.estga.proposals.dtos;
 
+import pt.estga.content.dtos.MarkDto;
+import pt.estga.content.dtos.MonumentDto;
+import pt.estga.file.dtos.MediaFileDto;
 import pt.estga.proposals.enums.ProposalStatus;
-import pt.estga.shared.dtos.content.MarkDto;
-import pt.estga.shared.dtos.content.MonumentDto;
-import pt.estga.shared.dtos.file.MediaFileDto;
 
 public record MarkOccurrenceProposalDto(
         Long id,

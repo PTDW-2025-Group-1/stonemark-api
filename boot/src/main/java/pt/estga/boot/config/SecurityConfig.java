@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import pt.estga.stonemark.services.security.auth.LogoutService;
+import pt.estga.auth.services.LogoutService;
 
 import java.util.List;
 

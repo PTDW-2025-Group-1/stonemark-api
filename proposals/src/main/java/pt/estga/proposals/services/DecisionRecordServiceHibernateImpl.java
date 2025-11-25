@@ -2,9 +2,9 @@ package pt.estga.proposals.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.proposals.BaseProposal;
-import pt.estga.stonemark.entities.proposals.DecisionRecord;
-import pt.estga.stonemark.repositories.proposals.DecisionRecordRepository;
+import pt.estga.proposals.entities.BaseProposal;
+import pt.estga.proposals.entities.DecisionRecord;
+import pt.estga.proposals.repositories.DecisionRecordRepository;
 
 import java.util.List;
 import java.util.Optional;

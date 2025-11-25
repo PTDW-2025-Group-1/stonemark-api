@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.MarkOccurrence;
-import pt.estga.stonemark.repositories.content.MarkOccurrenceRepository;
+import pt.estga.content.entities.MarkOccurrence;
+import pt.estga.content.repositories.MarkOccurrenceRepository;
 
 import java.util.Optional;
 

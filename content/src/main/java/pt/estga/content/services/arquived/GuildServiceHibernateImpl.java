@@ -1,11 +1,11 @@
-package pt.estga.stonemark.services.content.arquived;
+package pt.estga.content.services.arquived;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.Guild;
-import pt.estga.stonemark.repositories.content.GuildRepository;
+import pt.estga.content.entities.Guild;
+import pt.estga.content.repositories.GuildRepository;
 
 import java.util.Optional;
 

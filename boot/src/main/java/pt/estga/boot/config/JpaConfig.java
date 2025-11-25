@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -7,8 +7,8 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.services.user.AuditorUserService;
+import pt.estga.user.entities.User;
+import pt.estga.user.service.AuditorUserService;
 
 import java.util.Optional;
 

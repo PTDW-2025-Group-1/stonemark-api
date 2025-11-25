@@ -3,7 +3,7 @@ package pt.estga.auth.services.verification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.token.VerificationToken;
+import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.stonemark.models.Email;
 import pt.estga.stonemark.services.email.EmailService;
 import pt.estga.auth.services.verification.email.EmailContentProvider;

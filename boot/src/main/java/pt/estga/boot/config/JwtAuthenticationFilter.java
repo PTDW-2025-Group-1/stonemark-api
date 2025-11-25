@@ -1,4 +1,4 @@
-package pt.estga.stonemark.config;
+package pt.estga.boot.config;
 
 import io.micrometer.common.lang.NonNull;
 import jakarta.servlet.FilterChain;
@@ -12,8 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pt.estga.stonemark.services.security.JwtService;
-import pt.estga.stonemark.services.security.token.AccessTokenService;
+import pt.estga.auth.services.JwtService;
+import pt.estga.auth.services.token.AccessTokenService;
 
 import java.io.IOException;
 

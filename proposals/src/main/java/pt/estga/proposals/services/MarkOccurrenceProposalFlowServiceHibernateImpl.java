@@ -4,24 +4,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.entities.content.Monument;
-import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
-import pt.estga.stonemark.entities.proposals.ProposedMark;
-import pt.estga.stonemark.entities.proposals.ProposedMonument;
-import pt.estga.stonemark.dtos.proposal.SelectExistingMarkRequestDto;
-import pt.estga.stonemark.dtos.proposal.ProposeNewMarkRequestDto;
-import pt.estga.stonemark.dtos.proposal.SelectExistingMonumentRequestDto;
-import pt.estga.stonemark.dtos.proposal.ProposeNewMonumentRequestDto;
-import pt.estga.stonemark.enums.ProposalStatus;
-import pt.estga.stonemark.enums.TargetType;
-import pt.estga.stonemark.models.Location;
-import pt.estga.stonemark.repositories.content.MarkRepository;
+import pt.estga.content.entities.Monument;
+import pt.estga.content.repositories.MarkRepository;
+import pt.estga.file.entities.MediaFile;
+import pt.estga.file.enums.TargetType;
+import pt.estga.file.services.MediaService;
+import pt.estga.proposals.dtos.ProposeNewMarkRequestDto;
+import pt.estga.proposals.dtos.ProposeNewMonumentRequestDto;
+import pt.estga.proposals.dtos.SelectExistingMarkRequestDto;
+import pt.estga.proposals.dtos.SelectExistingMonumentRequestDto;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.entities.ProposedMark;
+import pt.estga.proposals.entities.ProposedMonument;
+import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.proposals.repositories.ProposedMarkRepository;
+import pt.estga.proposals.repositories.ProposedMonumentRepository;
+import pt.estga.shared.models.Location;
 import pt.estga.stonemark.repositories.content.MonumentRepository;
-import pt.estga.stonemark.repositories.proposals.MarkOccurrenceProposalRepository;
-import pt.estga.stonemark.repositories.proposals.ProposedMarkRepository;
-import pt.estga.stonemark.repositories.proposals.ProposedMonumentRepository;
-import pt.estga.stonemark.services.file.MediaService;
 
 import java.io.IOException;
 import java.util.List;
@@ -88,21 +88,21 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     @Override
     @Transactional
     public MarkOccurrenceProposal handleExistingMonumentSelection(Long proposalId, SelectExistingMonumentRequestDto requestDto) {
-        log.info("User selected existing monument with ID: {} for proposal ID: {}", requestDto.getExistingMonumentId(), proposalId);
+        log.info("User selected existing monument with ID: {} for proposal ID: {}", requestDto.existingMonumentId(), proposalId);
         MarkOccurrenceProposal proposal = getProposalById(proposalId, "existing monument selection");
 
         // Clear previous selections for monument
         proposal.setExistingMonument(null);
         proposal.setProposedMonument(null);
 
-        monumentRepository.findById(requestDto.getExistingMonumentId())
+        monumentRepository.findById(requestDto.existingMonumentId())
                 .ifPresentOrElse(
                         monument -> {
                             proposal.setExistingMonument(monument);
                             log.debug("Existing monument assigned to proposal ID: {}", proposal.getId());
                         },
                         () -> {
-                            log.error("Existing monument with ID {} not found for proposal ID {}", requestDto.getExistingMonumentId(), proposal.getId());
+                            log.error("Existing monument with ID {} not found for proposal ID {}", requestDto.existingMonumentId(), proposal.getId());
                             throw new RuntimeException("Selected monument not found."); // Throw an exception
                         }
                 );
@@ -114,7 +114,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     @Override
     @Transactional
     public MarkOccurrenceProposal handleNewMonumentProposal(Long proposalId, ProposeNewMonumentRequestDto requestDto) {
-        log.info("User proposed a new monument for proposal ID: {}. Name: {}, Latitude: {}, Longitude: {}", proposalId, requestDto.getName(), requestDto.getLatitude(), requestDto.getLongitude());
+        log.info("User proposed a new monument for proposal ID: {}. Name: {}, Latitude: {}, Longitude: {}", proposalId, requestDto.name(), requestDto.latitude(), requestDto.longitude());
         MarkOccurrenceProposal proposal = getProposalById(proposalId, "new monument proposal");
 
         // Clear previous selections for monument
@@ -126,9 +126,9 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         ProposedMonument currentProposedMonument = ProposedMonument.builder().build();
 
-        currentProposedMonument.setName(requestDto.getName());
-        currentProposedMonument.setLatitude(requestDto.getLatitude());
-        currentProposedMonument.setLongitude(requestDto.getLongitude());
+        currentProposedMonument.setName(requestDto.name());
+        currentProposedMonument.setLatitude(requestDto.latitude());
+        currentProposedMonument.setLongitude(requestDto.longitude());
 
         // Explicitly save the ProposedMonument first
         ProposedMonument savedProposedMonument = proposedMonumentRepository.save(currentProposedMonument);
@@ -143,7 +143,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     @Override
     @Transactional
     public MarkOccurrenceProposal handleExistingMarkSelection(Long proposalId, SelectExistingMarkRequestDto requestDto) {
-        log.info("User selected existing mark with ID: {} for proposal ID: {}", requestDto.getExistingMarkId(), proposalId);
+        log.info("User selected existing mark with ID: {} for proposal ID: {}", requestDto.existingMarkId(), proposalId);
         MarkOccurrenceProposal proposal = getProposalById(proposalId, "existing mark selection");
 
         // Clear previous selections for mark
@@ -153,10 +153,10 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         }
         proposal.setProposedMark(null);
 
-        markRepository.findById(requestDto.getExistingMarkId()).ifPresentOrElse(
+        markRepository.findById(requestDto.existingMarkId()).ifPresentOrElse(
                 proposal::setExistingMark,
                 () -> {
-                    log.error("Existing mark with ID {} not found for proposal ID {}", requestDto.getExistingMarkId(), proposal.getId());
+                    log.error("Existing mark with ID {} not found for proposal ID {}", requestDto.existingMarkId(), proposal.getId());
                     throw new RuntimeException("Selected mark not found."); // Throw an exception
                 }
         );
@@ -168,7 +168,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     @Override
     @Transactional
     public MarkOccurrenceProposal handleNewMarkProposal(Long proposalId, ProposeNewMarkRequestDto requestDto) {
-        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, requestDto.getName());
+        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, requestDto.name());
         MarkOccurrenceProposal proposal = getProposalById(proposalId, "new mark proposal");
 
         // Clear previous selections for mark
@@ -180,8 +180,8 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         ProposedMark proposedMark = new ProposedMark();
 
-        proposedMark.setName(requestDto.getName());
-        proposedMark.setDescription(Optional.ofNullable(requestDto.getDescription()).orElse(""));
+        proposedMark.setName(requestDto.name());
+        proposedMark.setDescription(Optional.ofNullable(requestDto.description()).orElse(""));
         proposedMark.setMediaFile(proposal.getOriginalMediaFile());
 
         // Explicitly save the ProposedMark first

@@ -2,7 +2,7 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pt.estga.stonemark.entities.MediaFile;
+import pt.estga.file.entities.MediaFile;
 
 @Entity
 @NoArgsConstructor

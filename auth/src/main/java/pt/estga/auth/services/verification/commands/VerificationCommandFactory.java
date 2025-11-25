@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationEmailService;
-import pt.estga.user.EmailChangeRequestRepository;
+import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
 

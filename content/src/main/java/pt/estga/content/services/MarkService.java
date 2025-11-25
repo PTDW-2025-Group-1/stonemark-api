@@ -1,8 +1,8 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.content.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.stonemark.entities.content.Mark;
+import pt.estga.content.entities.Mark;
 
 import java.util.Optional;
 

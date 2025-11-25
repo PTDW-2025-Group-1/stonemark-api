@@ -1,6 +1,6 @@
 package pt.estga.auth.services.verification.processing;
 
-import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.Optional;

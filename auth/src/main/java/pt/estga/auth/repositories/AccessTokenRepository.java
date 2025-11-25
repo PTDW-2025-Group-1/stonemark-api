@@ -3,8 +3,8 @@ package pt.estga.auth.repositories;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import pt.estga.auth.entities.AccessToken;
-import pt.estga.auth.entities.RefreshToken;
+import pt.estga.auth.entities.token.AccessToken;
+import pt.estga.auth.entities.token.RefreshToken;
 
 import java.time.Instant;
 import java.util.List;

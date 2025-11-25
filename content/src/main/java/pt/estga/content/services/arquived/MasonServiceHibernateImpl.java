@@ -1,10 +1,10 @@
-package pt.estga.stonemark.services.content.arquived;
+package pt.estga.content.services.arquived;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.Mason;
+import pt.estga.content.entities.Mason;
 import pt.estga.stonemark.repositories.content.MasonRepository;
 
 import java.util.Optional;

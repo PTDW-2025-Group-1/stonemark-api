@@ -1,8 +1,7 @@
 package pt.estga.proposals.services;
 
-
-import pt.estga.stonemark.entities.proposals.BaseProposal;
-import pt.estga.stonemark.entities.proposals.DecisionRecord;
+import pt.estga.proposals.entities.BaseProposal;
+import pt.estga.proposals.entities.DecisionRecord;
 
 import java.util.List;
 import java.util.Optional;

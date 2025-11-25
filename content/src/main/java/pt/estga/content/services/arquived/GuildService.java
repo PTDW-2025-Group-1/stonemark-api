@@ -1,8 +1,8 @@
-package pt.estga.stonemark.services.content.arquived;
+package pt.estga.content.services.arquived;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.stonemark.entities.content.Guild;
+import pt.estga.content.entities.Guild;
 
 import java.util.Optional;
 

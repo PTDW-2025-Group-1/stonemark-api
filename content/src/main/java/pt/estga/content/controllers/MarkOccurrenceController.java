@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkOccurrenceDto;
-import pt.estga.stonemark.entities.content.MarkOccurrence;
-import pt.estga.stonemark.mappers.MarkOccurrenceMapper;
-import pt.estga.stonemark.services.content.MarkOccurrenceService;
+import pt.estga.content.entities.MarkOccurrence;
+import pt.estga.content.mappers.MarkOccurrenceMapper;
+import pt.estga.content.services.MarkOccurrenceService;
 
 @RestController
 @RequestMapping("/api/v1/mark-occurrences")

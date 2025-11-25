@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.content.Monument;
+import pt.estga.content.entities.Monument;
+import pt.estga.content.services.MonumentService;
 import pt.estga.stonemark.repositories.content.MonumentRepository;
 
 import java.util.List;

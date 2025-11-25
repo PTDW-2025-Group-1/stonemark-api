@@ -2,7 +2,7 @@ package pt.estga.proposals.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import pt.estga.stonemark.entities.proposals.ProposedMonument;
+import pt.estga.proposals.entities.ProposedMonument;
 
 @Repository
 public interface ProposedMonumentRepository extends JpaRepository<ProposedMonument, Long> {

@@ -1,8 +1,8 @@
 package pt.estga.proposals.mappers;
 
 import org.mapstruct.Mapper;
-import pt.estga.stonemark.dtos.proposals.ProposedMonumentDto;
-import pt.estga.stonemark.entities.proposals.ProposedMonument;
+import pt.estga.proposals.dtos.ProposedMonumentDto;
+import pt.estga.proposals.entities.ProposedMonument;
 
 @Mapper(componentModel = "spring")
 public interface ProposedMonumentMapper {
