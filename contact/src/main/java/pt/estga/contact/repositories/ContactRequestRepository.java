@@ -1,4 +1,4 @@
-package pt.estga.contact;
+package pt.estga.contact.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import pt.estga.contact.entities.ContactRequest;

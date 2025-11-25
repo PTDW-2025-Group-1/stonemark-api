@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.email;
+package pt.estga.shared.services;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

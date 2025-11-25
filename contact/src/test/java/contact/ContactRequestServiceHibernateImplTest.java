@@ -8,11 +8,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pt.estga.stonemark.dtos.contact.ContactRequestDto;
-import pt.estga.stonemark.entities.ContactRequest;
-import pt.estga.stonemark.enums.ContactStatus;
-import pt.estga.stonemark.exceptions.ContactNotFoundException;
-import pt.estga.stonemark.repositories.ContactRequestRepository;
+import pt.estga.contact.ContactStatus;
+import pt.estga.contact.dtos.ContactRequestDto;
+import pt.estga.contact.entities.ContactRequest;
+import pt.estga.contact.repositories.ContactRequestRepository;
+import pt.estga.contact.services.ContactRequestServiceHibernateImpl;
+import pt.estga.shared.exceptions.ContactNotFoundException;
 
 import java.time.Instant;
 import java.util.List;

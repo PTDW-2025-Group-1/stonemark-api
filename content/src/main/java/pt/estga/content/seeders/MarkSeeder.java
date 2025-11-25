@@ -5,7 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.repositories.MarkRepository;
-import pt.estga.file.MediaFileRepository;
+import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.StorageProvider;
 import pt.estga.file.enums.TargetType;

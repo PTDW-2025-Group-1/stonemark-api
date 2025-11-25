@@ -1,4 +1,4 @@
-package pt.estga.stonemark.services.email;
+package pt.estga.shared.services;
 
 import pt.estga.stonemark.models.Email;
 

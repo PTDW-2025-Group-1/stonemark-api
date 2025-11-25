@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Mason;
-import pt.estga.stonemark.repositories.content.MasonRepository;
+import pt.estga.content.repositories.MasonRepository;
 
 import java.util.Optional;
 

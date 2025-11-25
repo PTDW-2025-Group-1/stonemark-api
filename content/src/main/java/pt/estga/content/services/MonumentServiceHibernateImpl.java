@@ -1,12 +1,11 @@
-package pt.estga.stonemark.services.content;
+package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Monument;
-import pt.estga.content.services.MonumentService;
-import pt.estga.stonemark.repositories.content.MonumentRepository;
+import pt.estga.content.repositories.MonumentRepository;
 
 import java.util.List;
 import java.util.Optional;

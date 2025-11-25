@@ -2,7 +2,7 @@ package pt.estga.contact.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.contact.ContactRequestRepository;
+import pt.estga.contact.repositories.ContactRequestRepository;
 import pt.estga.contact.ContactStatus;
 import pt.estga.contact.dtos.ContactRequestDto;
 import pt.estga.contact.entities.ContactRequest;

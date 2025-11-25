@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Monument;
-import pt.estga.stonemark.repositories.content.MonumentRepository;
+import pt.estga.content.repositories.MonumentRepository;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

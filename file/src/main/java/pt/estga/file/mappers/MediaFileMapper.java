@@ -1,4 +1,4 @@
-package pt.estga.file;
+package pt.estga.file.mappers;
 
 import org.mapstruct.Mapper;
 import pt.estga.file.dtos.MediaFileDto;

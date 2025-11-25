@@ -2,7 +2,7 @@ package pt.estga.file.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.file.MediaFileRepository;
+import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.StorageProvider;
 import pt.estga.file.enums.TargetType;

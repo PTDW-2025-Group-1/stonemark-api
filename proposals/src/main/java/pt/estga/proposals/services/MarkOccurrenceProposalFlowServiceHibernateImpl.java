@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MarkRepository;
+import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.TargetType;
 import pt.estga.file.services.MediaService;
@@ -21,7 +22,6 @@ import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
 import pt.estga.shared.models.Location;
-import pt.estga.stonemark.repositories.content.MonumentRepository;
 
 import java.io.IOException;
 import java.util.List;

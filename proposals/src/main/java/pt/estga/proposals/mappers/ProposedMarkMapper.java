@@ -1,7 +1,7 @@
 package pt.estga.proposals.mappers;
 
 import org.mapstruct.Mapper;
-import pt.estga.file.MediaFileMapper;
+import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.proposals.dtos.ProposedMarkDto;
 import pt.estga.proposals.entities.ProposedMark;
 
