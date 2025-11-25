@@ -2,7 +2,9 @@ package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
@@ -44,6 +46,11 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Override
     public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
         return repository.findByCoordinatesInRange(latitude, longitude, range);
+    }
+
+    public List<Monument> findLatest(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return repository.findAll(pageable).getContent();
     }
 
     @Override

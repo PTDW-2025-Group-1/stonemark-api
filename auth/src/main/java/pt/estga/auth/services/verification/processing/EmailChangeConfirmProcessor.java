@@ -35,7 +35,7 @@ public class EmailChangeConfirmProcessor implements VerificationProcessor {
         emailService.sendEmail(Email.builder()
                 .to(user.getEmail())
                 .subject("Email Address Changed")
-                .template("templates/email/email-changed-notification.html")
+                .template("email/email-changed-notification.html")
                 .build());
 
         user.setEmail(newEmail);

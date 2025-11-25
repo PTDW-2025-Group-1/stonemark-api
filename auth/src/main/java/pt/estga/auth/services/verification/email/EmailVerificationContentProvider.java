@@ -17,7 +17,7 @@ public class EmailVerificationContentProvider implements EmailContentProvider {
 
     @Override
     public String getTemplate() {
-        return "templates/email/email-verification.html";
+        return "email/email-verification.html";
     }
 
     @Override

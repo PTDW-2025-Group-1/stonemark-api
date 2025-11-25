@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pt.estga.content.dtos.MonumentDto;
+import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentImportService;
 
@@ -21,7 +21,7 @@ public class MonumentImportController {
     private final MonumentMapper monumentMapper;
 
     @PostMapping("/overpass")
-    public List<MonumentDto> importFromOverpass(@RequestBody String geoJson) throws JsonProcessingException {
+    public List<MonumentResponseDto> importFromOverpass(@RequestBody String geoJson) throws JsonProcessingException {
         return monumentImportService.overpass(geoJson).stream().map(monumentMapper::toDto).toList();
     }
 }
