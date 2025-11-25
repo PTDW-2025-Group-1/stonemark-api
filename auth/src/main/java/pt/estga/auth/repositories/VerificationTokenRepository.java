@@ -1,7 +1,7 @@
 package pt.estga.auth.repositories;
 
 import org.springframework.stereotype.Repository;
-import pt.estga.stonemark.entities.token.VerificationToken;
+import pt.estga.auth.entities.VerificationToken;
 
 import java.util.Optional;
 

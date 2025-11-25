@@ -2,10 +2,10 @@ package pt.estga.file.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.enums.StorageProvider;
-import pt.estga.stonemark.enums.TargetType;
-import pt.estga.stonemark.repositories.MediaFileRepository;
+import pt.estga.file.MediaFileRepository;
+import pt.estga.file.entities.MediaFile;
+import pt.estga.file.enums.StorageProvider;
+import pt.estga.file.enums.TargetType;
 
 import java.io.IOException;
 

@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.repositories.UserRepository;
+import pt.estga.user.UserRepository;
+import pt.estga.user.entities.User;
 
 import java.util.Optional;
 

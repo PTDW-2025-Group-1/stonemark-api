@@ -6,9 +6,9 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.enums.ProposalStatus;
-import pt.estga.stonemark.enums.SubmissionSource;
+import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.proposals.enums.SubmissionSource;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 

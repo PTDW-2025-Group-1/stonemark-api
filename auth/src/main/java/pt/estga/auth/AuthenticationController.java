@@ -6,15 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.auth.dtos.*;
+import pt.estga.auth.enums.ConfirmationStatus;
+import pt.estga.auth.services.AuthenticationService;
+import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.shared.dtos.MessageResponseDto;
-import pt.estga.shared.dtos.auth.*;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.enums.ConfirmationStatus;
-import pt.estga.stonemark.enums.Role;
-import pt.estga.stonemark.exceptions.EmailVerificationRequiredException;
-import pt.estga.stonemark.mappers.UserMapper;
-import pt.estga.stonemark.services.security.auth.AuthenticationService;
-import pt.estga.stonemark.services.security.verification.VerificationProcessingService;
+import pt.estga.shared.exceptions.EmailVerificationRequiredException;
+import pt.estga.user.Role;
+import pt.estga.user.UserMapper;
+import pt.estga.user.entities.User;
 
 @RestController
 @RequiredArgsConstructor

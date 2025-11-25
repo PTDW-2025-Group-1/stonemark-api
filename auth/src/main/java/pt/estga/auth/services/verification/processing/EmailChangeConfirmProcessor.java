@@ -2,16 +2,16 @@ package pt.estga.auth.services.verification.processing;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.request.EmailChangeRequest;
-import pt.estga.stonemark.entities.token.VerificationToken;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
-import pt.estga.stonemark.exceptions.InvalidTokenException;
+import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.stonemark.models.Email;
-import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.services.user.UserService;
 import pt.estga.stonemark.services.email.EmailService;
 import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.user.EmailChangeRequestRepository;
+import pt.estga.user.entities.User;
+import pt.estga.user.entities.request.EmailChangeRequest;
+import pt.estga.user.service.UserService;
 
 import java.util.Optional;
 

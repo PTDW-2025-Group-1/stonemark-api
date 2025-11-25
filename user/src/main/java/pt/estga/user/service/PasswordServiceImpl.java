@@ -3,10 +3,10 @@ package pt.estga.user.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
-import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.repositories.UserRepository;
+import pt.estga.user.UserRepository;
+import pt.estga.user.dtos.PasswordChangeRequestDto;
+import pt.estga.user.dtos.PasswordSetRequestDto;
+import pt.estga.user.entities.User;
 
 @Service
 @RequiredArgsConstructor

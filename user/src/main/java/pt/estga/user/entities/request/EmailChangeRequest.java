@@ -2,8 +2,7 @@ package pt.estga.user.entities.request;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.VerificationToken;
+import pt.estga.user.entities.User;
 
 @Entity
 @NoArgsConstructor

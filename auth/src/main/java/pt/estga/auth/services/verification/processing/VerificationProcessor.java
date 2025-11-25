@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.processing;
 
-import pt.estga.stonemark.entities.token.VerificationToken;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
+import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.Optional;
 

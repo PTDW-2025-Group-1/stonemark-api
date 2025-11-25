@@ -1,7 +1,7 @@
 package pt.estga.auth.services.token;
 
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.RefreshToken;
+import pt.estga.auth.entities.RefreshToken;
+import pt.estga.user.entities.User;
 
 import java.util.List;
 import java.util.Optional;

@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.VerificationToken;
-import pt.estga.stonemark.enums.VerificationTokenPurpose;
-import pt.estga.stonemark.repositories.token.VerificationTokenRepository;
+import pt.estga.auth.entities.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.repositories.VerificationTokenRepository;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.util.Optional;

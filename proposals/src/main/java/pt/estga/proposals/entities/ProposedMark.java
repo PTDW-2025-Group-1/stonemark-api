@@ -5,7 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import lombok.*;
-import pt.estga.stonemark.entities.MediaFile;
+import pt.estga.file.entities.MediaFile;
 
 @Entity
 @NoArgsConstructor

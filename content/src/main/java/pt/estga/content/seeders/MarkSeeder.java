@@ -3,11 +3,7 @@ package pt.estga.stonemark.seeders;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import pt.estga.stonemark.entities.MediaFile;
-import pt.estga.stonemark.entities.content.Mark;
-import pt.estga.stonemark.enums.StorageProvider;
-import pt.estga.stonemark.enums.TargetType;
-import pt.estga.stonemark.repositories.MediaFileRepository;
+import pt.estga.content.entities.Mark;
 import pt.estga.stonemark.repositories.content.MarkRepository;
 
 import java.io.File;

@@ -5,10 +5,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.shared.dtos.contact.ContactRequestDto;
-import pt.estga.stonemark.entities.ContactRequest;
-import pt.estga.stonemark.enums.ContactStatus;
-import pt.estga.stonemark.services.contact.ContactRequestService;
+import pt.estga.contact.dtos.ContactRequestDto;
+import pt.estga.contact.entities.ContactRequest;
+import pt.estga.contact.services.ContactRequestService;
 
 import java.util.List;
 

@@ -2,11 +2,11 @@ package pt.estga.auth.services.verification.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.repositories.EmailChangeRequestRepository;
-import pt.estga.stonemark.services.user.UserService;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationEmailService;
+import pt.estga.user.EmailChangeRequestRepository;
+import pt.estga.user.entities.User;
+import pt.estga.user.service.UserService;
 
 @Component
 @RequiredArgsConstructor

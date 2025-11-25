@@ -1,6 +1,5 @@
 package pt.estga.user.controllers;
 
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,18 +9,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
-import pt.estga.shared.dtos.account.PasswordChangeRequestDto;
-import pt.estga.shared.dtos.account.EmailChangeRequestDto;
-import pt.estga.shared.dtos.account.PasswordSetRequestDto;
-import pt.estga.shared.dtos.account.ProfileUpdateRequestDto;
-import pt.estga.shared.dtos.user.UserDto;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.exceptions.EmailAlreadyTakenException;
-import pt.estga.stonemark.mappers.UserMapper;
-import pt.estga.stonemark.services.user.PasswordService;
-import pt.estga.stonemark.services.user.UserService;
-import pt.estga.stonemark.services.security.verification.VerificationInitiationService;
-import pt.estga.stonemark.services.security.verification.commands.VerificationCommandFactory;
+import pt.estga.user.UserMapper;
+import pt.estga.user.dtos.PasswordChangeRequestDto;
+import pt.estga.user.dtos.EmailChangeRequestDto;
+import pt.estga.user.dtos.PasswordSetRequestDto;
+import pt.estga.user.dtos.ProfileUpdateRequestDto;
+import pt.estga.user.dtos.UserDto;
+import pt.estga.user.entities.User;
+import pt.estga.user.service.PasswordService;
+import pt.estga.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/account")

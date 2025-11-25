@@ -3,8 +3,8 @@ package pt.estga.auth.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.enums.TokenType;
+import pt.estga.auth.enums.TokenType;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.shared.dtos.content.MarkDto;
+import pt.estga.content.dtos.MarkDto;
 import pt.estga.stonemark.entities.Mark;
 import pt.estga.stonemark.mappers.MarkMapper;
 import pt.estga.stonemark.services.content.MarkService;

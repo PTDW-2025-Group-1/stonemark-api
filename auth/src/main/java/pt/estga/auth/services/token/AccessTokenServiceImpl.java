@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.AccessToken;
-import pt.estga.stonemark.entities.token.RefreshToken;
-import pt.estga.stonemark.repositories.UserRepository;
-import pt.estga.stonemark.repositories.token.AccessTokenRepository;
+import pt.estga.auth.entities.AccessToken;
+import pt.estga.auth.entities.RefreshToken;
+import pt.estga.auth.repositories.AccessTokenRepository;
+import pt.estga.user.UserRepository;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

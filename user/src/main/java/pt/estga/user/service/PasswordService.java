@@ -1,8 +1,8 @@
 package pt.estga.user.service;
 
-import pt.estga.stonemark.dtos.account.PasswordChangeRequestDto;
-import pt.estga.stonemark.dtos.account.PasswordSetRequestDto;
-import pt.estga.stonemark.entities.User;
+import pt.estga.user.dtos.PasswordChangeRequestDto;
+import pt.estga.user.dtos.PasswordSetRequestDto;
+import pt.estga.user.entities.User;
 
 public interface PasswordService {
 

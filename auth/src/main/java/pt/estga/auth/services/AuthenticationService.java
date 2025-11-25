@@ -1,7 +1,8 @@
 package pt.estga.auth.services;
 
 import jakarta.validation.Valid;
-import pt.estga.stonemark.entities.User;
+import pt.estga.auth.dtos.AuthenticationResponseDto;
+import pt.estga.user.entities.User;
 
 import java.util.Optional;
 

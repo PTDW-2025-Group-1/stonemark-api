@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.shared.dtos.content.MarkOccurrenceDto;
+import pt.estga.content.dtos.MarkOccurrenceDto;
 import pt.estga.stonemark.entities.content.MarkOccurrence;
 import pt.estga.stonemark.mappers.MarkOccurrenceMapper;
 import pt.estga.stonemark.services.content.MarkOccurrenceService;

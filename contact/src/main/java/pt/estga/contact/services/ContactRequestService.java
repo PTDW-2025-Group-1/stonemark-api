@@ -1,8 +1,8 @@
 package pt.estga.contact.services;
 
-import pt.estga.stonemark.dtos.contact.ContactRequestDto;
-import pt.estga.stonemark.entities.ContactRequest;
-import pt.estga.stonemark.enums.ContactStatus;
+import pt.estga.contact.ContactStatus;
+import pt.estga.contact.dtos.ContactRequestDto;
+import pt.estga.contact.entities.ContactRequest;
 
 import java.util.List;
 import java.util.Optional;

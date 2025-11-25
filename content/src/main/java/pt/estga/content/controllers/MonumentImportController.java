@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pt.estga.shared.dtos.content.MonumentDto;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.stonemark.mappers.MonumentMapper;
 import pt.estga.stonemark.services.content.MonumentImportService;
 

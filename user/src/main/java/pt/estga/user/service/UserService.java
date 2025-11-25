@@ -2,7 +2,7 @@ package pt.estga.user.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.stonemark.entities.User;
+import pt.estga.user.entities.User;
 
 import java.util.Optional;
 

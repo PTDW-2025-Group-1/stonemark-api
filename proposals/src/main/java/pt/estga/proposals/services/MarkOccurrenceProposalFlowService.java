@@ -1,10 +1,10 @@
 package pt.estga.proposals.services;
 
-import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
-import pt.estga.stonemark.dtos.proposal.SelectExistingMarkRequestDto;
-import pt.estga.stonemark.dtos.proposal.ProposeNewMarkRequestDto;
-import pt.estga.stonemark.dtos.proposal.SelectExistingMonumentRequestDto;
-import pt.estga.stonemark.dtos.proposal.ProposeNewMonumentRequestDto;
+import pt.estga.proposals.dtos.ProposeNewMarkRequestDto;
+import pt.estga.proposals.dtos.ProposeNewMonumentRequestDto;
+import pt.estga.proposals.dtos.SelectExistingMarkRequestDto;
+import pt.estga.proposals.dtos.SelectExistingMonumentRequestDto;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 
 import java.io.IOException;
 

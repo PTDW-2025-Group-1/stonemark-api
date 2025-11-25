@@ -3,7 +3,7 @@ package pt.estga.contact.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
-import pt.estga.stonemark.enums.ContactStatus;
+import pt.estga.contact.ContactStatus;
 
 import java.time.Instant;
 

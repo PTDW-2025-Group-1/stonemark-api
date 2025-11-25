@@ -3,10 +3,10 @@ package pt.estga.auth.services.token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.entities.token.RefreshToken;
-import pt.estga.stonemark.repositories.UserRepository;
-import pt.estga.stonemark.repositories.token.RefreshTokenRepository;
+import pt.estga.auth.entities.RefreshToken;
+import pt.estga.auth.repositories.RefreshTokenRepository;
+import pt.estga.user.UserRepository;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

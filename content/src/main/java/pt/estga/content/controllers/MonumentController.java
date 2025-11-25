@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import pt.estga.shared.dtos.content.MonumentDto;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.stonemark.entities.content.Monument;
 import pt.estga.stonemark.mappers.MonumentMapper;
 import pt.estga.stonemark.services.content.MonumentService;

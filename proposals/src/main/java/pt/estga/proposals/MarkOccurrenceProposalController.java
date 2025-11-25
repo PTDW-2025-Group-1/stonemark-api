@@ -6,14 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import pt.estga.shared.dtos.proposal.ProposalStateDto;
-import pt.estga.shared.dtos.proposal.SelectExistingMarkRequestDto;
-import pt.estga.shared.dtos.proposal.ProposeNewMarkRequestDto;
-import pt.estga.shared.dtos.proposal.SelectExistingMonumentRequestDto;
-import pt.estga.shared.dtos.proposal.ProposeNewMonumentRequestDto;
-import pt.estga.stonemark.entities.proposals.MarkOccurrenceProposal;
-import pt.estga.stonemark.mappers.MarkOccurrenceProposalMapper;
-import pt.estga.stonemark.services.proposal.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.dtos.ProposalStateDto;
+import pt.estga.proposals.dtos.SelectExistingMarkRequestDto;
+import pt.estga.proposals.dtos.ProposeNewMarkRequestDto;
+import pt.estga.proposals.dtos.SelectExistingMonumentRequestDto;
+import pt.estga.proposals.dtos.ProposeNewMonumentRequestDto;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
+import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 import java.io.IOException;
 

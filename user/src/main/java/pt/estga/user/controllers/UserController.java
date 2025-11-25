@@ -7,10 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.shared.dtos.user.UserDto;
-import pt.estga.stonemark.entities.User;
-import pt.estga.stonemark.mappers.UserMapper;
-import pt.estga.stonemark.services.user.UserService;
+import pt.estga.user.UserMapper;
+import pt.estga.user.dtos.UserDto;
+import pt.estga.user.entities.User;
+import pt.estga.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/users")
