@@ -17,7 +17,7 @@ public class TwoFactorAuthContentProvider implements EmailContentProvider {
 
     @Override
     public String getTemplate() {
-        return "templates/email/two-factor-authentication.html";
+        return "email/two-factor-authentication.html";
     }
 
     @Override

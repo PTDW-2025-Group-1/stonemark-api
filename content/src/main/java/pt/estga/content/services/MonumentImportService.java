@@ -19,14 +19,13 @@ import java.util.Optional;
 public class MonumentImportService {
 
     private final MonumentRepository repository;
+    private final ReverseGeocodingService reverseGeocodingService;
 
     public List<Monument> overpass(String query) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(query);
         JsonNode features = rootNode.path("features");
 
-        // Use a map to handle duplicates within the JSON data itself.
-        // The last entry with a given name will overwrite previous ones.
         Map<String, Monument> monumentMap = new LinkedHashMap<>();
 
         if (features.isArray()) {
@@ -36,9 +35,7 @@ public class MonumentImportService {
 
                 if (properties.isObject() && geometry.isObject()) {
                     String name = properties.path("name").asText(null);
-                    if (name == null || name.isBlank()) {
-                        continue; // Skip entries without a name
-                    }
+                    if (name == null || name.isBlank()) continue;
 
                     String description = properties.path("description").asText(null);
                     String website = properties.path("heritage:website").asText(null);
@@ -49,7 +46,11 @@ public class MonumentImportService {
                         double longitude = coordinates.get(0).asDouble();
                         double latitude = coordinates.get(1).asDouble();
 
-                        // Create a transient monument object from JSON data.
+                        // Novo: resolver endereço e cidade
+                        String address = reverseGeocodingService.getAddress(latitude, longitude);
+                        String city = reverseGeocodingService.getCity(latitude, longitude);
+
+                        // Create a transient monument object
                         Monument monumentFromJson = new Monument();
                         monumentFromJson.setName(name);
                         monumentFromJson.setDescription(description);
@@ -57,8 +58,9 @@ public class MonumentImportService {
                         monumentFromJson.setLongitude(longitude);
                         monumentFromJson.setWebsite(website);
                         monumentFromJson.setProtectionTitle(protectionTitle);
-                        
-                        // Place it in the map, keyed by name to handle duplicates.
+                        monumentFromJson.setAddress(address);
+                        monumentFromJson.setCity(city);
+
                         monumentMap.put(name, monumentFromJson);
                     }
                 }
@@ -66,30 +68,26 @@ public class MonumentImportService {
         }
 
         List<Monument> monumentsToSave = new ArrayList<>();
-        for (Monument monumentFromJson : monumentMap.values()) {
-            Optional<Monument> existingMonumentOpt = repository.findByName(monumentFromJson.getName());
-
-            Monument monumentToSave = getMonumentToSave(monumentFromJson, existingMonumentOpt);
-            monumentsToSave.add(monumentToSave);
+        for (Monument m : monumentMap.values()) {
+            Optional<Monument> existing = repository.findByName(m.getName());
+            monumentsToSave.add(getMonumentToSave(m, existing));
         }
 
         return repository.saveAll(monumentsToSave);
     }
 
-    private static Monument getMonumentToSave(Monument monumentFromJson, Optional<Monument> existingMonumentOpt) {
-        Monument monumentToSave;
-        if (existingMonumentOpt.isPresent()) {
-            // If monument exists, update it.
-            monumentToSave = existingMonumentOpt.get();
-            monumentToSave.setDescription(monumentFromJson.getDescription());
-            monumentToSave.setLatitude(monumentFromJson.getLatitude());
-            monumentToSave.setLongitude(monumentFromJson.getLongitude());
-            monumentToSave.setWebsite(monumentFromJson.getWebsite());
-            monumentToSave.setProtectionTitle(monumentFromJson.getProtectionTitle());
-        } else {
-            // Otherwise, use the new one from the JSON.
-            monumentToSave = monumentFromJson;
+    private static Monument getMonumentToSave(Monument fromJson, Optional<Monument> existing) {
+        if (existing.isPresent()) {
+            Monument m = existing.get();
+            m.setDescription(fromJson.getDescription());
+            m.setLatitude(fromJson.getLatitude());
+            m.setLongitude(fromJson.getLongitude());
+            m.setWebsite(fromJson.getWebsite());
+            m.setProtectionTitle(fromJson.getProtectionTitle());
+            m.setAddress(fromJson.getAddress());
+            m.setCity(fromJson.getCity());
+            return m;
         }
-        return monumentToSave;
+        return fromJson;
     }
 }

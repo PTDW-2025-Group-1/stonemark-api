@@ -17,7 +17,7 @@ public class PasswordResetContentProvider implements EmailContentProvider {
 
     @Override
     public String getTemplate() {
-        return "templates/email/password-reset.html";
+        return "email/password-reset.html";
     }
 
     @Override

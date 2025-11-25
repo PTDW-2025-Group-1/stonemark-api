@@ -22,5 +22,7 @@ public class Monument extends AuditableContentEntity {
     private Double longitude;
     private String website;
     private String protectionTitle;
+    private String address;
+    private String city;
 
 }

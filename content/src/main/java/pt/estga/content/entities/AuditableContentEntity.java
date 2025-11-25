@@ -17,7 +17,7 @@ import java.time.Instant;
 public abstract class AuditableContentEntity {
 
     @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(updatable = false)
     protected User createdBy;
 
@@ -26,7 +26,7 @@ public abstract class AuditableContentEntity {
     protected Instant createdAt;
 
     @LastModifiedBy
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn
     protected User lastModifiedBy;
 

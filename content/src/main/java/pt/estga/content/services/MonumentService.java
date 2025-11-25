@@ -21,6 +21,8 @@ public interface MonumentService {
 
     List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range);
 
+    List<Monument> findLatest(int limit);
+
     Monument create(Monument monument);
 
     Monument update(Monument monument);
