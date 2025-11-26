@@ -23,6 +23,12 @@ public interface MonumentService {
 
     List<Monument> findLatest(int limit);
 
+    long count();
+
+    Page<Monument> searchByName(String query, Pageable pageable);
+
+    Page<Monument> findByCity(String city, Pageable pageable);
+
     Monument create(Monument monument);
 
     Monument update(Monument monument);
