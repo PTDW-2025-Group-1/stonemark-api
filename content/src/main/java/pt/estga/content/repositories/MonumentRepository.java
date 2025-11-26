@@ -1,10 +1,12 @@
 package pt.estga.content.repositories;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.content.entities.Monument;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,4 +22,9 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     List<Monument> findByCoordinatesInRange(@Param("lat") double latitude, @Param("lon") double longitude, @Param("range") double range);
 
     Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
+
+    Page<Monument> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    Page<Monument> findByCityIgnoreCase(String city, Pageable pageable);
+
 }

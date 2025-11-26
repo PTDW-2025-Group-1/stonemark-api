@@ -1,9 +1,12 @@
 package pt.estga.content.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -26,21 +29,54 @@ public class MonumentController {
     private final MonumentMapper mapper;
 
     @GetMapping
-    public Page<MonumentResponseDto> getMonuments(Pageable pageable) {
+    public Page<MonumentResponseDto> getMonuments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
         return service.findAll(pageable).map(mapper::toDto);
     }
 
+    @GetMapping("/search")
+    public Page<MonumentResponseDto> searchMonuments(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+        return service.searchByName(query, pageable).map(mapper::toDto);
+    }
+
+    @GetMapping("/filter")
+    public Page<MonumentResponseDto> filterMonumentsByCity(
+            @RequestParam String city,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+        return service.findByCity(city, pageable).map(mapper::toDto);
+    }
+
     @GetMapping("/latest")
-    public List<MonumentResponseDto> getLatestMonuments() {
-        return service.findLatest(6)
+    public List<MonumentResponseDto> getLatestMonuments(
+            @RequestParam(defaultValue = "6") int limit
+    ) {
+        int safeLimit = Math.min(limit, 50);
+        return service.findLatest(safeLimit)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> countMonuments() {
+        return ResponseEntity.ok(service.count());
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonumentResponseDto> getMonument(@PathVariable Long id) {
+    public ResponseEntity<MonumentResponseDto> getMonument(
+            @PathVariable Long id
+    ) {
         return service.findById(id)
                 .map(mapper::toDto)
                 .map(ResponseEntity::ok)
@@ -48,19 +84,28 @@ public class MonumentController {
     }
 
     @PostMapping
-    public ResponseEntity<MonumentResponseDto> createMonument(@RequestBody MonumentRequestDto monumentDto) {
+    public ResponseEntity<MonumentResponseDto> createMonument(
+            @Valid @RequestBody MonumentRequestDto monumentDto
+    ) {
         Monument monument = mapper.toEntity(monumentDto);
         Monument createdMonument = service.create(monument);
-        MonumentResponseDto createdMonumentDto = mapper.toDto(createdMonument);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+        MonumentResponseDto response = mapper.toDto(createdMonument);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(createdMonumentDto.id())
+                .buildAndExpand(response.id())
                 .toUri();
-        return ResponseEntity.created(location).body(createdMonumentDto);
+
+        return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MonumentResponseDto> updateMonument(@PathVariable Long id, @RequestBody MonumentRequestDto monumentDto) {
+    public ResponseEntity<MonumentResponseDto> updateMonument(
+            @PathVariable Long id,
+
+            @Valid @RequestBody MonumentRequestDto monumentDto
+    ) {
         Monument monument = mapper.toEntity(monumentDto);
         monument.setId(id);
         Monument updatedMonument = service.update(monument);
@@ -68,7 +113,9 @@ public class MonumentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMonument(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMonument(
+            @PathVariable Long id
+    ) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }

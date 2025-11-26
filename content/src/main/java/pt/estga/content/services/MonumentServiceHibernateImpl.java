@@ -54,6 +54,21 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
+    public long count() {
+        return repository.count();
+    }
+
+    @Override
+    public Page<Monument> searchByName(String query, Pageable pageable) {
+        return repository.findByNameContainingIgnoreCase(query, pageable);
+    }
+
+    @Override
+    public Page<Monument> findByCity(String city, Pageable pageable) {
+        return repository.findByCityIgnoreCase(city, pageable);
+    }
+
+    @Override
     public Monument create(Monument monument) {
         return repository.save(monument);
     }
