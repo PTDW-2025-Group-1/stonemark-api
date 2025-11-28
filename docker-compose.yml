@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: stonemark-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: stonemark
+      POSTGRES_PASSWORD: stonemark
+      POSTGRES_DB: stonemark
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: stonemark-keycloak
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/stonemark
+      KC_DB_USERNAME: stonemark
+      KC_DB_PASSWORD: stonemark
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak-import:/opt/keycloak/data/import
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+
+  minio:
+    image: minio/minio:latest
+    container_name: stonemark-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: access
+      MINIO_ROOT_PASSWORD: secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:

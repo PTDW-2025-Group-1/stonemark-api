@@ -5,5 +5,6 @@ import lombok.*;
 @Builder
 public record AuthenticationResponseDto(
         String accessToken,
-        String refreshToken
+        String refreshToken,
+        String role
 ) { }

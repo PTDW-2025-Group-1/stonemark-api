@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface AuthenticationService {
 
-    Optional<AuthenticationResponseDto> register(@Valid User user);
+    Optional<AuthenticationResponseDto> register(@Valid User user, String rawPassword);
 
     Optional<AuthenticationResponseDto> authenticate(String email, String password);
 

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.shared.services.EmailService;
-import pt.estga.stonemark.models.Email;
+import pt.estga.shared.models.Email;
 import pt.estga.auth.services.verification.email.EmailContentProvider;
 import pt.estga.auth.services.verification.email.EmailContentProviderFactory;
 

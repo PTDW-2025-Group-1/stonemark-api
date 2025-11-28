@@ -1,6 +1,6 @@
 package pt.estga.shared.services;
 
-import pt.estga.stonemark.models.Email;
+import pt.estga.shared.models.Email;
 
 public interface EmailService {
 
