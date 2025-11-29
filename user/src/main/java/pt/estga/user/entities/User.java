@@ -24,6 +24,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue
     private Long id;
+    private String keycloakId;
 
     private String firstName;
     private String lastName;

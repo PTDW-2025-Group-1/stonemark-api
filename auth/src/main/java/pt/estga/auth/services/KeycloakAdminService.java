@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import pt.estga.user.entities.User;
 
 import java.util.Map;
 
@@ -46,7 +47,7 @@ public class KeycloakAdminService {
     }
 
 
-    public void createUserInKeycloak(String email, String password, String firstName, String lastName) {
+    public String createUserInKeycloak(String email, String password, String firstName, String lastName) {
         String token = getAdminToken();
 
         String url = authUrl + "/admin/realms/" + realm + "/users";
@@ -72,8 +73,44 @@ public class KeycloakAdminService {
         """.formatted(email, email, firstName, lastName, password);
 
         HttpEntity<String> req = new HttpEntity<>(body, headers);
-        restTemplate.exchange(url, HttpMethod.POST, req, Void.class);
+
+        ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.POST, req, Void.class);
+
+        String location = response.getHeaders().getLocation().toString();
+        String id = location.substring(location.lastIndexOf('/') + 1);
+
+        return id;
     }
+
+
+    public void updateUserInKeycloak(String keycloakUserId, User user) {
+        String token = getAdminToken();
+
+        String url = authUrl + "/admin/realms/" + realm + "/users/" + keycloakUserId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String body = """
+        {
+          "username": "%s",
+          "email": "%s",
+          "firstName": "%s",
+          "lastName": "%s",
+          "enabled": %s
+        }
+        """.formatted(
+                user.getEmail(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.isEnabled()
+        );
+
+        restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<>(body, headers), Void.class);
+    }
+
 
 }
 

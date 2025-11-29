@@ -68,14 +68,15 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
         user.setEnabled(!emailVerificationRequired);
 
-        User createdUser = userService.create(user);
-
-        keycloakAdminService.createUserInKeycloak(
+        String keycloakId = keycloakAdminService.createUserInKeycloak(
                 user.getEmail(),
                 rawPassword,
                 user.getFirstName(),
                 user.getLastName()
         );
+
+        user.setKeycloakId(keycloakId);
+        User createdUser = userService.update(user);
 
         if (emailVerificationRequired) {
             var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
@@ -123,6 +124,10 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
 
         userService.update(user);
+
+        if (user.getKeycloakId() != null) {
+            keycloakAdminService.updateUserInKeycloak(user.getKeycloakId(), user);
+        }
 
         if (emailVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required.");
