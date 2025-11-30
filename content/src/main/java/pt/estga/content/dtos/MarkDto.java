@@ -1,16 +1,10 @@
 package pt.estga.content.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MarkDto {
-    private Long id;
-    private String title;
-    private String description;
-    private Long photoId;
-    private Long vectorId;
+public record MarkDto(
+        Long id,
+        String title,
+        String description,
+        Long photoId,
+        Long vectorId
+) {
 }
