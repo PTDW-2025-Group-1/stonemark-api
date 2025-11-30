@@ -45,7 +45,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.searchByName(query, pageable).map(mapper::toDto);
+        return service.searchByName(query, pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/filter")
@@ -55,7 +55,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByCity(city, pageable).map(mapper::toDto);
+        return service.findByCity(city, pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/latest")
