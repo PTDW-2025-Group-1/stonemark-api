@@ -1,4 +1,4 @@
-package pt.estga.stonemark.models;
+package pt.estga.shared.models;
 
 import lombok.Builder;
 import lombok.Data;
