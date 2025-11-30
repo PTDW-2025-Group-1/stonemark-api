@@ -30,12 +30,13 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
         try {
+            String rawPassword = request.password();
             User parsedUser = authMapper.toUser(request);
-            parsedUser.setPassword(passwordEncoder.encode(request.password()));
+            parsedUser.setPassword(passwordEncoder.encode(rawPassword));
             if (parsedUser.getRole() == null) {
                 parsedUser.setRole(Role.USER);
             }
-            return authService.register(parsedUser)
+            return authService.register(parsedUser, rawPassword)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
         } catch (EmailVerificationRequiredException e) {

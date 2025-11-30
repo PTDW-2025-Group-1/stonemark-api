@@ -28,6 +28,7 @@ import pt.estga.user.service.UserService;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -45,12 +46,15 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final VerificationProcessingService verificationProcessingService;
 
+    private final KeycloakAdminService keycloakAdminService;
+    private final KeycloakAuthService keycloakAuthService;
+
     @Value("${application.security.email-verification-required:false}")
     private boolean emailVerificationRequired;
 
     @Override
     @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
-    public Optional<AuthenticationResponseDto> register(User user) {
+    public Optional<AuthenticationResponseDto> register(User user, String rawPassword) {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
@@ -64,15 +68,23 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
         user.setEnabled(!emailVerificationRequired);
 
-        User createdUser = userService.create(user);
+        String keycloakId = keycloakAdminService.createUserInKeycloak(
+                user.getEmail(),
+                rawPassword,
+                user.getFirstName(),
+                user.getLastName()
+        );
+
+        user.setKeycloakId(keycloakId);
+        User createdUser = userService.update(user);
 
         if (emailVerificationRequired) {
             var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-        } else {
-            return generateAuthenticationResponse(createdUser);
         }
+
+        return generateAuthenticationResponse(createdUser);
     }
 
     @NotNull
@@ -83,30 +95,47 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
         accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
 
-        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString));
+        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name()));
     }
 
     @Override
     @Transactional
     public Optional<AuthenticationResponseDto> authenticate(String email, String password) {
-        try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    email,
-                    password
-                )
-            );
-        } catch (AuthenticationException e) {
+
+        Map<String, Object> keycloakToken = keycloakAuthService.getUserToken(email, password);
+
+        if (keycloakToken == null || !keycloakToken.containsKey("access_token")) {
             return Optional.empty();
         }
-        var user = userService.findByEmail(email).orElseThrow();
+
+        String accessToken = (String) keycloakToken.get("access_token");
+
+        List<String> kcRoles = keycloakAuthService.extractRoles(accessToken);
+
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (kcRoles.contains("ADMIN")) {
+            user.setRole(Role.ADMIN);
+        } else if (kcRoles.contains("MODERATOR")) {
+            user.setRole(Role.MODERATOR);
+        } else {
+            user.setRole(Role.USER);
+        }
+
+        userService.update(user);
+
+        if (user.getKeycloakId() != null) {
+            keycloakAdminService.updateUserInKeycloak(user.getKeycloakId(), user);
+        }
 
         if (emailVerificationRequired && !user.isEnabled()) {
-            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
+            throw new EmailVerificationRequiredException("Email verification required.");
         }
 
         return generateAuthenticationResponse(user);
     }
+
 
     @Override
     @Transactional
@@ -122,7 +151,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                     String newAccessToken = jwtService.generateAccessToken(userDetails);
                     accessTokenService.createToken(userDetails.getUsername(), newAccessToken, refreshToken);
 
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString);
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority());
                 });
     }
 
