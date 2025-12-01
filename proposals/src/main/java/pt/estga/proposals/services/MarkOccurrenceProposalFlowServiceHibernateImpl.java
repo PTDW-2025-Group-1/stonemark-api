@@ -10,10 +10,6 @@ import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.TargetType;
 import pt.estga.file.services.MediaService;
-import pt.estga.proposals.dtos.ProposeNewMarkRequestDto;
-import pt.estga.proposals.dtos.ProposeNewMonumentRequestDto;
-import pt.estga.proposals.dtos.SelectExistingMarkRequestDto;
-import pt.estga.proposals.dtos.SelectExistingMonumentRequestDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
@@ -42,17 +38,9 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     private final ProposedMonumentRepository proposedMonumentRepository;
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
-    private MarkOccurrenceProposal getProposalById(Long proposalId, String operation) {
-        return proposalRepository.findById(proposalId)
-                .orElseThrow(() -> {
-                    log.error("Proposal with ID {} not found during {}.", proposalId, operation);
-                    return new RuntimeException("Proposal not found");
-                });
-    }
-
     @Override
     @Transactional
-    public MarkOccurrenceProposal initiateProposal(byte[] photoData, String filename) throws IOException {
+    public MarkOccurrenceProposal initiate(byte[] photoData, String filename) throws IOException {
         log.info("Initiating proposal for file: {}", filename);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
@@ -63,47 +51,29 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         Optional<Location> gpsData = gpsExtractorService.extractGpsData(mediaFile);
         if (gpsData.isPresent()) {
-            log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", savedProposal.getId(), gpsData.get().getLatitude(), gpsData.get().getLongitude());
-            List<Monument> monuments = monumentRepository.findByCoordinatesInRange(
-                    gpsData.get().getLatitude(),
-                    gpsData.get().getLongitude(),
-                    COORDINATE_SEARCH_RANGE
-            );
-            if (!monuments.isEmpty()) {
-                log.info("Existing monument found for proposal {} with ID: {}", savedProposal.getId(), monuments.getFirst().getId());
-                savedProposal.setExistingMonument(monuments.getFirst());
-                savedProposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
-                return proposalRepository.save(savedProposal);
-            } else {
-                log.info("No existing monument found near GPS coordinates for proposal {}", savedProposal.getId());
-            }
+            handleGpsData(savedProposal, gpsData.get());
         } else {
             log.info("No GPS data found for proposal {}", savedProposal.getId());
+            savedProposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
 
-        savedProposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         return proposalRepository.save(savedProposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal handleExistingMonumentSelection(Long proposalId, SelectExistingMonumentRequestDto requestDto) {
-        log.info("User selected existing monument with ID: {} for proposal ID: {}", requestDto.existingMonumentId(), proposalId);
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "existing monument selection");
+    public MarkOccurrenceProposal selectMonument(Long proposalId, Long existingMonumentId) {
+        log.info("User selected existing monument with ID: {} for proposal ID: {}", existingMonumentId, proposalId);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        // Clear previous selections for monument
-        proposal.setExistingMonument(null);
-        proposal.setProposedMonument(null);
+        clearMonumentSelections(proposal);
 
-        monumentRepository.findById(requestDto.existingMonumentId())
+        monumentRepository.findById(existingMonumentId)
                 .ifPresentOrElse(
-                        monument -> {
-                            proposal.setExistingMonument(monument);
-                            log.debug("Existing monument assigned to proposal ID: {}", proposal.getId());
-                        },
+                        proposal::setExistingMonument,
                         () -> {
-                            log.error("Existing monument with ID {} not found for proposal ID {}", requestDto.existingMonumentId(), proposal.getId());
-                            throw new RuntimeException("Selected monument not found."); // Throw an exception
+                            log.error("Existing monument with ID {} not found for proposal ID {}", existingMonumentId, proposal.getId());
+                            throw new RuntimeException("Selected monument not found.");
                         }
                 );
 
@@ -113,28 +83,20 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal handleNewMonumentProposal(Long proposalId, ProposeNewMonumentRequestDto requestDto) {
-        log.info("User proposed a new monument for proposal ID: {}. Name: {}, Latitude: {}, Longitude: {}", proposalId, requestDto.name(), requestDto.latitude(), requestDto.longitude());
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "new monument proposal");
+    public MarkOccurrenceProposal proposeMonument(Long proposalId, String name, Double latitude, Double longitude) {
+        log.info("User proposed a new monument for proposal ID: {}. Name: {}, Latitude: {}, Longitude: {}", proposalId, name, latitude, longitude);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        // Clear previous selections for monument
-        proposal.setExistingMonument(null);
-        if (proposal.getProposedMonument() != null) {
-            proposedMonumentRepository.delete(proposal.getProposedMonument());
-        }
-        proposal.setProposedMonument(null);
+        clearMonumentSelections(proposal);
 
-        ProposedMonument currentProposedMonument = ProposedMonument.builder().build();
+        ProposedMonument proposedMonument = ProposedMonument.builder()
+                .name(name)
+                .latitude(latitude)
+                .longitude(longitude)
+                .build();
 
-        currentProposedMonument.setName(requestDto.name());
-        currentProposedMonument.setLatitude(requestDto.latitude());
-        currentProposedMonument.setLongitude(requestDto.longitude());
-
-        // Explicitly save the ProposedMonument first
-        ProposedMonument savedProposedMonument = proposedMonumentRepository.save(currentProposedMonument);
-
+        ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
         proposal.setProposedMonument(savedProposedMonument);
-        log.debug("Proposed monument assigned to proposal ID: {}", proposal.getId());
 
         proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
         return proposalRepository.save(proposal);
@@ -142,22 +104,17 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal handleExistingMarkSelection(Long proposalId, SelectExistingMarkRequestDto requestDto) {
-        log.info("User selected existing mark with ID: {} for proposal ID: {}", requestDto.existingMarkId(), proposalId);
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "existing mark selection");
+    public MarkOccurrenceProposal selectMark(Long proposalId, Long existingMarkId) {
+        log.info("User selected existing mark with ID: {} for proposal ID: {}", existingMarkId, proposalId);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        // Clear previous selections for mark
-        proposal.setExistingMark(null);
-        if (proposal.getProposedMark() != null) {
-            proposedMarkRepository.delete(proposal.getProposedMark());
-        }
-        proposal.setProposedMark(null);
+        clearMarkSelections(proposal);
 
-        markRepository.findById(requestDto.existingMarkId()).ifPresentOrElse(
+        markRepository.findById(existingMarkId).ifPresentOrElse(
                 proposal::setExistingMark,
                 () -> {
-                    log.error("Existing mark with ID {} not found for proposal ID {}", requestDto.existingMarkId(), proposal.getId());
-                    throw new RuntimeException("Selected mark not found."); // Throw an exception
+                    log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
+                    throw new RuntimeException("Selected mark not found.");
                 }
         );
 
@@ -167,56 +124,59 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal handleNewMarkProposal(Long proposalId, ProposeNewMarkRequestDto requestDto) {
-        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, requestDto.name());
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "new mark proposal");
+    public MarkOccurrenceProposal proposeMark(Long proposalId, String title, String description) {
+        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, title);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        // Clear previous selections for mark
-        proposal.setExistingMark(null);
-        if (proposal.getProposedMark() != null) {
-            proposedMarkRepository.delete(proposal.getProposedMark());
-        }
-        proposal.setProposedMark(null);
+        clearMarkSelections(proposal);
 
         ProposedMark proposedMark = new ProposedMark();
-
-        proposedMark.setName(requestDto.name());
-        proposedMark.setDescription(Optional.ofNullable(requestDto.description()).orElse(""));
+        proposedMark.setTitle(title);
+        proposedMark.setDescription(Optional.ofNullable(description).orElse(""));
         proposedMark.setMediaFile(proposal.getOriginalMediaFile());
 
-        // Explicitly save the ProposedMark first
         ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
-
         proposal.setProposedMark(savedProposedMark);
-        log.debug("Proposed mark assigned to proposal ID: {}", proposal.getId());
 
         proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
         return proposalRepository.save(proposal);
     }
 
-    @Override
-    @Transactional
-    public MarkOccurrenceProposal submitProposal(Long proposalId) {
-        log.info("Confirming proposal with ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "confirmation");
-
-        proposal.setStatus(ProposalStatus.SUBMITTED);
-        return proposalRepository.save(proposal);
+    private MarkOccurrenceProposal findProposalById(Long proposalId) {
+        return proposalRepository.findById(proposalId)
+                .orElseThrow(() -> new RuntimeException("Proposal not found"));
     }
 
-    @Override
-    public MarkOccurrenceProposal approveProposal(Long proposalId) {
-        // Todo: implement approveProposal
-        return null;
+    private void handleGpsData(MarkOccurrenceProposal proposal, Location gpsData) {
+        log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", proposal.getId(), gpsData.getLatitude(), gpsData.getLongitude());
+        List<Monument> monuments = monumentRepository.findByCoordinatesInRange(
+                gpsData.getLatitude(),
+                gpsData.getLongitude(),
+                COORDINATE_SEARCH_RANGE
+        );
+        if (!monuments.isEmpty()) {
+            log.info("Existing monument found for proposal {} with ID: {}", proposal.getId(), monuments.getFirst().getId());
+            proposal.setExistingMonument(monuments.getFirst());
+            proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
+        } else {
+            log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
+            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+        }
     }
 
-    @Override
-    @Transactional
-    public MarkOccurrenceProposal rejectProposal(Long proposalId) {
-        log.info("Rejecting proposal with ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = getProposalById(proposalId, "rejection");
+    private void clearMonumentSelections(MarkOccurrenceProposal proposal) {
+        proposal.setExistingMonument(null);
+        if (proposal.getProposedMonument() != null) {
+            proposedMonumentRepository.delete(proposal.getProposedMonument());
+            proposal.setProposedMonument(null);
+        }
+    }
 
-        proposal.setStatus(ProposalStatus.REJECTED);
-        return proposalRepository.save(proposal);
+    private void clearMarkSelections(MarkOccurrenceProposal proposal) {
+        proposal.setExistingMark(null);
+        if (proposal.getProposedMark() != null) {
+            proposedMarkRepository.delete(proposal.getProposedMark());
+            proposal.setProposedMark(null);
+        }
     }
 }

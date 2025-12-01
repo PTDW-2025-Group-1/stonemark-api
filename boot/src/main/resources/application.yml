@@ -66,6 +66,10 @@ minio:
   access-key: ${MINIO_ROOT_USER}
   secret-key: ${MINIO_ROOT_PASSWORD}
 
+vision:
+  server:
+    url: http://localhost:5000
+
 keycloak:
   auth-server-url: http://localhost:9090
   realm: stonemark-realm

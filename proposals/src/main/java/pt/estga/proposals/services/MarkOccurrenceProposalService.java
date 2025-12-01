@@ -2,18 +2,21 @@ package pt.estga.proposals.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.content.entities.MarkOccurrence;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.user.entities.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MarkOccurrenceProposalService {
 
-    Page<MarkOccurrence> findAll(Pageable pageable);
+    Page<MarkOccurrenceProposal> findAll(Pageable pageable);
 
-    Optional<MarkOccurrence> findById(Long id);
+    Optional<MarkOccurrenceProposal> findById(Long id);
 
-    MarkOccurrence create(MarkOccurrence occurrence);
+    List<MarkOccurrenceProposal> findByUser(User user);
 
-    void deleteById(Long id);
+    List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
 
 }
