@@ -1,6 +1,6 @@
 {
   "id" : "1e23a9b3-01b3-4116-9036-0ee8782832c8",
-  "realm" : "myrealm",
+  "realm" : "stonemark-realm",
   "notBefore" : 0,
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : false,

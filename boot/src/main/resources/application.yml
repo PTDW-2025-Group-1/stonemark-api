@@ -17,7 +17,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        ddl-auto: update
+        ddl-auto: validate
         show-sql: true
         format_sql: true
         hbm2ddl.auto: update
@@ -53,7 +53,7 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
   flyway:
-    enabled: false
+    enabled: true
 
 storage:
   storage:
@@ -66,6 +66,15 @@ minio:
   bucket-name: stonemark
   access-key: access
   secret-key: secret
+
+keycloak:
+  auth-server-url: http://localhost:9090
+  realm: stonemark-realm
+  client-id: stonemark-service
+  client-secret: 72TmkVyRbPQl7eEkqxWaEjHRNno9PRWy
+  admin:
+    username: ${KEYCLOAK_USERNAME}
+    password: ${KEYCLOAK_PASSWORD}
 
 logging:
   level:

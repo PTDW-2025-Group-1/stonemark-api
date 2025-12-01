@@ -1,53 +1,72 @@
-version: '3.9'
-
 services:
-  postgres:
-    image: postgres:15
-    container_name: stonemark-postgres
-    restart: always
+  database:
+    container_name: stonemark-db
+    image: postgres
     environment:
-      POSTGRES_USER: stonemark
-      POSTGRES_PASSWORD: stonemark
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: stonemark
-    ports:
-      - "5440:5432"
+      PGDATA: /var/lib/postgresql/data
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres-init:/docker-entrypoint-initdb.d
+      - stonemark-db:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    networks:
+      - stonemark-network
+    restart: unless-stopped
+
+  keycloak-db:
+    image: postgres
+    container_name: stonemark-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KEYCLOAK_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - keycloak-db:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+    networks:
+      - stonemark-network
+    restart: unless-stopped
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: stonemark-keycloak
-    command:
-      - start-dev
-      - --import-realm
+    command: [ "start-dev", "--import-realm" ]
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: stonemark
-      KC_DB_PASSWORD: stonemark
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USERNAME}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_PASSWORD}
     volumes:
       - ./keycloak-import:/opt/keycloak/data/import
     ports:
-      - "8081:8080"
+      - "9090:8080"
     depends_on:
-      - postgres
+      - keycloak-db
+    networks:
+      - stonemark-network
 
   minio:
     image: minio/minio:latest
     container_name: stonemark-minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: access
-      MINIO_ROOT_PASSWORD: secret
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - minio_data:/data
+
+networks:
+  stonemark-network:
+    driver: bridge
 
 volumes:
-  postgres_data:
-  minio_data:
+  stonemark-db:
+    driver: local
+  keycloak-db:
+    driver: local
