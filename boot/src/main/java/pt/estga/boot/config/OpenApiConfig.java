@@ -66,6 +66,14 @@ public class OpenApiConfig {
     }
 
     @Bean
+    public GroupedOpenApi proposals() {
+        return GroupedOpenApi.builder()
+                .group("Proposals")
+                .pathsToMatch("/api/v1/proposals/**")
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi contactRequests() {
         return GroupedOpenApi.builder()
                 .group("Contact Requests")

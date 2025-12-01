@@ -56,16 +56,15 @@ spring:
     enabled: true
 
 storage:
-  storage:
-    provider: local # or minio
+  provider: minio # or local
   local:
     root-path: uploads
 
 minio:
   endpoint: http://localhost:9000
   bucket-name: stonemark
-  access-key: access
-  secret-key: secret
+  access-key: ${MINIO_ROOT_USER}
+  secret-key: ${MINIO_ROOT_PASSWORD}
 
 keycloak:
   auth-server-url: http://localhost:9090

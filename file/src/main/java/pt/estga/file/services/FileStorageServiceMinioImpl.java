@@ -23,15 +23,10 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
     private final String bucketName;
 
     public FileStorageServiceMinioImpl(
-            @Value("${minio.endpoint}") String endpoint,
-            @Value("${minio.access-key}") String accessKey,
-            @Value("${minio.secret-key}") String secretKey,
+            MinioClient minioClient,
             @Value("${minio.bucket-name}") String bucketName
     ) {
-        this.minioClient = MinioClient.builder()
-                .endpoint(endpoint)
-                .credentials(accessKey, secretKey)
-                .build();
+        this.minioClient = minioClient;
         this.bucketName = bucketName;
         createBucketIfNotExists();
     }

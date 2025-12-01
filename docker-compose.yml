@@ -16,8 +16,8 @@ services:
     restart: unless-stopped
 
   keycloak-db:
-    image: postgres
     container_name: stonemark-keycloak-db
+    image: postgres
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: ${KEYCLOAK_DB_USERNAME}
@@ -31,8 +31,8 @@ services:
     restart: unless-stopped
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0
     container_name: stonemark-keycloak
+    image: quay.io/keycloak/keycloak:26.0
     command: [ "start-dev", "--import-realm" ]
     environment:
       KC_DB: postgres
@@ -51,15 +51,19 @@ services:
       - stonemark-network
 
   minio:
-    image: minio/minio:latest
     container_name: stonemark-minio
+    image: minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
     ports:
       - "9000:9000"
       - "9001:9001"
+    networks:
+      - stonemark-network
 
 networks:
   stonemark-network:
@@ -69,4 +73,6 @@ volumes:
   stonemark-db:
     driver: local
   keycloak-db:
+    driver: local
+  minio-data:
     driver: local
