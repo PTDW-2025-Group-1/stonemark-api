@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.AccessToken;
 import pt.estga.auth.entities.token.RefreshToken;
 import pt.estga.auth.repositories.AccessTokenRepository;
-import pt.estga.user.UserRepository;
+import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
