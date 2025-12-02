@@ -92,8 +92,13 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                     } else {
                         return handleUnknownCommand(update);
                     }
+                } else {
+                    // Handle non-command text messages (e.g., mark details)
+                    return commandService.handleTextMessage(update);
                 }
             }
+        } else if (update.hasCallbackQuery()) {
+            return commandService.handleCallbackQuery(update);
         }
         return null;
     }

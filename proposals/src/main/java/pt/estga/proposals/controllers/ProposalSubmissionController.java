@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.proposals.dtos.ProposalStateDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
-import pt.estga.proposals.services.ProposalSubmissionService;
+import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
 
 @RestController
 @RequestMapping("/api/v1/proposals/mark-occurrences/submission")
@@ -15,12 +15,12 @@ import pt.estga.proposals.services.ProposalSubmissionService;
 @Tag(name = "Mark Occurrence Proposal Submission", description = "Endpoints for submitting mark occurrence proposals.")
 public class ProposalSubmissionController {
 
-    private final ProposalSubmissionService proposalSubmissionService;
+    private final MarkOccurrenceProposalSubmissionService markOccurrenceProposalSubmissionService;
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PostMapping("/{proposalId}/submit")
     public ResponseEntity<ProposalStateDto> submit(@PathVariable Long proposalId) {
-        MarkOccurrenceProposal proposal = proposalSubmissionService.submit(proposalId);
+        MarkOccurrenceProposal proposal = markOccurrenceProposalSubmissionService.submit(proposalId);
         return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal submitted."));
     }
 }

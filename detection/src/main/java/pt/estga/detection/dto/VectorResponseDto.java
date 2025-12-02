@@ -5,6 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public record VectorResponseDto(
-    @JsonProperty("vector")
+    @JsonProperty("embedding")
     List<Double> vector
 ) {}

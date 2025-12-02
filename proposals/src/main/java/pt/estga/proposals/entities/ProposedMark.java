@@ -1,11 +1,11 @@
 package pt.estga.proposals.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.converters.DoubleListConverter;
+
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -24,5 +24,9 @@ public class ProposedMark {
 
     @OneToOne
     private MediaFile mediaFile;
+
+    @Convert(converter = DoubleListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<Double> embedding;
 
 }

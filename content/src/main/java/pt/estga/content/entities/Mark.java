@@ -3,6 +3,9 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.converters.DoubleListConverter;
+
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -22,7 +25,8 @@ public class Mark extends AuditableContentEntity {
     @OneToOne
     private MediaFile photo;
 
-    @OneToOne
-    private MediaFile vector;
+    @Convert(converter = DoubleListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<Double> embedding;
 
 }

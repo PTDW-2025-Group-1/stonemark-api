@@ -5,8 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pt.estga.bots.telegram.StonemarkTelegramBot;
 import pt.estga.bots.telegram.TelegramBotCommandService;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
-import pt.estga.proposals.services.ProposalSubmissionService;
 
 @Configuration
 public class TelegramBotConfig {
@@ -19,11 +17,6 @@ public class TelegramBotConfig {
 
     @Value("${telegram.bot.webhook-path}")
     private String webhookPath;
-
-    @Bean
-    public TelegramBotCommandService telegramBotCommandService(MarkOccurrenceProposalFlowService proposalFlowService, ProposalSubmissionService proposalSubmissionService) {
-        return new TelegramBotCommandService(proposalFlowService, proposalSubmissionService);
-    }
 
     @Bean
     public StonemarkTelegramBot stonemarkTelegramBot(TelegramBotCommandService commandService) {

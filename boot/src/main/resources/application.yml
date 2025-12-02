@@ -68,7 +68,7 @@ minio:
 
 vision:
   server:
-    url: http://localhost:5000
+    url: http://localhost:8000
 
 keycloak:
   auth-server-url: http://localhost:9090

@@ -17,7 +17,7 @@ import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 @Service
 @RequiredArgsConstructor
-public class ProposalManagementServiceImpl implements ProposalManagementService {
+public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurrenceProposalManagementService {
 
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final MonumentRepository monumentRepository;
@@ -36,26 +36,31 @@ public class ProposalManagementServiceImpl implements ProposalManagementService 
         Monument monument = proposal.getExistingMonument();
         if (monument == null) {
             ProposedMonument proposedMonument = proposal.getProposedMonument();
-            monument = new Monument();
-            monument.setName(proposedMonument.getName());
-            monument.setLatitude(proposedMonument.getLatitude());
-            monument.setLongitude(proposedMonument.getLongitude());
+            monument = Monument.builder()
+                    .name(proposedMonument.getName())
+                    .latitude(proposedMonument.getLatitude())
+                    .longitude(proposedMonument.getLongitude())
+                    .build();
             monument = monumentRepository.save(monument);
         }
 
         Mark mark = proposal.getExistingMark();
         if (mark == null) {
             ProposedMark proposedMark = proposal.getProposedMark();
-            mark = new Mark();
-            mark.setTitle(proposedMark.getTitle());
-            mark.setDescription(proposedMark.getDescription());
+            mark = Mark.builder()
+                    .title(proposedMark.getTitle())
+                    .description(proposedMark.getDescription())
+                    .embedding(proposedMark.getEmbedding())
+                    .build();
             mark = markRepository.save(mark);
         }
 
-        MarkOccurrence occurrence = new MarkOccurrence();
-        occurrence.setMonument(monument);
-        occurrence.setMark(mark);
-        occurrence.setImage(proposal.getOriginalMediaFile());
+        MarkOccurrence occurrence = MarkOccurrence.builder()
+                .monument(monument)
+                .mark(mark)
+                .image(proposal.getOriginalMediaFile())
+                .embedding(proposal.getEmbedding())
+                .build();
         markOccurrenceRepository.save(occurrence);
 
         proposal.setStatus(ProposalStatus.APPROVED);

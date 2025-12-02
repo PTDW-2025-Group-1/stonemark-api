@@ -6,6 +6,9 @@ import lombok.experimental.SuperBuilder;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.converters.DoubleListConverter;
+
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -30,4 +33,11 @@ public class MarkOccurrenceProposal extends BaseProposal {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private ProposedMonument proposedMonument;
 
+    @Convert(converter = DoubleListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<Double> embedding;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String suggestedMarkIds;
 }

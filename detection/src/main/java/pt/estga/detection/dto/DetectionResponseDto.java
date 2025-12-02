@@ -7,7 +7,5 @@ import java.util.List;
 public record DetectionResponseDto(
     @JsonProperty("is_mason_mark")
     boolean isMasonMark,
-
-    @JsonProperty("vector")
-    List<Double> vector
+    List<Double> embedding
 ) {}

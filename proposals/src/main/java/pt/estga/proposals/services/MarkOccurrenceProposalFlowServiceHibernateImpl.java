@@ -1,5 +1,7 @@
 package pt.estga.proposals.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -7,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.detection.model.DetectionResult;
+import pt.estga.detection.service.DetectionService;
+import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.TargetType;
 import pt.estga.file.services.MediaService;
@@ -19,6 +24,7 @@ import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
 import pt.estga.shared.models.Location;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +42,10 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     private final MarkRepository markRepository;
     private final ProposedMarkRepository proposedMarkRepository;
     private final ProposedMonumentRepository proposedMonumentRepository;
+    private final DetectionService detectionService;
+    private final MarkSearchService markSearchService;
+    private final ObjectMapper objectMapper;
+
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
     @Override
@@ -49,6 +59,29 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
         log.debug("Proposal initiated with ID: {}", savedProposal.getId());
 
+        // Perform detection and search
+        try (ByteArrayInputStream is = new ByteArrayInputStream(photoData)) {
+            DetectionResult detectionResult = detectionService.detect(is, filename);
+            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                List<Double> embeddedVector = detectionResult.embedding();
+                proposal.setEmbedding(embeddedVector); // Corrected: Pass List<Double> directly
+
+                // suggestedMarkIds still uses ObjectMapper to store as String
+                List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
+                if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
+                    proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
+                    log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), savedProposal.getId());
+                } else {
+                    log.info("No suggested marks found for proposal {}", savedProposal.getId());
+                }
+            } else {
+                log.info("No embedding detected for proposal {}", savedProposal.getId());
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", savedProposal.getId(), e.getMessage());
+        }
+
+
         Optional<Location> gpsData = gpsExtractorService.extractGpsData(mediaFile);
         if (gpsData.isPresent()) {
             handleGpsData(savedProposal, gpsData.get());
@@ -56,6 +89,16 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             log.info("No GPS data found for proposal {}", savedProposal.getId());
             savedProposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
+
+        // Determine the next status based on search results
+        if (proposal.getSuggestedMarkIds() != null && !proposal.getSuggestedMarkIds().isEmpty()) {
+            proposal.setStatus(ProposalStatus.AWAITING_MARK_SELECTION);
+        } else if (proposal.getExistingMonument() != null) {
+            proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
+        } else {
+            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+        }
+
 
         return proposalRepository.save(savedProposal);
     }
@@ -157,10 +200,10 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         if (!monuments.isEmpty()) {
             log.info("Existing monument found for proposal {} with ID: {}", proposal.getId(), monuments.getFirst().getId());
             proposal.setExistingMonument(monuments.getFirst());
-            proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
+            // Status will be set later based on mark search results
         } else {
             log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
-            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+            // Status will be set later based on mark search results
         }
     }
 

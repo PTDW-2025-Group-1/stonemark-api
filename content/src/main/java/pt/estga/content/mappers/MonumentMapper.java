@@ -4,7 +4,6 @@ import org.mapstruct.Mapper;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
-import pt.estga.content.dtos.MonumentDto;
 import pt.estga.user.entities.User;
 
 @Mapper(componentModel = "spring")
