@@ -13,8 +13,4 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties
 public class DetectionModuleAutoConfiguration {
 
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 }

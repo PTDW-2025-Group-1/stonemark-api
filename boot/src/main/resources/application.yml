@@ -39,21 +39,13 @@ spring:
       mail.debug: false
   security:
     oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: profile, email
-            redirect-uri: "{baseUrl}/login/oauth2/code/google"
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-            user-name-attribute: sub
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}
+          jwk-set-uri: ${keycloak.auth-server-url}/realms/${keycloak.realm}/protocol/openid-connect/certs
   flyway:
     enabled: true
+    baseline-on-migrate: true
 
 storage:
   provider: minio # or local
@@ -78,6 +70,8 @@ keycloak:
   admin:
     username: ${KEYCLOAK_USERNAME}
     password: ${KEYCLOAK_PASSWORD}
+    realm: ${KEYCLOAK_ADMIN_REALM:master}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
 
 logging:
   level:
@@ -89,22 +83,6 @@ application:
   base-url: https://api.stonemark.pt
   frontend-url: https://stonemark.pt
   security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
-      access-token:
-        expiration: 90000000 # 15 minutes
-      refresh-token:
-        expiration: 2592000000 # 30 days
-      email-verification-token:
-        expiration: 86400000 # 24 hours
-      two-factor-authentication-token:
-        expiration: 3600000 # 1 hour
-      password-reset-token:
-        expiration: 3600000 # 1 hour
-      email-change-request-token:
-        expiration: 900000 # 15 minutes
-      email-change-confirm-token:
-        expiration: 900000 # 15 minutes
     email-verification-required: false
 
 telegram:

@@ -25,17 +25,23 @@ public class KeycloakAdminService {
     @Value("${keycloak.admin.password}")
     private String adminPassword;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Value("${keycloak.admin.realm:master}") // Default to 'master' if not specified
+    private String adminRealm;
+
+    @Value("${keycloak.admin.client-id:admin-cli}") // Default to 'admin-cli' if not specified
+    private String adminClientId;
+
+    private final RestTemplate restTemplate; // Injected by Spring
 
     private String getAdminToken() {
-        String url = authUrl + "/realms/master/protocol/openid-connect/token";
+        String url = authUrl + "/realms/" + adminRealm + "/protocol/openid-connect/token";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         String body =
                 "grant_type=password" +
-                        "&client_id=admin-cli" +
+                        "&client_id=" + adminClientId +
                         "&username=" + adminUsername +
                         "&password=" + adminPassword;
 
@@ -46,8 +52,7 @@ public class KeycloakAdminService {
         return (String) res.getBody().get("access_token");
     }
 
-
-    public String createUserInKeycloak(String email, String password, String firstName, String lastName) {
+    public String createUserInKeycloak(String email, String password, String firstName, String lastName, boolean emailVerified) {
         String token = getAdminToken();
 
         String url = authUrl + "/admin/realms/" + realm + "/users";
@@ -63,14 +68,14 @@ public class KeycloakAdminService {
           "firstName": "%s",
           "lastName": "%s",
           "enabled": true,
-          "emailVerified": true,
+          "emailVerified": %s,
           "credentials": [{
           "type": "password",
           "value": "%s",
           "temporary": false
           }]
         }
-        """.formatted(email, email, firstName, lastName, password);
+        """.formatted(email, email, firstName, lastName, emailVerified, password);
 
         HttpEntity<String> req = new HttpEntity<>(body, headers);
 
@@ -81,7 +86,6 @@ public class KeycloakAdminService {
 
         return id;
     }
-
 
     public void updateUserInKeycloak(String keycloakUserId, User user) {
         String token = getAdminToken();
@@ -110,7 +114,4 @@ public class KeycloakAdminService {
 
         restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<>(body, headers), Void.class);
     }
-
-
 }
-
