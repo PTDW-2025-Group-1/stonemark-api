@@ -24,7 +24,6 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue
     private Long id;
-    private String keycloakId;
 
     private String firstName;
     private String lastName;
@@ -48,20 +47,18 @@ public class User implements UserDetails {
         return switch (role) {
             case Role.ADMIN -> List.of(
                     () -> Role.USER.name(),
+                    () -> Role.REVIEWER.name(),
                     () -> Role.MODERATOR.name(),
                     () -> Role.ADMIN.name()
             );
             case Role.MODERATOR -> List.of(
                     () -> Role.USER.name(),
+                    () -> Role.REVIEWER.name(),
                     () -> Role.MODERATOR.name()
             );
             case Role.REVIEWER ->  List.of(
                     () -> Role.USER.name(),
                     () -> Role.REVIEWER.name()
-            );
-            case Role.CONTRIBUTOR -> List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.CONTRIBUTOR.name()
             );
             case Role.USER -> List.of(
                     () -> Role.USER.name()

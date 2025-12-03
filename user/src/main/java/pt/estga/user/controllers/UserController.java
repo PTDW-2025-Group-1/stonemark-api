@@ -34,12 +34,6 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
-        User user = mapper.toEntity(userDto);
-        return ResponseEntity.ok(mapper.toDto(service.create(user)));
-    }
-
     @PatchMapping("/{id}")
     public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto userDto) {
         User user = mapper.toEntity(userDto);

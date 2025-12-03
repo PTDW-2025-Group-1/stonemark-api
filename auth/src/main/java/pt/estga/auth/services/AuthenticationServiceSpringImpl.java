@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.RefreshToken;
@@ -45,16 +46,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final VerificationCommandFactory verificationCommandFactory;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final VerificationProcessingService verificationProcessingService;
-
-    private final KeycloakAdminService keycloakAdminService;
-    private final KeycloakAuthService keycloakAuthService;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${application.security.email-verification-required:false}")
     private boolean emailVerificationRequired;
 
     @Override
     @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
-    public Optional<AuthenticationResponseDto> register(User user, String rawPassword) {
+    public Optional<AuthenticationResponseDto> register(User user) {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
@@ -65,25 +64,19 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (userService.existsByEmail(email)) {
             throw new EmailAlreadyTakenException("email already in use");
         }
+        if (user.getRole() == null) {
+            user.setRole(Role.USER);
+        }
 
         user.setEnabled(!emailVerificationRequired);
-
-        String keycloakId = keycloakAdminService.createUserInKeycloak(
-                user.getEmail(),
-                rawPassword,
-                user.getFirstName(),
-                user.getLastName()
-        );
-
-        user.setKeycloakId(keycloakId);
-        User createdUser = userService.update(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User createdUser = userService.create(user);
 
         if (emailVerificationRequired) {
             var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         }
-
         return generateAuthenticationResponse(createdUser);
     }
 
@@ -101,33 +94,15 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     @Override
     @Transactional
     public Optional<AuthenticationResponseDto> authenticate(String email, String password) {
-
-        Map<String, Object> keycloakToken = keycloakAuthService.getUserToken(email, password);
-
-        if (keycloakToken == null || !keycloakToken.containsKey("access_token")) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        } catch (AuthenticationException e) {
+            log.warn("Authentication failed for user: {}", email, e);
             return Optional.empty();
         }
 
-        String accessToken = (String) keycloakToken.get("access_token");
-
-        List<String> kcRoles = keycloakAuthService.extractRoles(accessToken);
-
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (kcRoles.contains("ADMIN")) {
-            user.setRole(Role.ADMIN);
-        } else if (kcRoles.contains("MODERATOR")) {
-            user.setRole(Role.MODERATOR);
-        } else {
-            user.setRole(Role.USER);
-        }
-
-        userService.update(user);
-
-        if (user.getKeycloakId() != null) {
-            keycloakAdminService.updateUserInKeycloak(user.getKeycloakId(), user);
-        }
 
         if (emailVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required.");

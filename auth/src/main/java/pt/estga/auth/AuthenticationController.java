@@ -25,18 +25,12 @@ public class AuthenticationController {
     private final AuthenticationService authService;
     private final VerificationProcessingService verificationProcessingService;
     private final AuthMapper authMapper;
-    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
         try {
-            String rawPassword = request.password();
             User parsedUser = authMapper.toUser(request);
-            parsedUser.setPassword(passwordEncoder.encode(rawPassword));
-            if (parsedUser.getRole() == null) {
-                parsedUser.setRole(Role.USER);
-            }
-            return authService.register(parsedUser, rawPassword)
+            return authService.register(parsedUser)
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
         } catch (EmailVerificationRequiredException e) {
