@@ -52,6 +52,10 @@ public class MarkOccurrenceProposal {
     @Column(columnDefinition = "TEXT")
     private String suggestedMarkIds;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String suggestedMonumentIds;
+
     private String userNotes;
 
     @Enumerated(EnumType.STRING)
@@ -69,4 +73,7 @@ public class MarkOccurrenceProposal {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     protected Instant createdAt;
+
+    private Double latitude;
+    private Double longitude;
 }

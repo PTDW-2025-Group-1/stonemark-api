@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -84,22 +85,14 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         Optional<Location> gpsData = gpsExtractorService.extractGpsData(mediaFile);
         if (gpsData.isPresent()) {
-            handleGpsData(savedProposal, gpsData.get());
+            proposal.setLatitude(gpsData.get().getLatitude());
+            proposal.setLongitude(gpsData.get().getLongitude());
+            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_VERIFICATION);
         } else {
             log.info("No GPS data found for proposal {}", savedProposal.getId());
-            savedProposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
 
-        // Determine the next status based on search results
-        if (proposal.getSuggestedMarkIds() != null && !proposal.getSuggestedMarkIds().isEmpty()) {
-            proposal.setStatus(ProposalStatus.AWAITING_MARK_SELECTION);
-        } else if (proposal.getExistingMonument() != null) {
-            proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
-        } else {
-            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
-        }
-
-        return proposalRepository.save(savedProposal);
+        return updateProposalStatus(savedProposal);
     }
 
     @Override
@@ -119,8 +112,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                         }
                 );
 
-        proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
-        return proposalRepository.save(proposal);
+        return updateProposalStatus(proposal);
     }
 
     @Override
@@ -140,8 +132,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
         proposal.setProposedMonument(savedProposedMonument);
 
-        proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
-        return proposalRepository.save(proposal);
+        return updateProposalStatus(proposal);
     }
 
     @Override
@@ -160,8 +151,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                 }
         );
 
-        proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
-        return proposalRepository.save(proposal);
+        return updateProposalStatus(proposal);
     }
 
     @Override
@@ -180,8 +170,52 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
         proposal.setProposedMark(savedProposedMark);
 
-        proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+        return updateProposalStatus(proposal);
+    }
+
+    @Override
+    public MarkOccurrenceProposal requestNewMark(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
         return proposalRepository.save(proposal);
+    }
+
+    @Override
+    public MarkOccurrenceProposal requestNewMonument(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+        return proposalRepository.save(proposal);
+    }
+
+    @Override
+    public MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        if (confirmed) {
+            Location locationToUse = null;
+
+            // Prioritize user-provided monument location if available
+            if (proposal.getProposedMonument() != null &&
+                proposal.getProposedMonument().getLatitude() != null &&
+                proposal.getProposedMonument().getLongitude() != null) {
+                log.info("Using user-provided proposed monument location for proposal {}", proposal.getId());
+                locationToUse = new Location(proposal.getProposedMonument().getLatitude(), proposal.getProposedMonument().getLongitude());
+            } else if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
+                // Fallback to cached GPS data from the photo
+                log.info("Using cached GPS data from photo for proposal {}", proposal.getId());
+                locationToUse = new Location(proposal.getLatitude(), proposal.getLongitude());
+            } else {
+                log.warn("No cached GPS data or proposed monument location found for proposal {}. Setting status to AWAITING_MONUMENT_INFO.", proposal.getId());
+                // If no cached data, do not re-extract. Instead, set status to AWAITING_MONUMENT_INFO
+                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+            }
+
+            if (locationToUse != null) {
+                handleGpsData(proposal, locationToUse);
+            }
+        } else {
+            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+        }
+        return updateProposalStatus(proposal);
     }
 
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
@@ -196,13 +230,24 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                 gpsData.getLongitude(),
                 COORDINATE_SEARCH_RANGE
         );
-        if (!monuments.isEmpty()) {
+        if (monuments.size() > 1) {
+            log.info("Multiple existing monuments found for proposal {}", proposal.getId());
+            try {
+                List<String> monumentIds = monuments.stream()
+                                                    .map(m -> m.getId().toString())
+                                                    .toList();
+                proposal.setSuggestedMonumentIds(objectMapper.writeValueAsString(monumentIds));
+                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_SELECTION);
+            } catch (JsonProcessingException e) {
+                log.error("Error processing JSON for suggestedMonumentIds for proposal {}: {}", proposal.getId(), e.getMessage());
+                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+            }
+        } else if (monuments.size() == 1) {
             log.info("Existing monument found for proposal {} with ID: {}", proposal.getId(), monuments.getFirst().getId());
             proposal.setExistingMonument(monuments.getFirst());
-            // Status will be set later based on mark search results
         } else {
             log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
-            // Status will be set later based on mark search results
+            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
     }
 
@@ -220,5 +265,38 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             proposedMarkRepository.delete(proposal.getProposedMark());
             proposal.setProposedMark(null);
         }
+    }
+
+    private boolean hasMark(MarkOccurrenceProposal proposal) {
+        return proposal.getExistingMark() != null || proposal.getProposedMark() != null;
+    }
+
+    private boolean hasMonument(MarkOccurrenceProposal proposal) {
+        return proposal.getExistingMonument() != null || proposal.getProposedMonument() != null;
+    }
+
+    private boolean hasSuggestedMarks(MarkOccurrenceProposal proposal) {
+        return proposal.getSuggestedMarkIds() != null && !proposal.getSuggestedMarkIds().isEmpty();
+    }
+
+    private boolean hasSuggestedMonuments(MarkOccurrenceProposal proposal) {
+        return proposal.getSuggestedMonumentIds() != null && !proposal.getSuggestedMonumentIds().isEmpty();
+    }
+
+    private MarkOccurrenceProposal updateProposalStatus(MarkOccurrenceProposal proposal) {
+        if (proposal.getStatus() != ProposalStatus.AWAITING_MONUMENT_VERIFICATION) {
+            if (hasMark(proposal) && hasMonument(proposal)) {
+                proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+            } else if (hasSuggestedMarks(proposal) && !hasMark(proposal)) {
+                proposal.setStatus(ProposalStatus.AWAITING_MARK_SELECTION);
+            } else if (hasSuggestedMonuments(proposal) && !hasMonument(proposal)) {
+                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_SELECTION);
+            } else if (!hasMark(proposal)) {
+                proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
+            } else {
+                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
+            }
+        }
+        return proposalRepository.save(proposal);
     }
 }

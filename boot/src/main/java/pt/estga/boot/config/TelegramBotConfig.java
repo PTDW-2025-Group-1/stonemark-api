@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pt.estga.bots.telegram.StonemarkTelegramBot;
-import pt.estga.bots.telegram.TelegramBotCommandService;
+import pt.estga.bots.telegram.TelegramBotCommandServiceImpl;
 
 @Configuration
 public class TelegramBotConfig {
@@ -19,7 +19,7 @@ public class TelegramBotConfig {
     private String webhookPath;
 
     @Bean
-    public StonemarkTelegramBot stonemarkTelegramBot(TelegramBotCommandService commandService) {
+    public StonemarkTelegramBot stonemarkTelegramBot(TelegramBotCommandServiceImpl commandService) {
         return new StonemarkTelegramBot(botUsername, botToken, webhookPath, commandService);
     }
 }

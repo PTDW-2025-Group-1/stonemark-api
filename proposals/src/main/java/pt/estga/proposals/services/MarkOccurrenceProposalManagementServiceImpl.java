@@ -15,6 +15,8 @@ import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurrenceProposalManagementService {
@@ -23,6 +25,9 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     private final MonumentRepository monumentRepository;
     private final MarkRepository markRepository;
     private final MarkOccurrenceRepository markOccurrenceRepository;
+
+    // Search range in decimal degrees (~1.1km at equator)
+    private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
     @Override
     @Transactional
@@ -36,12 +41,22 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
         Monument monument = proposal.getExistingMonument();
         if (monument == null) {
             ProposedMonument proposedMonument = proposal.getProposedMonument();
-            monument = Monument.builder()
-                    .name(proposedMonument.getName())
-                    .latitude(proposedMonument.getLatitude())
-                    .longitude(proposedMonument.getLongitude())
-                    .build();
-            monument = monumentRepository.save(monument);
+            List<Monument> existingMonuments = monumentRepository.findByCoordinatesInRange(
+                    proposedMonument.getLatitude(),
+                    proposedMonument.getLongitude(),
+                    COORDINATE_SEARCH_RANGE
+            );
+
+            if (!existingMonuments.isEmpty()) {
+                monument = existingMonuments.getFirst();
+            } else {
+                monument = Monument.builder()
+                        .name(proposedMonument.getName())
+                        .latitude(proposedMonument.getLatitude())
+                        .longitude(proposedMonument.getLongitude())
+                        .build();
+                monument = monumentRepository.save(monument);
+            }
         }
 
         Mark mark = proposal.getExistingMark();
@@ -50,7 +65,7 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
             mark = Mark.builder()
                     .title(proposedMark.getTitle())
                     .description(proposedMark.getDescription())
-                    .embedding(proposedMark.getEmbedding())
+                    .embedding(proposal.getEmbedding())
                     .build();
             mark = markRepository.save(mark);
         }

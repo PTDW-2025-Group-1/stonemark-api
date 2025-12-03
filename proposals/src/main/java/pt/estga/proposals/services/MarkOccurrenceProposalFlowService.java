@@ -16,4 +16,10 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal proposeMark(Long proposalId, String title, String description);
 
+    MarkOccurrenceProposal requestNewMark(Long proposalId);
+
+    MarkOccurrenceProposal requestNewMonument(Long proposalId);
+
+    MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed);
+
 }

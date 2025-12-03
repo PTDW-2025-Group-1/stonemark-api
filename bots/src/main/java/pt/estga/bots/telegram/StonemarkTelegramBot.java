@@ -1,30 +1,31 @@
 package pt.estga.bots.telegram;
 
+import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import pt.estga.shared.models.Location;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
+@Slf4j
 public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private final String botUsername;
     private final String botPath;
     private final TelegramBotCommandService commandService;
-
-    private final Map<String, Function<Update, BotApiMethod<?>>> commandRegistry;
+    private final Map<String, Function<Long, BotApiMethod<?>>> commandRegistry;
 
     public StonemarkTelegramBot(String botUsername, String botToken, String botPath, TelegramBotCommandService commandService) {
         super(botToken);
@@ -32,7 +33,6 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
         this.botPath = botPath;
         this.commandService = commandService;
 
-        // Register bot commands
         this.commandRegistry = Map.of(
                 "/start", commandService::handleStartCommand,
                 "/submit", commandService::handleSubmitCommand,
@@ -54,73 +54,84 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
         try {
             this.execute(new SetMyCommands(commands, null, null));
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            log.error("Error setting bot commands", e);
         }
     }
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
         if (update.hasMessage()) {
-            if (update.getMessage().hasPhoto()) {
-                String fileId = update.getMessage().getPhoto().stream()
-                        .max(Comparator.comparing(PhotoSize::getFileSize))
-                        .map(PhotoSize::getFileId)
-                        .orElse(null);
-                return handlePhoto(update, fileId, fileId + ".jpg");
-            }
-
-            if (update.getMessage().hasDocument()) {
-                Document document = update.getMessage().getDocument();
-                if (document.getMimeType() != null && document.getMimeType().startsWith("image/")) {
-                    return handlePhoto(update, document.getFileId(), document.getFileName());
-                }
-            }
-
-            if (update.getMessage().hasLocation()) {
-                return commandService.handleLocationSubmission(update);
-            }
-
-            if (update.getMessage().hasText()) {
-                String messageText = update.getMessage().getText();
-
-                if (messageText.startsWith("/")) {
-                    String command = messageText.split(" ")[0];
-                    Function<Update, BotApiMethod<?>> action = commandRegistry.get(command);
-
-                    if (action != null) {
-                        return action.apply(update);
-                    } else {
-                        return handleUnknownCommand(update);
-                    }
-                } else {
-                    // Handle non-command text messages (e.g., mark details)
-                    return commandService.handleTextMessage(update);
-                }
-            }
+            return handleMessage(update.getMessage());
         } else if (update.hasCallbackQuery()) {
-            return commandService.handleCallbackQuery(update);
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            return commandService.handleCallbackQuery(callbackQuery.getMessage().getChatId(), callbackQuery.getId(), callbackQuery.getData());
         }
+        log.warn("Received an unhandled update type: {}", update);
         return null;
     }
 
-    private BotApiMethod<?> handlePhoto(Update update, String fileId, String fileName) {
-        if (fileId == null) {
-            return handleUnknownCommand(update);
+    private BotApiMethod<?> handleMessage(Message message) {
+        long chatId = message.getChatId();
+
+        if (message.hasPhoto()) {
+            return handlePhotoMessage(chatId, message.getPhoto());
         }
 
+        if (message.hasDocument()) {
+            Document document = message.getDocument();
+            if (document.getMimeType() != null && document.getMimeType().startsWith("image/")) {
+                return processPhoto(chatId, document.getFileId(), document.getFileName());
+            }
+        }
+
+        if (message.hasLocation()) {
+            org.telegram.telegrambots.meta.api.objects.Location telegramLocation = message.getLocation();
+            Location location = new Location(telegramLocation.getLatitude(), telegramLocation.getLongitude());
+            return commandService.handleLocationSubmission(chatId, location);
+        }
+
+        if (message.hasText()) {
+            return handleTextMessage(chatId, message.getText());
+        }
+
+        return new SendMessage(String.valueOf(chatId), BotResponses.UNKNOWN_COMMAND_HELP);
+    }
+
+    private BotApiMethod<?> handleTextMessage(long chatId, String text) {
+        if (text != null && text.startsWith("/")) {
+            String command = text.split(" ")[0];
+            Function<Long, BotApiMethod<?>> action = commandRegistry.get(command);
+            if (action != null) {
+                return action.apply(chatId);
+            }
+        }
+        return commandService.handleTextMessage(chatId, text);
+    }
+
+    private BotApiMethod<?> handlePhotoMessage(long chatId, List<PhotoSize> photos) {
+        Optional<PhotoSize> largestPhoto = photos.stream()
+                .max(Comparator.comparing(photo -> photo.getWidth() * photo.getHeight()));
+
+        if (largestPhoto.isPresent()) {
+            String fileId = largestPhoto.get().getFileId();
+            String fileName = fileId + ".jpg";
+            return processPhoto(chatId, fileId, fileName);
+        } else {
+            log.warn("Received a photo message with no photos for chat: {}", chatId);
+            return new SendMessage(String.valueOf(chatId), BotResponses.PHOTO_PROCESSING_ERROR);
+        }
+    }
+
+    private BotApiMethod<?> processPhoto(long chatId, String fileId, String fileName) {
         try {
             org.telegram.telegrambots.meta.api.objects.File file = execute(new GetFile(fileId));
             java.io.File downloadedFile = downloadFile(file);
             byte[] photoData = Files.readAllBytes(downloadedFile.toPath());
-            return commandService.handlePhotoSubmission(update, photoData, fileName);
+            return commandService.handlePhotoSubmission(chatId, photoData, fileName);
         } catch (TelegramApiException | IOException e) {
-            e.printStackTrace();
-            return new SendMessage(update.getMessage().getChatId().toString(), BotResponses.PHOTO_PROCESSING_ERROR);
+            log.error("Error processing photo with fileId: {}", fileId, e);
+            return new SendMessage(String.valueOf(chatId), BotResponses.PHOTO_PROCESSING_ERROR);
         }
-    }
-
-    private BotApiMethod<?> handleUnknownCommand(Update update) {
-        return new SendMessage(update.getMessage().getChatId().toString(), BotResponses.UNKNOWN_COMMAND);
     }
 
     @Override

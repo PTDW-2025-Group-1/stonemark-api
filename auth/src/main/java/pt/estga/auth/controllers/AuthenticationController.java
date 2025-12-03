@@ -1,10 +1,9 @@
-package pt.estga.auth;
+package pt.estga.auth.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.*;
 import pt.estga.auth.enums.ConfirmationStatus;
@@ -13,7 +12,6 @@ import pt.estga.auth.services.AuthenticationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
-import pt.estga.user.Role;
 import pt.estga.user.entities.User;
 
 @RestController
