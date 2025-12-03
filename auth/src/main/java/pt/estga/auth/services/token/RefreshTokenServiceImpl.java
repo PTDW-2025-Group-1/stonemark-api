@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.entities.token.RefreshToken;
 import pt.estga.auth.repositories.RefreshTokenRepository;
-import pt.estga.user.UserRepository;
+import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;

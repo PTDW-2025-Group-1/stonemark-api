@@ -10,12 +10,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
+import pt.estga.shared.exceptions.TelephoneAlreadyTakenException;
 import pt.estga.user.UserMapper;
-import pt.estga.user.dtos.PasswordChangeRequestDto;
-import pt.estga.user.dtos.EmailChangeRequestDto;
-import pt.estga.user.dtos.PasswordSetRequestDto;
-import pt.estga.user.dtos.ProfileUpdateRequestDto;
-import pt.estga.user.dtos.UserDto;
+import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.AccountManagementService;
 import pt.estga.user.service.PasswordService;
@@ -79,5 +76,32 @@ public class AccountController {
         } catch (EmailAlreadyTakenException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
+    }
+
+    @PostMapping("/request-telephone-change")
+    public ResponseEntity<?> requestTelephoneChange(
+            @Valid @RequestBody TelephoneChangeRequestDto request,
+            @AuthenticationPrincipal User user) {
+        try {
+            accountManagementService.requestTelephoneChange(user, request);
+            return ResponseEntity.ok(new MessageResponseDto("A confirmation SMS has been sent to your new telephone number."));
+        } catch (TelephoneAlreadyTakenException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-telephone-change")
+    public ResponseEntity<?> verifyTelephoneChange(
+            @Valid @RequestBody TelephoneCodeVerificationDto request,
+            @AuthenticationPrincipal User user) {
+
+        boolean valid = accountManagementService.verifyTelephoneChange(user, request);
+
+        if (!valid) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new MessageResponseDto("Invalid or expired verification code."));
+        }
+
+        return ResponseEntity.ok(new MessageResponseDto("Your telephone number has been updated successfully."));
     }
 }

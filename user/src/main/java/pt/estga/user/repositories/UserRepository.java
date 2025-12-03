@@ -1,4 +1,4 @@
-package pt.estga.user;
+package pt.estga.user.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
