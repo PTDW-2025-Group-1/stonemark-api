@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pt.estga.user.Role;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
@@ -43,6 +44,15 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public User update(User user) {
         return repository.save(user);
+    }
+
+    @Override
+    public Optional<User> updateRole(Long id, Role role) {
+        return findById(id)
+                .map(user -> {
+                    user.setRole(role);
+                    return update(user);
+                });
     }
 
     @Override
