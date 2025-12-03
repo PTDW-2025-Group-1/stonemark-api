@@ -54,6 +54,8 @@ spring:
             user-name-attribute: sub
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
 
 storage:
   provider: minio # or local
@@ -103,3 +105,8 @@ telegram:
     username: stonemarkbot
     token: ${TELEGRAM_BOT_TOKEN}
     webhook-path: /webhook
+
+vonage:
+  api-key: ${VONAGE_API_KEY:dummy-key}
+  api-secret: ${VONAGE_API_SECRET:dummy-secret}
+  from-number: ${VONAGE_FROM_NUMBER:dummy-number}

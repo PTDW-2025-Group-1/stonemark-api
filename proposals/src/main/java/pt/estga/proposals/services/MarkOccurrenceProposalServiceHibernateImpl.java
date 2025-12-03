@@ -1,6 +1,5 @@
 package pt.estga.proposals.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +21,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     private final ObjectMapper objectMapper;
 
     @Override
-    public Page<MarkOccurrenceProposal> findAll(Pageable pageable) {
+    public Page<MarkOccurrenceProposal> getAll(Pageable pageable) {
         return repository.findAll(pageable);
     }
 

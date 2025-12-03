@@ -2,8 +2,8 @@ package pt.estga.proposals.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.proposals.entities.BaseProposal;
 import pt.estga.proposals.entities.DecisionRecord;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.repositories.DecisionRecordRepository;
 
 import java.util.List;
@@ -16,8 +16,8 @@ public class DecisionRecordServiceHibernateImpl implements DecisionRecordService
     private final DecisionRecordRepository repository;
 
     @Override
-    public List<DecisionRecord> findAllByProposal(BaseProposal proposal) {
-        return repository.findAllByBaseProposal(proposal);
+    public List<DecisionRecord> findAllByProposal(MarkOccurrenceProposal proposal) {
+        return repository.findAllByProposal(proposal);
     }
 
     @Override

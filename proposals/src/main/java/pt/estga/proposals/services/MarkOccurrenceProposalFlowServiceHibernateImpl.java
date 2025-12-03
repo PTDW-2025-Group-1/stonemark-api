@@ -99,7 +99,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
 
-
         return proposalRepository.save(savedProposal);
     }
 

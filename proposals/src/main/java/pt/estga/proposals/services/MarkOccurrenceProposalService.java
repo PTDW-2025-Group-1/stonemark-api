@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface MarkOccurrenceProposalService {
 
-    Page<MarkOccurrenceProposal> findAll(Pageable pageable);
+    Page<MarkOccurrenceProposal> getAll(Pageable pageable);
 
     Optional<MarkOccurrenceProposal> findById(Long id);
 

@@ -27,7 +27,7 @@ public class DecisionRecord {
     private DecisionType decisionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private BaseProposal baseProposal;
+    private MarkOccurrenceProposal proposal;
 
     private String comments;
 
