@@ -47,12 +47,9 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public Optional<User> updateRole(Long id, Role role) {
-        return findById(id)
-                .map(user -> {
-                    user.setRole(role);
-                    return update(user);
-                });
+    public Optional<User> updateRole(User user, Role role) {
+        user.setRole(role);
+        return Optional.ofNullable(update(user));
     }
 
     @Override

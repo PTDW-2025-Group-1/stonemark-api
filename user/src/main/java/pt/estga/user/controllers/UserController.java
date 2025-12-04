@@ -46,9 +46,13 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserDto> updateRole(@PathVariable Long id, @RequestParam Role role) {
-        return ResponseEntity.of(
-                service.updateRole(id, role).map(mapper::toDto)
-        );
+        return service.findById(id)
+                .map(user -> service.updateRole(user, role)
+                        .map(mapper::toDto)
+                        .map(ResponseEntity::ok)
+                        .orElse(ResponseEntity.badRequest().build())
+                )
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

@@ -21,7 +21,7 @@ public interface UserService {
 
     User update(User user);
 
-    Optional<User> updateRole(Long id, Role role);
+    Optional<User> updateRole(User user, Role role);
 
     void deleteById(Long id);
 
