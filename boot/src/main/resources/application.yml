@@ -7,7 +7,7 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
   datasource:
-    url: jdbc:postgresql://localhost:5432/stonemark
+    url: jdbc:postgresql://localhost:5440/stonemark
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -107,6 +107,6 @@ telegram:
     webhook-path: /webhook
 
 vonage:
-  api-key: ${VONAGE_API_KEY:dummy-key}
-  api-secret: ${VONAGE_API_SECRET:dummy-secret}
-  from-number: ${VONAGE_FROM_NUMBER:dummy-number}
+  api-key: ${VONAGE_API_KEY}
+  api-secret: ${VONAGE_API_SECRET}
+  from-number: ${VONAGE_FROM_NUMBER}

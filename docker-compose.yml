@@ -10,7 +10,7 @@ services:
     volumes:
       - stonemark-db:/var/lib/postgresql
     ports:
-      - "5432:5432"
+      - "5440:5432"
     networks:
       - stonemark-network
     restart: unless-stopped

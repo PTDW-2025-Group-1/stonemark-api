@@ -2,6 +2,7 @@ package pt.estga.user.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import pt.estga.user.Role;
 import pt.estga.user.entities.User;
 
 import java.util.Optional;
@@ -19,6 +20,8 @@ public interface UserService {
     User create(User user);
 
     User update(User user);
+
+    Optional<User> updateRole(User user, Role role);
 
     void deleteById(Long id);
 

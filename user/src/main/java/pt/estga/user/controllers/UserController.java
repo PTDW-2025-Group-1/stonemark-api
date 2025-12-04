@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.user.Role;
 import pt.estga.user.UserMapper;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;
@@ -39,6 +41,18 @@ public class UserController {
         User user = mapper.toEntity(userDto);
         user.setId(id);
         return ResponseEntity.ok(mapper.toDto(service.update(user)));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<UserDto> updateRole(@PathVariable Long id, @RequestParam Role role) {
+        return service.findById(id)
+                .map(user -> service.updateRole(user, role)
+                        .map(mapper::toDto)
+                        .map(ResponseEntity::ok)
+                        .orElse(ResponseEntity.badRequest().build())
+                )
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
