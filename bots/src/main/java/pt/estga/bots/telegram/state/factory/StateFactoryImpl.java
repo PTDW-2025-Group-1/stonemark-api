@@ -19,6 +19,7 @@ public class StateFactoryImpl implements StateFactory {
     private final AwaitingMonumentVerificationState awaitingMonumentVerificationState;
     private final ReadyToSubmitState readyToSubmitState;
     private final InitialState initialState;
+    private final AwaitingNotesState awaitingNotesState;
 
     private Map<ProposalStatus, ConversationState> stateMap;
 
@@ -28,7 +29,8 @@ public class StateFactoryImpl implements StateFactory {
                             @Lazy AwaitingMonumentSelectionState awaitingMonumentSelectionState,
                             @Lazy AwaitingMonumentVerificationState awaitingMonumentVerificationState,
                             @Lazy ReadyToSubmitState readyToSubmitState,
-                            @Lazy InitialState initialState) {
+                            @Lazy InitialState initialState,
+                            @Lazy AwaitingNotesState awaitingNotesState) {
         this.awaitingMarkInfoState = awaitingMarkInfoState;
         this.awaitingMarkSelectionState = awaitingMarkSelectionState;
         this.awaitingMonumentInfoState = awaitingMonumentInfoState;
@@ -36,6 +38,7 @@ public class StateFactoryImpl implements StateFactory {
         this.awaitingMonumentVerificationState = awaitingMonumentVerificationState;
         this.readyToSubmitState = readyToSubmitState;
         this.initialState = initialState;
+        this.awaitingNotesState = awaitingNotesState;
     }
 
     @PostConstruct
@@ -47,6 +50,7 @@ public class StateFactoryImpl implements StateFactory {
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_INFO, awaitingMonumentInfoState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_SELECTION, awaitingMonumentSelectionState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_VERIFICATION, awaitingMonumentVerificationState);
+        stateMap.put(ProposalStatus.AWAITING_NOTES, awaitingNotesState);
         stateMap.put(ProposalStatus.READY_TO_SUBMIT, readyToSubmitState);
     }
 

@@ -91,4 +91,16 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
         }
         return messageFactory.createNothingToSubmitMessage(chatId);
     }
+
+    @Override
+    public BotApiMethod<?> handleSkipNotesCommand(long chatId) {
+        ConversationContext context = conversationContexts.getIfPresent(chatId);
+        if (context != null) {
+            // Delegate to the current state's handleSubmitCommand, which for AwaitingNotesState will skip notes
+            BotApiMethod<?> result = context.getState().handleSubmitCommand(context);
+            // The context will be invalidated by the state handler if it transitions to READY_TO_SUBMIT or SUBMITTED
+            return result;
+        }
+        return messageFactory.createNothingToSkipMessage(chatId);
+    }
 }

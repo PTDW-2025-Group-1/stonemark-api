@@ -38,20 +38,17 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
         try (InputStream inputStream = resource.getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(inputStream, mediaFile.getFileName());
 
-            if (detectionResult.isMasonMark()) {
-                proposal.setStatus(ProposalStatus.SUBMITTED);
-                // Save embedding for the MarkOccurrenceProposal itself
-                if (detectionResult.embedding() != null) {
-                    proposal.setEmbedding(detectionResult.embedding());
-                }
+            proposal.setStatus(ProposalStatus.SUBMITTED);
 
-                // If there's a proposed mark, save its embedding too (if applicable)
-                ProposedMark proposedMark = proposal.getProposedMark();
-                if (proposedMark != null && detectionResult.embedding() != null) {
-                    proposedMark.setEmbedding(detectionResult.embedding());
-                }
-            } else {
-                proposal.setStatus(ProposalStatus.REJECTED);
+            // Save embedding for the MarkOccurrenceProposal itself
+            if (detectionResult != null && detectionResult.embedding() != null) {
+                proposal.setEmbedding(detectionResult.embedding());
+            }
+
+            // If there's a proposed mark, save its embedding too (if applicable)
+            ProposedMark proposedMark = proposal.getProposedMark();
+            if (proposedMark != null && detectionResult != null && detectionResult.embedding() != null) {
+                proposedMark.setEmbedding(detectionResult.embedding());
             }
         } catch (IOException e) {
             throw new RuntimeException("Error reading image data", e);

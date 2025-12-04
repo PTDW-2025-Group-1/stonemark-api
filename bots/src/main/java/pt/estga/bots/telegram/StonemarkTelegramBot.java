@@ -37,7 +37,8 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                 "/start", commandService::handleStartCommand,
                 "/submit", commandService::handleSubmitCommand,
                 "/cancel", commandService::handleCancelCommand,
-                "/help", commandService::handleHelpCommand
+                "/help", commandService::handleHelpCommand,
+                "/skipnotes", commandService::handleSkipNotesCommand
         );
 
         setBotCommands();
@@ -48,7 +49,8 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                 new BotCommand("start", "Start a new submission"),
                 new BotCommand("submit", "Finalize a submission"),
                 new BotCommand("cancel", "Cancel current operation"),
-                new BotCommand("help", "Show this message")
+                new BotCommand("help", "Show this message"),
+                new BotCommand("skipnotes", "Skip adding notes to the proposal")
         );
 
         try {

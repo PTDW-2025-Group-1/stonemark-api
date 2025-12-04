@@ -112,6 +112,8 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
                 return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MONUMENT_INFO);
             case AWAITING_MARK_INFO:
                 return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MARK_DETAILS);
+            case AWAITING_NOTES:
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_NOTES_MESSAGE);
             case READY_TO_SUBMIT:
                 return new SendMessage(String.valueOf(chatId), BotResponses.READY_TO_SUBMIT_MESSAGE);
             default:
@@ -122,6 +124,11 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
     @Override
     public BotApiMethod<?> createAwaitingMarkDetailsMessage(long chatId) {
         return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MARK_DETAILS);
+    }
+
+    @Override
+    public BotApiMethod<?> createNothingToSkipMessage(long chatId) {
+        return new SendMessage(String.valueOf(chatId), BotResponses.NOTHING_TO_SKIP_MESSAGE);
     }
 
     private SendMessage createMarkSelectionMessage(long chatId, List<String> markIds) {

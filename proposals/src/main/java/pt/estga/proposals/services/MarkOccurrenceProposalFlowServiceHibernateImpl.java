@@ -19,6 +19,7 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
@@ -28,7 +29,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +57,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(mediaFile);
         proposal.setStatus(ProposalStatus.IN_PROGRESS);
+        proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
         MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
         log.debug("Proposal initiated with ID: {}", savedProposal.getId());
 
@@ -218,6 +219,14 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         return updateProposalStatus(proposal);
     }
 
+    @Override
+    public MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setUserNotes(notes);
+        proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+        return proposalRepository.save(proposal);
+    }
+
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
         return proposalRepository.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
@@ -286,7 +295,11 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     private MarkOccurrenceProposal updateProposalStatus(MarkOccurrenceProposal proposal) {
         if (proposal.getStatus() != ProposalStatus.AWAITING_MONUMENT_VERIFICATION) {
             if (hasMark(proposal) && hasMonument(proposal)) {
-                proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+                if (proposal.getUserNotes() == null) {
+                    proposal.setStatus(ProposalStatus.AWAITING_NOTES);
+                } else {
+                    proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+                }
             } else if (hasSuggestedMarks(proposal) && !hasMark(proposal)) {
                 proposal.setStatus(ProposalStatus.AWAITING_MARK_SELECTION);
             } else if (hasSuggestedMonuments(proposal) && !hasMonument(proposal)) {

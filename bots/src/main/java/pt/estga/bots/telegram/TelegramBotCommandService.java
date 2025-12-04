@@ -21,4 +21,6 @@ public interface TelegramBotCommandService {
 
     BotApiMethod<?> handleCallbackQuery(long chatId, String callbackQueryId, String callbackData);
 
+    BotApiMethod<?> handleSkipNotesCommand(long chatId);
+
 }

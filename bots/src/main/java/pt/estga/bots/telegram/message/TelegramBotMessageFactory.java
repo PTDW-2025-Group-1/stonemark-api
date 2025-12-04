@@ -29,4 +29,6 @@ public interface TelegramBotMessageFactory {
     BotApiMethod<?> createMessageForProposalStatus(long chatId, MarkOccurrenceProposal proposal);
     
     BotApiMethod<?> createAwaitingMarkDetailsMessage(long chatId);
+
+    BotApiMethod<?> createNothingToSkipMessage(long chatId);
 }

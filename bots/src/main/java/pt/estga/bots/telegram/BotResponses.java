@@ -33,4 +33,6 @@ public class BotResponses {
     public static final String SUGGESTED_MONUMENTS_FOUND = "I found some monuments that might match. Please select one or propose a new one:";
     public static final String ERROR_DESERIALIZING_MONUMENT_IDS = "An error occurred while processing suggested monuments.";
     public static final String READY_TO_SUBMIT_MESSAGE = "Your proposal is ready for submission. Use /submit to finalize.";
+    public static final String AWAITING_NOTES_MESSAGE = "Please add any notes for your proposal, or use /skipnotes to skip.";
+    public static final String NOTHING_TO_SKIP_MESSAGE = "There are no notes to skip at this moment.";
 }

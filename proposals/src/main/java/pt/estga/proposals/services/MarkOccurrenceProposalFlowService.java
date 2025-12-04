@@ -22,4 +22,6 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed);
 
+    MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes);
+
 }
