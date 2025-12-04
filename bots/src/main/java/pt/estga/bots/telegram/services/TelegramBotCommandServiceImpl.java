@@ -6,13 +6,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import pt.estga.bots.telegram.callback.CallbackQueryHandler;
 import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.bots.telegram.message.TelegramBotMessageFactory;
 import pt.estga.bots.telegram.state.factory.StateFactory;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.shared.models.Location;
+import pt.estga.user.entities.User;
+import pt.estga.user.repositories.UserRepository;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -23,6 +27,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     private final TelegramBotMessageFactory messageFactory;
     private final StateFactory stateFactory;
     private final CallbackQueryHandler callbackQueryHandler;
+    private final UserRepository userRepository;
 
     private final Cache<Long, ConversationContext> conversationContexts = Caffeine.newBuilder()
             .expireAfterAccess(30, TimeUnit.MINUTES) // Evict entries after 30 minutes of inactivity
@@ -32,9 +37,19 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     @Override
     public BotApiMethod<?> handleStartCommand(long chatId) {
         ConversationContext context = new ConversationContext(chatId);
-        context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
         conversationContexts.put(chatId, context);
-        return messageFactory.createGreetingMessage(chatId);
+
+        Optional<User> userOptional = userRepository.findByTelegramChatId(String.valueOf(chatId));
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            log.info("User already authenticated: {}", user.getEmail());
+            context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
+            return messageFactory.createWelcomeBackMessage(chatId, user.getFirstName());
+        } else {
+            context.setState(stateFactory.createState(ProposalStatus.AWAITING_AUTHENTICATION));
+            return messageFactory.createAuthenticationRequestMessage(chatId);
+        }
     }
 
     @Override
@@ -93,14 +108,22 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     }
 
     @Override
-    public BotApiMethod<?> handleSkipNotesCommand(long chatId) {
+    public BotApiMethod<?> handleSkipCommand(long chatId) {
         ConversationContext context = conversationContexts.getIfPresent(chatId);
         if (context != null) {
-            // Delegate to the current state's handleSubmitCommand, which for AwaitingNotesState will skip notes
-            BotApiMethod<?> result = context.getState().handleSubmitCommand(context);
-            // The context will be invalidated by the state handler if it transitions to READY_TO_SUBMIT or SUBMITTED
+            // Delegate to the current state's handleSkipCommand
+            BotApiMethod<?> result = context.getState().handleSkipCommand(context);
             return result;
         }
         return messageFactory.createNothingToSkipMessage(chatId);
+    }
+
+    @Override
+    public BotApiMethod<?> handleContact(long chatId, Contact contact) {
+        ConversationContext context = conversationContexts.getIfPresent(chatId);
+        if (context != null) {
+            return context.getState().handleContact(context, contact);
+        }
+        return messageFactory.createInvalidInputForStateMessage(chatId);
     }
 }

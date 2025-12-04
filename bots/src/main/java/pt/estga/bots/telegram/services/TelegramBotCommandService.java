@@ -1,6 +1,7 @@
 package pt.estga.bots.telegram.services;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import pt.estga.shared.models.Location;
 
 public interface TelegramBotCommandService {
@@ -21,6 +22,8 @@ public interface TelegramBotCommandService {
 
     BotApiMethod<?> handleCallbackQuery(long chatId, String callbackQueryId, String callbackData);
 
-    BotApiMethod<?> handleSkipNotesCommand(long chatId);
+    BotApiMethod<?> handleSkipCommand(long chatId);
+
+    BotApiMethod<?> handleContact(long chatId, Contact contact);
 
 }

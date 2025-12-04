@@ -2,6 +2,7 @@ package pt.estga.proposals.enums;
 
 public enum ProposalStatus {
     IN_PROGRESS,
+    AWAITING_AUTHENTICATION,
     AWAITING_MONUMENT_INFO,
     AWAITING_MONUMENT_NAME,
     AWAITING_MARK_INFO,

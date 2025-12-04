@@ -8,6 +8,7 @@ public class ConversationContext {
     private long chatId;
     private ConversationState state;
     private Long proposalId;
+    private Long userId;
 
     public ConversationContext(long chatId) {
         this.chatId = chatId;

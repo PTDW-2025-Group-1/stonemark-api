@@ -31,7 +31,7 @@ public class AwaitingNotesState implements ConversationState {
     }
 
     @Override
-    public BotApiMethod<?> handleSubmitCommand(ConversationContext context) {
+    public BotApiMethod<?> handleSkipCommand(ConversationContext context) {
         // User skipped adding notes
         MarkOccurrenceProposal proposal = proposalFlowService.addNotesToProposal(context.getProposalId(), null);
         context.setState(stateFactory.createState(proposal.getStatus()));

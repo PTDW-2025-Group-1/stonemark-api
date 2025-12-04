@@ -1,6 +1,7 @@
 package pt.estga.bots.telegram.state;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.shared.models.Location;
@@ -22,6 +23,14 @@ public interface ConversationState {
     }
 
     default BotApiMethod<?> handleSubmitCommand(ConversationContext context) {
+        return null;
+    }
+
+    default BotApiMethod<?> handleSkipCommand(ConversationContext context) {
+        return null;
+    }
+
+    default BotApiMethod<?> handleContact(ConversationContext context, Contact contact) {
         return null;
     }
 }

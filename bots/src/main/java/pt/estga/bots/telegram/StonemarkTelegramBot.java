@@ -39,7 +39,7 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                 "/submit", commandService::handleSubmitCommand,
                 "/cancel", commandService::handleCancelCommand,
                 "/help", commandService::handleHelpCommand,
-                "/skipnotes", commandService::handleSkipNotesCommand
+                "/skip", commandService::handleSkipCommand
         );
 
         setBotCommands();
@@ -51,7 +51,7 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                 new BotCommand("submit", "Finalize a submission"),
                 new BotCommand("cancel", "Cancel current operation"),
                 new BotCommand("help", "Show this message"),
-                new BotCommand("skipnotes", "Skip adding notes to the proposal")
+                new BotCommand("skip", "Skip the current optional step")
         );
 
         try {
@@ -75,6 +75,10 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private BotApiMethod<?> handleMessage(Message message) {
         long chatId = message.getChatId();
+
+        if (message.hasContact()) {
+            return commandService.handleContact(chatId, message.getContact());
+        }
 
         if (message.hasPhoto()) {
             return handlePhotoMessage(chatId, message.getPhoto());
@@ -127,6 +131,8 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private BotApiMethod<?> processPhoto(long chatId, String fileId, String fileName) {
         try {
+            execute(new SendMessage(String.valueOf(chatId), BotResponses.SEARCHING_FOR_MATCHES));
+
             org.telegram.telegrambots.meta.api.objects.File file = execute(new GetFile(fileId));
             java.io.File downloadedFile = downloadFile(file);
             byte[] photoData = Files.readAllBytes(downloadedFile.toPath());

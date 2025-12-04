@@ -32,6 +32,7 @@ public class User implements UserDetails {
     private String password;
 
     private String googleId;
+    private String telegramChatId;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -100,11 +101,11 @@ public class User implements UserDetails {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && Objects.equals(googleId, user.googleId) && role == user.role && Objects.equals(createdAt, user.createdAt);
+        return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && Objects.equals(googleId, user.googleId) && Objects.equals(telegramChatId, user.telegramChatId) && role == user.role && Objects.equals(createdAt, user.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, lastName, email, telephone, password, googleId, role, accountLocked, enabled, createdAt);
+        return Objects.hash(id, firstName, lastName, email, telephone, password, googleId, telegramChatId, role, accountLocked, enabled, createdAt);
     }
 }

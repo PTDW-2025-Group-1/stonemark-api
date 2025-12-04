@@ -9,7 +9,10 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import pt.estga.bots.telegram.BotResponses;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
@@ -131,6 +134,38 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
     @Override
     public BotApiMethod<?> createNothingToSkipMessage(long chatId) {
         return new SendMessage(String.valueOf(chatId), BotResponses.NOTHING_TO_SKIP_MESSAGE);
+    }
+
+    @Override
+    public BotApiMethod<?> createAuthenticationRequestMessage(long chatId) {
+        SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.AUTHENTICATION_REQUEST);
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton button = new KeyboardButton();
+        button.setText("Share my phone number");
+        button.setRequestContact(true);
+        row.add(button);
+        keyboard.add(row);
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        message.setReplyMarkup(keyboardMarkup);
+        return message;
+    }
+
+    @Override
+    public BotApiMethod<?> createAuthenticationSuccessMessage(long chatId, String name) {
+        return new SendMessage(String.valueOf(chatId), String.format(BotResponses.AUTHENTICATION_SUCCESS, name));
+    }
+
+    @Override
+    public BotApiMethod<?> createAuthenticationFailedMessage(long chatId) {
+        return new SendMessage(String.valueOf(chatId), BotResponses.AUTHENTICATION_FAILED);
+    }
+
+    @Override
+    public BotApiMethod<?> createWelcomeBackMessage(long chatId, String name) {
+        return new SendMessage(String.valueOf(chatId), String.format(BotResponses.WELCOME_BACK, name));
     }
 
     private SendMessage createMarkSelectionMessage(long chatId, List<String> markIds) {

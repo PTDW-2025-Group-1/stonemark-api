@@ -31,4 +31,13 @@ public interface TelegramBotMessageFactory {
     BotApiMethod<?> createAwaitingMarkDetailsMessage(long chatId);
 
     BotApiMethod<?> createNothingToSkipMessage(long chatId);
+
+    BotApiMethod<?> createAuthenticationRequestMessage(long chatId);
+
+    BotApiMethod<?> createAuthenticationSuccessMessage(long chatId, String name);
+
+    BotApiMethod<?> createAuthenticationFailedMessage(long chatId);
+
+    BotApiMethod<?> createWelcomeBackMessage(long chatId, String name);
+
 }
