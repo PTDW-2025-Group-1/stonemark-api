@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public interface MarkOccurrenceProposalFlowService {
 
-    MarkOccurrenceProposal initiate(byte[] photoData, String filename) throws IOException;
+    MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename) throws IOException;
 
     MarkOccurrenceProposal selectMonument(Long proposalId, Long existingMonumentId);
 

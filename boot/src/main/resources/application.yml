@@ -105,6 +105,8 @@ telegram:
     username: stonemarkbot
     token: ${TELEGRAM_BOT_TOKEN}
     webhook-path: /webhook
+    auth:
+      enabled: true
 
 vonage:
   api-key: ${VONAGE_API_KEY}

@@ -28,7 +28,7 @@ public class InitialState implements ConversationState {
     @Override
     public BotApiMethod<?> handlePhotoSubmission(ConversationContext context, byte[] photoData, String fileName) {
         try {
-            MarkOccurrenceProposal proposal = proposalFlowService.initiate(photoData, fileName);
+            MarkOccurrenceProposal proposal = proposalFlowService.initiate(context.getUserId(), photoData, fileName);
             context.setProposalId(proposal.getId());
             context.setState(stateFactory.createState(proposal.getStatus()));
             return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 import pt.estga.bots.telegram.callback.CallbackQueryHandler;
+import pt.estga.bots.telegram.config.TelegramBotProperties;
 import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.bots.telegram.message.TelegramBotMessageFactory;
 import pt.estga.bots.telegram.state.factory.StateFactory;
@@ -28,6 +29,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     private final StateFactory stateFactory;
     private final CallbackQueryHandler callbackQueryHandler;
     private final UserRepository userRepository;
+    private final TelegramBotProperties telegramBotProperties;
 
     private final Cache<Long, ConversationContext> conversationContexts = Caffeine.newBuilder()
             .expireAfterAccess(30, TimeUnit.MINUTES) // Evict entries after 30 minutes of inactivity
@@ -39,11 +41,18 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
         ConversationContext context = new ConversationContext(chatId);
         conversationContexts.put(chatId, context);
 
+        if (!telegramBotProperties.getAuth().isEnabled()) {
+            log.info("Authentication is disabled. Proceeding with anonymous user.");
+            context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
+            return messageFactory.createGreetingMessage(chatId);
+        }
+
         Optional<User> userOptional = userRepository.findByTelegramChatId(String.valueOf(chatId));
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             log.info("User already authenticated: {}", user.getEmail());
+            context.setUserId(user.getId());
             context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
             return messageFactory.createWelcomeBackMessage(chatId, user.getFirstName());
         } else {

@@ -24,6 +24,7 @@ import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
 import pt.estga.shared.models.Location;
+import pt.estga.user.repositories.UserRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,18 +47,22 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal initiate(byte[] photoData, String filename) throws IOException {
+    public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename) throws IOException {
         log.info("Initiating proposal for file: {}", filename);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(mediaFile);
         proposal.setStatus(ProposalStatus.IN_PROGRESS);
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
+        if (userId != null) {
+            userRepository.findById(userId).ifPresent(proposal::setCreatedBy);
+        }
         MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
         log.debug("Proposal initiated with ID: {}", savedProposal.getId());
 
@@ -66,7 +71,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             DetectionResult detectionResult = detectionService.detect(is, filename);
             if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
                 List<Double> embeddedVector = detectionResult.embedding();
-                proposal.setEmbedding(embeddedVector); // Corrected: Pass List<Double> directly
+                proposal.setEmbedding(embeddedVector);
 
                 // suggestedMarkIds still uses ObjectMapper to store as String
                 List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
