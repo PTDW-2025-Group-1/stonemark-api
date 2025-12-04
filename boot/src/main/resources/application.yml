@@ -14,13 +14,13 @@ spring:
     hikari:
       maximum-pool-size: 10
   jpa:
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        ddl-auto: validate
         show-sql: true
         format_sql: true
-        hbm2ddl.auto: update
     open-in-view: false
   h2:
     console:

@@ -110,6 +110,8 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
                 return createVerificationMessage(chatId);
             case AWAITING_MONUMENT_INFO:
                 return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MONUMENT_INFO);
+            case AWAITING_MONUMENT_NAME:
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MONUMENT_NAME);
             case AWAITING_MARK_INFO:
                 return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MARK_DETAILS);
             case AWAITING_NOTES:

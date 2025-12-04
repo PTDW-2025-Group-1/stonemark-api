@@ -1,4 +1,4 @@
-package pt.estga.bots.telegram;
+package pt.estga.bots.telegram.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

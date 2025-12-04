@@ -20,6 +20,7 @@ public class StateFactoryImpl implements StateFactory {
     private final ReadyToSubmitState readyToSubmitState;
     private final InitialState initialState;
     private final AwaitingNotesState awaitingNotesState;
+    private final AwaitingMonumentNameState awaitingMonumentNameState;
 
     private Map<ProposalStatus, ConversationState> stateMap;
 
@@ -30,7 +31,8 @@ public class StateFactoryImpl implements StateFactory {
                             @Lazy AwaitingMonumentVerificationState awaitingMonumentVerificationState,
                             @Lazy ReadyToSubmitState readyToSubmitState,
                             @Lazy InitialState initialState,
-                            @Lazy AwaitingNotesState awaitingNotesState) {
+                            @Lazy AwaitingNotesState awaitingNotesState,
+                            @Lazy AwaitingMonumentNameState awaitingMonumentNameState) {
         this.awaitingMarkInfoState = awaitingMarkInfoState;
         this.awaitingMarkSelectionState = awaitingMarkSelectionState;
         this.awaitingMonumentInfoState = awaitingMonumentInfoState;
@@ -39,6 +41,7 @@ public class StateFactoryImpl implements StateFactory {
         this.readyToSubmitState = readyToSubmitState;
         this.initialState = initialState;
         this.awaitingNotesState = awaitingNotesState;
+        this.awaitingMonumentNameState = awaitingMonumentNameState;
     }
 
     @PostConstruct
@@ -48,6 +51,7 @@ public class StateFactoryImpl implements StateFactory {
         stateMap.put(ProposalStatus.AWAITING_MARK_INFO, awaitingMarkInfoState);
         stateMap.put(ProposalStatus.AWAITING_MARK_SELECTION, awaitingMarkSelectionState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_INFO, awaitingMonumentInfoState);
+        stateMap.put(ProposalStatus.AWAITING_MONUMENT_NAME, awaitingMonumentNameState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_SELECTION, awaitingMonumentSelectionState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_VERIFICATION, awaitingMonumentVerificationState);
         stateMap.put(ProposalStatus.AWAITING_NOTES, awaitingNotesState);

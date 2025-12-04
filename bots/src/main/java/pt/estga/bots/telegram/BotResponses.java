@@ -35,4 +35,5 @@ public class BotResponses {
     public static final String READY_TO_SUBMIT_MESSAGE = "Your proposal is ready for submission. Use /submit to finalize.";
     public static final String AWAITING_NOTES_MESSAGE = "Please add any notes for your proposal, or use /skipnotes to skip.";
     public static final String NOTHING_TO_SKIP_MESSAGE = "There are no notes to skip at this moment.";
+    public static final String AWAITING_MONUMENT_NAME = "Location received. What is the name of the monument?";
 }

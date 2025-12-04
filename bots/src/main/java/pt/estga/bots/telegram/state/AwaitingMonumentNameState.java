@@ -9,11 +9,10 @@ import pt.estga.bots.telegram.state.factory.StateFactory;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
-import pt.estga.shared.models.Location;
 
 @Component
 @RequiredArgsConstructor
-public class AwaitingMonumentInfoState implements ConversationState {
+public class AwaitingMonumentNameState implements ConversationState {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final TelegramBotMessageFactory messageFactory;
@@ -21,12 +20,18 @@ public class AwaitingMonumentInfoState implements ConversationState {
 
     @Override
     public ProposalStatus getAssociatedStatus() {
-        return ProposalStatus.AWAITING_MONUMENT_INFO;
+        return ProposalStatus.AWAITING_MONUMENT_NAME;
     }
 
     @Override
-    public BotApiMethod<?> handleLocationSubmission(ConversationContext context, Location location) {
-        MarkOccurrenceProposal proposal = proposalFlowService.addLocationToProposal(context.getProposalId(), location.getLatitude(), location.getLongitude());
+    public BotApiMethod<?> handleTextMessage(ConversationContext context, String messageText) {
+        // The location is already stored in the proposal from the previous step
+        MarkOccurrenceProposal proposal = proposalFlowService.proposeMonument(
+                context.getProposalId(),
+                messageText, // The monument name from the user
+                null, // Latitude is already set
+                null  // Longitude is already set
+        );
         context.setState(stateFactory.createState(proposal.getStatus()));
         return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }

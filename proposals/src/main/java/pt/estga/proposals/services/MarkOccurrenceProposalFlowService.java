@@ -24,4 +24,6 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes);
 
+    MarkOccurrenceProposal addLocationToProposal(Long proposalId, Double latitude, Double longitude);
+
 }

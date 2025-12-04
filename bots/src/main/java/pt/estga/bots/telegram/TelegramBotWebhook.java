@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 @RestController
 @RequiredArgsConstructor
-public class TelegramBotController {
+public class TelegramBotWebhook {
 
     private final StonemarkTelegramBot telegramBot;
 

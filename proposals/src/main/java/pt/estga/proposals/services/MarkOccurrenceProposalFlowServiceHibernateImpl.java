@@ -126,8 +126,8 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         ProposedMonument proposedMonument = ProposedMonument.builder()
                 .name(name)
-                .latitude(latitude)
-                .longitude(longitude)
+                .latitude(proposal.getLatitude())
+                .longitude(proposal.getLongitude())
                 .build();
 
         ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
@@ -224,6 +224,15 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
         proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
+        return proposalRepository.save(proposal);
+    }
+
+    @Override
+    public MarkOccurrenceProposal addLocationToProposal(Long proposalId, Double latitude, Double longitude) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setLatitude(latitude);
+        proposal.setLongitude(longitude);
+        proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_NAME);
         return proposalRepository.save(proposal);
     }
 

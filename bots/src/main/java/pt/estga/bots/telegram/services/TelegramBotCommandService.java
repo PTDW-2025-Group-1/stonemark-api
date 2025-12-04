@@ -1,4 +1,4 @@
-package pt.estga.bots.telegram;
+package pt.estga.bots.telegram.services;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import pt.estga.shared.models.Location;

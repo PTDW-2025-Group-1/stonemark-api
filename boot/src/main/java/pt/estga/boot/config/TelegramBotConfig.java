@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import pt.estga.bots.telegram.StonemarkTelegramBot;
-import pt.estga.bots.telegram.TelegramBotCommandServiceImpl;
+import pt.estga.bots.telegram.services.TelegramBotCommandServiceImpl;
 
 @Configuration
 public class TelegramBotConfig {
