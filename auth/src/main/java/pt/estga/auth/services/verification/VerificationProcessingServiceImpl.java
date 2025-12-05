@@ -12,7 +12,6 @@ import pt.estga.auth.services.verification.processing.VerificationProcessor;
 import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.exceptions.SamePasswordException;
-import pt.estga.shared.exceptions.SameTelephoneException;
 import pt.estga.shared.exceptions.VerificationErrorMessages;
 import pt.estga.shared.exceptions.TokenExpiredException;
 import pt.estga.shared.exceptions.TokenRevokedException;
@@ -86,68 +85,6 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
 
         verificationTokenService.revokeToken(vt);
         log.debug("Token {} revoked after successful password reset.", token);
-    }
-
-    @Transactional
-    @Override
-    public void processTelephoneChange(String token, String newTelephone) {
-        log.info("Attempting to process telephone change for token: {}", token);
-        VerificationToken vt = getValidatedVerificationToken(token, false);
-        log.debug("Token {} validated for telephone change. Purpose: {}", token, vt.getPurpose());
-
-        if (vt.getPurpose() != VerificationTokenPurpose.TELEPHONE_CHANGE_REQUEST) {
-            log.warn("Invalid purpose for telephone change token {}. Expected TELEPHONE_CHANGE_REQUEST, got {}", token, vt.getPurpose());
-            throw new InvalidVerificationPurposeException(VerificationErrorMessages.INVALID_TOKEN_PURPOSE_TELEPHONE_CHANGE);
-        }
-
-        User user = vt.getUser();
-        log.debug("User associated with token {}: {}", token, user.getEmail());
-
-        if (newTelephone.equals(user.getTelephone())) {
-            log.warn("Attempted to change telephone for user {} with same telephone.", user.getEmail());
-            throw new SameTelephoneException(VerificationErrorMessages.SAME_TELEPHONE);
-        }
-
-        user.setTelephone(newTelephone);
-        userService.update(user);
-        log.info("Telephone successfully changed for user {}", user.getEmail());
-
-        verificationTokenService.revokeToken(vt);
-        log.debug("Token {} revoked after successful telephone change.", token);
-    }
-
-    @Transactional
-    @Override
-    public void processTelephoneChangeConfirm(String token, String code) {
-        log.info("Attempting to process telephone change confirmation for token: {}", token);
-        VerificationToken vt = getValidatedVerificationToken(token, false);
-        log.debug("Token {} validated for telephone change confirmation. Purpose: {}", token, vt.getPurpose());
-
-        if (vt.getPurpose() != VerificationTokenPurpose.TELEPHONE_CHANGE_CONFIRM) {
-            log.warn("Invalid purpose for telephone change confirmation token {}. Expected TELEPHONE_CHANGE_CONFIRM, got {}", token, vt.getPurpose());
-            throw new InvalidVerificationPurposeException(VerificationErrorMessages.INVALID_TOKEN_PURPOSE_TELEPHONE_CHANGE_CONFIRM);
-        }
-
-        // Assuming the new telephone is stored in the token's payload or directly in the token object
-        // For this example, let's assume the new telephone is stored in the token's payload (e.g., as a JSON string)
-        // You might need to adjust this based on how your VerificationToken stores this information.
-        // For now, I'll assume the token itself contains the new telephone in its 'code' field for simplicity in this test.
-        // In a real scenario, you might have a 'payload' field in VerificationToken to store such data.
-        // If the new telephone is part of the token's payload, you'd parse it from there.
-        // For the purpose of this implementation, I'll assume the 'code' parameter passed to this method is the actual new telephone.
-        // This might need adjustment based on the actual design of the VerificationToken and its usage.
-
-        User user = vt.getUser();
-        log.debug("User associated with token {}: {}", token, user.getEmail());
-
-        // In a real scenario, the new telephone would likely be part of the token's payload
-        // For this example, let's assume the 'code' parameter is the new telephone to be confirmed
-        user.setTelephone(code); // Assuming 'code' here is the new telephone to be set
-        userService.update(user);
-        log.info("Telephone successfully confirmed and updated for user {}", user.getEmail());
-
-        verificationTokenService.revokeToken(vt);
-        log.debug("Token {} revoked after successful telephone change confirmation.", token);
     }
 
     /**

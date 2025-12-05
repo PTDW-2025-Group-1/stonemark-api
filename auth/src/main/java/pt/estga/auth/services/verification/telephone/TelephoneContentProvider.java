@@ -11,4 +11,5 @@ public interface TelephoneContentProvider {
     Map<String, Object> getProperties(long remainingMillis);
 
     VerificationTokenPurpose getPurpose();
+
 }
