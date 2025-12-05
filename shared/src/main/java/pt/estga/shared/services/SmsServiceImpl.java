@@ -7,35 +7,30 @@ import com.vonage.client.VonageClient;
 import com.vonage.client.sms.MessageStatus;
 import com.vonage.client.sms.SmsSubmissionResponse;
 import com.vonage.client.sms.messages.TextMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SmsServiceImpl implements SmsService {
 
     private final VonageClient client;
-    private final String fromNumber;
     private final PhoneNumberUtil phoneNumberUtil;
 
-    public SmsServiceImpl(
-            @Value("${vonage.api-key}") String apiKey,
-            @Value("${vonage.api-secret}") String apiSecret,
-            @Value("${vonage.from-number}") String fromNumber
-    ) {
-        this.client = VonageClient.builder()
-                .apiKey(apiKey)
-                .apiSecret(apiSecret)
-                .build();
-        this.fromNumber = fromNumber;
-        this.phoneNumberUtil = PhoneNumberUtil.getInstance();
-    }
+    @Value("${vonage.from-number}")
+    private String fromNumber;
 
+    @Value("${sms.default.region:PT}")
+    private String defaultRegion;
+
+    @Override
     public void sendMessage(String phoneNumber, String message) {
         String formattedPhoneNumber;
         try {
-            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(phoneNumber, "PT"); // Assuming default region as PT (Portugal)
+            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(phoneNumber, defaultRegion);
             if (!phoneNumberUtil.isValidNumber(number)) {
                 log.error("Invalid phone number: {}", phoneNumber);
                 throw new IllegalArgumentException("Invalid phone number format.");

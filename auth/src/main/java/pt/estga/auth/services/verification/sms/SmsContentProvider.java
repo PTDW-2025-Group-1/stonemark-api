@@ -1,10 +1,10 @@
-package pt.estga.auth.services.verification.telephone;
+package pt.estga.auth.services.verification.sms;
 
 import pt.estga.auth.enums.VerificationTokenPurpose;
 
 import java.util.Map;
 
-public interface TelephoneContentProvider {
+public interface SmsContentProvider {
 
     String getMessage();
 

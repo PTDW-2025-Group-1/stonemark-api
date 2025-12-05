@@ -7,7 +7,7 @@ import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.email.VerificationEmailService;
+import pt.estga.auth.services.verification.email.EmailVerificationService;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.user.entities.User;
 
@@ -24,7 +24,7 @@ public class EmailChangeRequestProcessor implements VerificationProcessor {
 
     private final EmailChangeRequestRepository repository;
     private final VerificationTokenService verificationTokenService;
-    private final VerificationEmailService verificationEmailService;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * Processes the given verification token.
@@ -48,7 +48,7 @@ public class EmailChangeRequestProcessor implements VerificationProcessor {
         request.setVerificationToken(confirmationToken);
         repository.save(request);
 
-        verificationEmailService.sendVerificationEmail(newEmail, confirmationToken);
+        emailVerificationService.sendVerificationEmail(newEmail, confirmationToken);
 
         // Revoke the token as it has served its purpose
         verificationTokenService.revokeToken(token);

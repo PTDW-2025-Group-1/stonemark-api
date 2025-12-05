@@ -6,7 +6,7 @@ import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.repositories.TelephoneChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.telephone.VerificationTelephoneService;
+import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.shared.exceptions.TelephoneAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
@@ -17,7 +17,7 @@ public class TelephoneChangeCommand implements VerificationCommand {
     private final User user;
     private final String newTelephone;
     private final VerificationTokenService verificationTokenService;
-    private final VerificationTelephoneService verificationTelephoneService;
+    private final SmsVerificationService smsVerificationService;
     private final TelephoneChangeRequestRepository telephoneChangeRequestRepository;
     private final UserService userService;
 
@@ -37,6 +37,6 @@ public class TelephoneChangeCommand implements VerificationCommand {
 
         telephoneChangeRequestRepository.save(telephoneChangeRequest);
 
-        verificationTelephoneService.sendVerificationSms(user.getTelephone(), verificationToken);
+        smsVerificationService.sendVerificationSms(user.getTelephone(), verificationToken);
     }
 }

@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.telephone;
+package pt.estga.auth.services.verification.sms;
 
 import org.springframework.stereotype.Component;
 import pt.estga.auth.enums.VerificationTokenPurpose;
@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class TwoFactorAuthContentProvider implements TelephoneContentProvider {
+public class SmsContentProviderTwoFactorAuthImpl implements SmsContentProvider {
 
     @Override
     public String getMessage() {

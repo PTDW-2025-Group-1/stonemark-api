@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.telephone;
+package pt.estga.auth.services.verification.sms;
 
 import org.springframework.stereotype.Component;
 import pt.estga.auth.enums.VerificationTokenPurpose;
@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class TelephoneVerificationContentProvider implements TelephoneContentProvider {
+public class SmsContentProviderPasswordResetImpl implements SmsContentProvider {
 
     @Override
     public String getMessage() {
-        return "Your telephone verification code is: {CODE}. This code will expire in {EXPIRATION} minutes.";
+        return "Your password reset verification code is: {CODE}. This code will expire in {EXPIRATION} minutes.";
     }
 
     @Override
@@ -24,6 +24,6 @@ public class TelephoneVerificationContentProvider implements TelephoneContentPro
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.TELEPHONE_VERIFICATION;
+        return VerificationTokenPurpose.PASSWORD_RESET;
     }
 }

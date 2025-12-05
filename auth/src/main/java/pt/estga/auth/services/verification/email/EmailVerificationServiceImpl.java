@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class VerificationEmailServiceImpl implements VerificationEmailService {
+public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     @Value("${application.verification.confirm-path:/confirm?token=}")
     private String confirmPath;

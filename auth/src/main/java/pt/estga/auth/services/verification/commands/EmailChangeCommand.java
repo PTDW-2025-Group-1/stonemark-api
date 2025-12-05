@@ -6,7 +6,7 @@ import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.email.VerificationEmailService;
+import pt.estga.auth.services.verification.email.EmailVerificationService;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
@@ -17,7 +17,7 @@ public class EmailChangeCommand implements VerificationCommand {
     private final User user;
     private final String newEmail;
     private final VerificationTokenService verificationTokenService;
-    private final VerificationEmailService verificationEmailService;
+    private final EmailVerificationService emailVerificationService;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
     private final UserService userService;
 
@@ -37,6 +37,6 @@ public class EmailChangeCommand implements VerificationCommand {
 
         emailChangeRequestRepository.save(emailChangeRequest);
 
-        verificationEmailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        emailVerificationService.sendVerificationEmail(user.getEmail(), verificationToken);
     }
 }

@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.telephone;
+package pt.estga.auth.services.verification.sms;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -7,7 +7,7 @@ import pt.estga.shared.services.SmsService;
 
 @Service
 @RequiredArgsConstructor
-public class VerificationTelephoneServiceImpl implements VerificationTelephoneService {
+public class SmsVerificationServiceImpl implements SmsVerificationService {
 
     private final SmsService smsService;
 

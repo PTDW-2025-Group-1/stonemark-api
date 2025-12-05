@@ -8,16 +8,16 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class EmailChangeConfirmContentProvider implements EmailContentProvider {
+public class EmailContentProviderEmailChangeRequestImpl implements EmailContentProvider {
 
     @Override
     public String getSubject() {
-        return "Confirm Your New Email Address";
+        return "Confirm Your Email Change Request";
     }
 
     @Override
     public String getTemplate() {
-        return "email/email-change-confirm.html";
+        return "email/email-change-request.html";
     }
 
     @Override
@@ -29,6 +29,6 @@ public class EmailChangeConfirmContentProvider implements EmailContentProvider {
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.EMAIL_CHANGE_CONFIRM;
+        return VerificationTokenPurpose.EMAIL_CHANGE_REQUEST;
     }
 }

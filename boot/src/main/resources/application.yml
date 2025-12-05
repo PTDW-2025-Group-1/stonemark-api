@@ -107,6 +107,10 @@ application:
     email:
       verification-required: true
 
+sms:
+  default:
+    region: PT
+
 telegram:
   bot:
     username: stonemarkbot

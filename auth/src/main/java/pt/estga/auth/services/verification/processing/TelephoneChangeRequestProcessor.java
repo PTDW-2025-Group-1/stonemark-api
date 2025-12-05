@@ -7,7 +7,7 @@ import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.repositories.TelephoneChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.telephone.VerificationTelephoneService;
+import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.user.entities.User;
 
@@ -19,7 +19,7 @@ public class TelephoneChangeRequestProcessor implements VerificationProcessor {
 
     private final TelephoneChangeRequestRepository repository;
     private final VerificationTokenService tokenService;
-    private final VerificationTelephoneService telephoneService;
+    private final SmsVerificationService telephoneService;
 
     @Override
     public Optional<String> process(VerificationToken token) {

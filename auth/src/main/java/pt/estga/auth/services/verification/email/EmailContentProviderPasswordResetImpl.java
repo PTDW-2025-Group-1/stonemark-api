@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.telephone;
+package pt.estga.auth.services.verification.email;
 
 import org.springframework.stereotype.Component;
 import pt.estga.auth.enums.VerificationTokenPurpose;
@@ -8,17 +8,22 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class PasswordResetContentProvider implements TelephoneContentProvider {
+public class EmailContentProviderPasswordResetImpl implements EmailContentProvider {
 
     @Override
-    public String getMessage() {
-        return "Your password reset verification code is: {CODE}. This code will expire in {EXPIRATION} minutes.";
+    public String getSubject() {
+        return "Password Reset Request";
+    }
+
+    @Override
+    public String getTemplate() {
+        return "email/password-reset.html";
     }
 
     @Override
     public Map<String, Object> getProperties(long remainingMillis) {
         Map<String, Object> properties = new HashMap<>();
-        properties.put("EXPIRATION", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
+        properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
         return properties;
     }
 
