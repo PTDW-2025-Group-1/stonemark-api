@@ -46,6 +46,11 @@
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
+            <artifactId>bookmark</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.estga</groupId>
             <artifactId>detection</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
