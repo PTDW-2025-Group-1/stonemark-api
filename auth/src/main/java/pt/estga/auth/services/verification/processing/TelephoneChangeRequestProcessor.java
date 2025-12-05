@@ -10,6 +10,7 @@ import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.user.entities.User;
+import pt.estga.user.repositories.UserRepository;
 
 import java.util.Optional;
 
@@ -20,13 +21,15 @@ public class TelephoneChangeRequestProcessor implements VerificationProcessor {
     private final TelephoneChangeRequestRepository repository;
     private final VerificationTokenService tokenService;
     private final SmsVerificationService telephoneService;
+    private final UserRepository userRepository;
 
     @Override
     public Optional<String> process(VerificationToken token) {
         TelephoneChangeRequest request = repository.findByVerificationToken(token)
                 .orElseThrow(() -> new InvalidTokenException("Telephone change request not found."));
 
-        User user = request.getUser();
+        User user = userRepository.findById(request.getUser().getId())
+                .orElseThrow(() -> new InvalidTokenException("User not found."));
         String newTelephone = request.getNewTelephone();
 
         // Create a new token for the confirmation of the telephone change

@@ -89,4 +89,16 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
     }
+
+    @PostMapping("/request-email-verification")
+    public ResponseEntity<?> requestEmailVerification(@AuthenticationPrincipal User user) {
+        accountManagementService.requestEmailVerification(user);
+        return ResponseEntity.ok(new MessageResponseDto("A verification email has been sent to your email address."));
+    }
+
+    @PostMapping("/request-telephone-verification")
+    public ResponseEntity<?> requestTelephoneVerification(@AuthenticationPrincipal User user) {
+        accountManagementService.requestTelephoneVerification(user);
+        return ResponseEntity.ok(new MessageResponseDto("A verification SMS has been sent to your telephone number."));
+    }
 }

@@ -10,4 +10,8 @@ public interface AccountManagementService {
 
     void requestTelephoneChange(User user, TelephoneChangeRequestDto newTelephone);
 
+    void requestEmailVerification(User user);
+
+    void requestTelephoneVerification(User user);
+
 }

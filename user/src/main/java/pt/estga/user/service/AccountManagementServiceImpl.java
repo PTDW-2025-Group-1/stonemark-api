@@ -7,7 +7,9 @@ import pt.estga.user.dtos.EmailChangeRequestDto;
 import pt.estga.user.dtos.TelephoneChangeRequestDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.events.EmailChangeRequestedEvent;
+import pt.estga.user.events.EmailVerificationRequestedEvent;
 import pt.estga.user.events.TelephoneChangeRequestedEvent;
+import pt.estga.user.events.TelephoneVerificationRequestedEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -24,5 +26,15 @@ public class AccountManagementServiceImpl implements AccountManagementService {
     @Override
     public void requestTelephoneChange(User user, TelephoneChangeRequestDto request) {
         eventPublisher.publishEvent(new TelephoneChangeRequestedEvent(this, user, request.newTelephone()));
+    }
+
+    @Override
+    public void requestEmailVerification(User user) {
+        eventPublisher.publishEvent(new EmailVerificationRequestedEvent(this, user));
+    }
+
+    @Override
+    public void requestTelephoneVerification(User user) {
+        eventPublisher.publishEvent(new TelephoneVerificationRequestedEvent(this, user));
     }
 }

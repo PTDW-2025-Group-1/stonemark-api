@@ -24,7 +24,7 @@ public class TelephoneChangeRequest {
     @JoinColumn(nullable = false)
     private User user;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne
     @JoinColumn(nullable = false)
     private VerificationToken verificationToken;
 
