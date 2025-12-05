@@ -15,7 +15,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class VerificationEmailServiceImpl implements VerificationEmailService {
 
-    private static final String CONFIRM_PATH = "/confirm?token=";
+    @Value("${application.verification.confirm-path:/confirm?token=}")
+    private String confirmPath;
 
     private final EmailService emailService;
     private final EmailContentProviderFactory emailContentProviderFactory;
@@ -30,8 +31,8 @@ public class VerificationEmailServiceImpl implements VerificationEmailService {
             throw new IllegalArgumentException("No EmailContentProvider found for token purpose: " + token.getPurpose());
         }
 
-        String link = frontendBaseUrl + CONFIRM_PATH + token.getToken();
-        long remainingMillis = token.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
+        String link = frontendBaseUrl + confirmPath + token.getToken();
+        long remainingMillis = token.getRemainingValidityMillis();
 
         Map<String, Object> properties = provider.getProperties(remainingMillis);
         properties.put("link", link);

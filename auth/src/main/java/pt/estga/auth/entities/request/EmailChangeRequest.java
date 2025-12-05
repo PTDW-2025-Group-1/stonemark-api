@@ -14,8 +14,8 @@ import pt.estga.user.entities.User;
 public class EmailChangeRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue
+    private Long id;
 
     @Column(nullable = false)
     private String newEmail;

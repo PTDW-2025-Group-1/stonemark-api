@@ -98,7 +98,7 @@ application:
         expiration: 900000 # 15 minutes
       email-change-confirm-token:
         expiration: 900000 # 15 minutes
-    email-verification-required: false
+    email-verification-required: true
 
 telegram:
   bot:

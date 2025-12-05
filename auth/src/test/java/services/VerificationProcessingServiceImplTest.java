@@ -22,6 +22,9 @@ import pt.estga.auth.services.verification.processing.VerificationProcessorFacto
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.exceptions.SamePasswordException;
 import pt.estga.shared.exceptions.VerificationErrorMessages;
+import pt.estga.shared.exceptions.TokenExpiredException;
+import pt.estga.shared.exceptions.TokenRevokedException;
+import pt.estga.shared.exceptions.InvalidVerificationPurposeException;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
 
@@ -88,7 +91,7 @@ class VerificationProcessingServiceImplTest {
 
     @Test
     @DisplayName("Should confirm email verification token successfully")
-    void testProcessTokenConfirmation_emailVerification_success() {
+    void testConfirmToken_emailVerification_success() {
         // Given
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken));
@@ -97,11 +100,10 @@ class VerificationProcessingServiceImplTest {
         when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty()); // Email verification completes the action
 
         // When
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(emailVerificationToken.getToken());
+        Optional<String> result = verificationProcessingService.confirmToken(emailVerificationToken.getToken());
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.SUCCESS);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL);
+        assertThat(result).isEmpty();
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
         verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION);
         verify(mockProcessor).process(emailVerificationToken);
@@ -110,7 +112,7 @@ class VerificationProcessingServiceImplTest {
 
     @Test
     @DisplayName("Should return password reset required status for password reset token confirmation")
-    void testProcessTokenConfirmation_passwordReset_success() {
+    void testConfirmToken_passwordReset_success() {
         // Given
         when(verificationTokenService.findByToken(passwordResetToken.getToken()))
                 .thenReturn(Optional.of(passwordResetToken));
@@ -120,11 +122,11 @@ class VerificationProcessingServiceImplTest {
                 .thenReturn(Optional.of(passwordResetToken.getToken())); // Define mock behavior
 
         // When
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(passwordResetToken.getToken());
+        Optional<String> result = verificationProcessingService.confirmToken(passwordResetToken.getToken());
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.PASSWORD_RESET_REQUIRED);
-        assertThat(response.token()).isEqualTo(passwordResetToken.getToken());
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(passwordResetToken.getToken());
         verify(verificationTokenService).findByToken(passwordResetToken.getToken());
         verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.PASSWORD_RESET);
         verify(passwordResetConfirmationProcessor).process(passwordResetToken); // Verify interaction with mock
@@ -132,54 +134,54 @@ class VerificationProcessingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should return error for invalid token confirmation")
-    void testProcessTokenConfirmation_invalidToken() {
+    @DisplayName("Should throw InvalidTokenException for invalid token confirmation")
+    void testConfirmToken_invalidToken() {
         // Given
         when(verificationTokenService.findByToken(anyString())).thenReturn(Optional.empty());
 
-        // When
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation("nonexistent");
+        // When & Then
+        InvalidTokenException exception = assertThrows(InvalidTokenException.class,
+                () -> verificationProcessingService.confirmToken("nonexistent"));
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.ERROR);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.TOKEN_NOT_FOUND);
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_NOT_FOUND);
         verify(verificationTokenService).findByToken("nonexistent");
         verifyNoInteractions(verificationProcessorFactory, mockProcessor);
     }
 
     @Test
-    @DisplayName("Should return error and revoke expired token confirmation")
-    void testProcessTokenConfirmation_expiredToken() {
+    @DisplayName("Should throw TokenExpiredException for expired token confirmation")
+    void testConfirmToken_expiredToken() {
         // Given
         emailVerificationToken.setExpiresAt(Instant.now().minusSeconds(10)); // Make token expired
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken));
 
-        // When
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(emailVerificationToken.getToken());
+        // When & Then
+        TokenExpiredException exception = assertThrows(TokenExpiredException.class,
+                () -> verificationProcessingService.confirmToken(emailVerificationToken.getToken()));
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.ERROR);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.TOKEN_EXPIRED);
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_EXPIRED);
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
         verify(verificationTokenService).revokeToken(emailVerificationToken); // Should revoke expired token
         verifyNoInteractions(verificationProcessorFactory, mockProcessor);
     }
 
     @Test
-    @DisplayName("Should return error and revoke revoked token confirmation")
-    void testProcessTokenConfirmation_revokedToken() {
+    @DisplayName("Should throw TokenRevokedException for revoked token confirmation")
+    void testConfirmToken_revokedToken() {
         // Given
         emailVerificationToken.setRevoked(true); // Make token revoked
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken));
 
-        // When
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(emailVerificationToken.getToken());
+        // When & Then
+        TokenRevokedException exception = assertThrows(TokenRevokedException.class,
+                () -> verificationProcessingService.confirmToken(emailVerificationToken.getToken()));
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.ERROR);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.TOKEN_REVOKED);
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_REVOKED);
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
         verify(verificationTokenService, never()).revokeToken(any()); // Already revoked, so no further revocation call
         verifyNoInteractions(verificationProcessorFactory, mockProcessor);
@@ -187,7 +189,7 @@ class VerificationProcessingServiceImplTest {
 
     @Test
     @DisplayName("Should confirm email verification code successfully")
-    void testProcessCodeConfirmation_emailVerification_success() {
+    void testConfirmCode_emailVerification_success() {
         // Given
         when(verificationTokenService.findByCode(emailVerificationToken.getCode()))
                 .thenReturn(Optional.of(emailVerificationToken));
@@ -196,11 +198,10 @@ class VerificationProcessingServiceImplTest {
         when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
 
         // When
-        ConfirmationResponseDto response = verificationProcessingService.processCodeConfirmation(emailVerificationToken.getCode());
+        Optional<String> result = verificationProcessingService.confirmCode(emailVerificationToken.getCode());
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.SUCCESS);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL);
+        assertThat(result).isEmpty();
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
         verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION);
         verify(mockProcessor).process(emailVerificationToken);
@@ -208,7 +209,7 @@ class VerificationProcessingServiceImplTest {
 
     @Test
     @DisplayName("Should return password reset required status for password reset code confirmation")
-    void testProcessCodeConfirmation_passwordReset_success() {
+    void testConfirmCode_passwordReset_success() {
         // Given
         when(verificationTokenService.findByCode(passwordResetToken.getCode()))
                 .thenReturn(Optional.of(passwordResetToken));
@@ -218,30 +219,65 @@ class VerificationProcessingServiceImplTest {
                 .thenReturn(Optional.of(passwordResetToken.getToken())); // Define mock behavior
 
         // When
-        ConfirmationResponseDto response = verificationProcessingService.processCodeConfirmation(passwordResetToken.getCode());
+        Optional<String> result = verificationProcessingService.confirmCode(passwordResetToken.getCode());
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.PASSWORD_RESET_REQUIRED);
-        assertThat(response.token()).isEqualTo(passwordResetToken.getToken());
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(passwordResetToken.getToken());
         verify(verificationTokenService).findByCode(passwordResetToken.getCode());
         verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.PASSWORD_RESET);
         verify(passwordResetConfirmationProcessor).process(passwordResetToken); // Verify interaction with mock
     }
 
     @Test
-    @DisplayName("Should return error and revoke revoked code confirmation")
-    void testProcessCodeConfirmation_revokedToken() {
+    @DisplayName("Should throw InvalidTokenException for invalid code confirmation")
+    void testConfirmCode_invalidCode() {
+        // Given
+        when(verificationTokenService.findByCode(anyString())).thenReturn(Optional.empty());
+
+        // When & Then
+        InvalidTokenException exception = assertThrows(InvalidTokenException.class,
+                () -> verificationProcessingService.confirmCode("nonexistent"));
+
+        // Then
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_NOT_FOUND);
+        verify(verificationTokenService).findByCode("nonexistent");
+        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+    }
+
+    @Test
+    @DisplayName("Should throw TokenExpiredException for expired code confirmation")
+    void testConfirmCode_expiredCode() {
+        // Given
+        emailVerificationToken.setExpiresAt(Instant.now().minusSeconds(10)); // Make token expired
+        when(verificationTokenService.findByCode(emailVerificationToken.getCode()))
+                .thenReturn(Optional.of(emailVerificationToken));
+
+        // When & Then
+        TokenExpiredException exception = assertThrows(TokenExpiredException.class,
+                () -> verificationProcessingService.confirmCode(emailVerificationToken.getCode()));
+
+        // Then
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_EXPIRED);
+        verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
+        verify(verificationTokenService).revokeToken(emailVerificationToken); // Should revoke expired token
+        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+    }
+
+    @Test
+    @DisplayName("Should throw TokenRevokedException for revoked code confirmation")
+    void testConfirmCode_revokedCode() {
         // Given
         emailVerificationToken.setRevoked(true); // Make token revoked
         when(verificationTokenService.findByCode(emailVerificationToken.getCode()))
                 .thenReturn(Optional.of(emailVerificationToken));
 
-        // When
-        ConfirmationResponseDto response = verificationProcessingService.processCodeConfirmation(emailVerificationToken.getCode());
+        // When & Then
+        TokenRevokedException exception = assertThrows(TokenRevokedException.class,
+                () -> verificationProcessingService.confirmCode(emailVerificationToken.getCode()));
 
         // Then
-        assertThat(response.status()).isEqualTo(ConfirmationStatus.ERROR);
-        assertThat(response.message()).isEqualTo(VerificationErrorMessages.CODE_REVOKED);
+        assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_REVOKED);
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
         verify(verificationTokenService, never()).revokeToken(any()); // Already revoked, so no further revocation call
         verifyNoInteractions(verificationProcessorFactory, mockProcessor);
@@ -296,14 +332,14 @@ class VerificationProcessingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw InvalidTokenException for wrong token purpose during password reset")
+    @DisplayName("Should throw InvalidVerificationPurposeException for wrong token purpose during password reset")
     void testProcessPasswordReset_invalidTokenPurpose() {
         // Given
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken)); // Use an email verification token
 
         // When
-        InvalidTokenException exception = assertThrows(InvalidTokenException.class,
+        InvalidVerificationPurposeException exception = assertThrows(InvalidVerificationPurposeException.class,
                 () -> verificationProcessingService.processPasswordReset(emailVerificationToken.getToken(), "newPassword"));
 
         // Then
@@ -329,7 +365,7 @@ class VerificationProcessingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw InvalidTokenException if token is expired during password reset")
+    @DisplayName("Should throw TokenExpiredException if token is expired during password reset")
     void testProcessPasswordReset_expiredToken() {
         // Given
         passwordResetToken.setExpiresAt(Instant.now().minusSeconds(10)); // Make token expired
@@ -337,7 +373,7 @@ class VerificationProcessingServiceImplTest {
                 .thenReturn(Optional.of(passwordResetToken));
 
         // When & Then
-        InvalidTokenException exception = assertThrows(InvalidTokenException.class,
+        TokenExpiredException exception = assertThrows(TokenExpiredException.class,
                 () -> verificationProcessingService.processPasswordReset(passwordResetToken.getToken(), "newPassword"));
 
         // Then
@@ -348,7 +384,7 @@ class VerificationProcessingServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw InvalidTokenException if token is revoked during password reset")
+    @DisplayName("Should throw TokenRevokedException if token is revoked during password reset")
     void testProcessPasswordReset_revokedToken() {
         // Given
         passwordResetToken.setRevoked(true); // Make token revoked
@@ -356,7 +392,7 @@ class VerificationProcessingServiceImplTest {
                 .thenReturn(Optional.of(passwordResetToken));
 
         // When & Then
-        InvalidTokenException exception = assertThrows(InvalidTokenException.class,
+        TokenRevokedException exception = assertThrows(TokenRevokedException.class,
                 () -> verificationProcessingService.processPasswordReset(passwordResetToken.getToken(), "newPassword"));
 
         // Then
