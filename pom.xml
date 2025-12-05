@@ -32,6 +32,7 @@
         <module>proposals</module>
         <module>contact</module>
         <module>bots</module>
+        <module>bookmark</module>
     </modules>
     <scm>
 		<connection/>
