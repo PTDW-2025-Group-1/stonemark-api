@@ -12,4 +12,7 @@ public class VerificationErrorMessages {
     public static final String CONFIRMATION_SUCCESSFUL = "Confirmation successful.";
     public static final String INVALID_TOKEN_PURPOSE = "Invalid token purpose: ";
     public static final String INVALID_CODE_PURPOSE = "Invalid code purpose: ";
+    public static final String INVALID_TOKEN_PURPOSE_TELEPHONE_CHANGE = "Invalid token purpose for telephone change.";
+    public static final String INVALID_TOKEN_PURPOSE_TELEPHONE_CHANGE_CONFIRM = "Invalid token purpose for telephone change confirmation.";
+    public static final String SAME_TELEPHONE = "New telephone number cannot be the same as the old telephone number.";
 }

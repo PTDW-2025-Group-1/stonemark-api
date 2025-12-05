@@ -8,16 +8,16 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class PasswordResetContentProvider implements EmailContentProvider {
+public class EmailContentProviderEmailChangeConfirmImpl implements EmailContentProvider {
 
     @Override
     public String getSubject() {
-        return "Password Reset Request";
+        return "Confirm Your New Email Address";
     }
 
     @Override
     public String getTemplate() {
-        return "email/password-reset.html";
+        return "email/email-change-confirm.html";
     }
 
     @Override
@@ -29,6 +29,6 @@ public class PasswordResetContentProvider implements EmailContentProvider {
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.PASSWORD_RESET;
+        return VerificationTokenPurpose.EMAIL_CHANGE_CONFIRM;
     }
 }

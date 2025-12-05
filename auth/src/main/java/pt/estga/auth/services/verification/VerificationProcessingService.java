@@ -1,16 +1,15 @@
 package pt.estga.auth.services.verification;
 
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.dtos.ConfirmationResponseDto;
+import java.util.Optional;
 
 public interface VerificationProcessingService {
 
-    // Todo change signature to get reed of dtos
     @Transactional
-    ConfirmationResponseDto processTokenConfirmation(String token);
+    Optional<String> confirmToken(String token);
 
     @Transactional
-    ConfirmationResponseDto processCodeConfirmation(String code);
+    Optional<String> confirmCode(String code);
 
     @Transactional
     void processPasswordReset(String token, String newPassword);

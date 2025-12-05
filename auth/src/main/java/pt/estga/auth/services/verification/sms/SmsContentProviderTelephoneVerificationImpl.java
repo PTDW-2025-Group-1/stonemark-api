@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.email;
+package pt.estga.auth.services.verification.sms;
 
 import org.springframework.stereotype.Component;
 import pt.estga.auth.enums.VerificationTokenPurpose;
@@ -8,27 +8,22 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class EmailChangeConfirmContentProvider implements EmailContentProvider {
+public class SmsContentProviderTelephoneVerificationImpl implements SmsContentProvider {
 
     @Override
-    public String getSubject() {
-        return "Confirm Your New Email Address";
-    }
-
-    @Override
-    public String getTemplate() {
-        return "email/email-change-confirm.html";
+    public String getMessage() {
+        return "Your telephone verification code is: {CODE}. This code will expire in {EXPIRATION} minutes.";
     }
 
     @Override
     public Map<String, Object> getProperties(long remainingMillis) {
         Map<String, Object> properties = new HashMap<>();
-        properties.put("expiration", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
+        properties.put("EXPIRATION", TimeUnit.MILLISECONDS.toMinutes(remainingMillis));
         return properties;
     }
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.EMAIL_CHANGE_CONFIRM;
+        return VerificationTokenPurpose.TELEPHONE_VERIFICATION;
     }
 }

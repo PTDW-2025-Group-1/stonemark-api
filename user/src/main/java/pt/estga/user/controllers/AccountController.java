@@ -90,18 +90,15 @@ public class AccountController {
         }
     }
 
-    @PostMapping("/verify-telephone-change")
-    public ResponseEntity<?> verifyTelephoneChange(
-            @Valid @RequestBody TelephoneCodeVerificationDto request,
-            @AuthenticationPrincipal User user) {
+    @PostMapping("/request-email-verification")
+    public ResponseEntity<?> requestEmailVerification(@AuthenticationPrincipal User user) {
+        accountManagementService.requestEmailVerification(user);
+        return ResponseEntity.ok(new MessageResponseDto("A verification email has been sent to your email address."));
+    }
 
-        boolean valid = accountManagementService.verifyTelephoneChange(user, request);
-
-        if (!valid) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResponseDto("Invalid or expired verification code."));
-        }
-
-        return ResponseEntity.ok(new MessageResponseDto("Your telephone number has been updated successfully."));
+    @PostMapping("/request-telephone-verification")
+    public ResponseEntity<?> requestTelephoneVerification(@AuthenticationPrincipal User user) {
+        accountManagementService.requestTelephoneVerification(user);
+        return ResponseEntity.ok(new MessageResponseDto("A verification SMS has been sent to your telephone number."));
     }
 }

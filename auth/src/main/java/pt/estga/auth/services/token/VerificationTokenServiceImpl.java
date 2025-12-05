@@ -34,6 +34,15 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     @Value("${application.security.jwt.email-change-confirm-token.expiration}")
     private long emailChangeConfirmTokenExpiration;
 
+    @Value("${application.security.jwt.telephone-change-request-token.expiration}")
+    private long telephoneChangeRequestTokenExpiration;
+
+    @Value("${application.security.jwt.telephone-change-confirm-token.expiration}")
+    private long telephoneChangeConfirmTokenExpiration;
+
+    @Value("${application.security.jwt.telephone-verification-token.expiration}")
+    private long telephoneVerificationTokenExpiration;
+
     @Override
     public VerificationToken createAndSaveToken(User user, VerificationTokenPurpose purpose) {
         long expirationMillis = getExpirationMillisFor(purpose);
@@ -81,10 +90,13 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     private long getExpirationMillisFor(VerificationTokenPurpose purpose) {
         return switch (purpose) {
             case EMAIL_VERIFICATION -> emailVerificationTokenExpiration;
+            case TELEPHONE_VERIFICATION -> telephoneVerificationTokenExpiration;
             case PASSWORD_RESET -> passwordResetTokenExpiration;
             case TWO_FACTOR_AUTHENTICATION -> twoFactorAuthenticationTokenExpiration;
             case EMAIL_CHANGE_REQUEST -> emailChangeRequestTokenExpiration;
             case EMAIL_CHANGE_CONFIRM -> emailChangeConfirmTokenExpiration;
+            case TELEPHONE_CHANGE_REQUEST -> telephoneChangeRequestTokenExpiration;
+            case TELEPHONE_CHANGE_CONFIRM -> telephoneChangeConfirmTokenExpiration;
         };
     }
 }

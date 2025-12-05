@@ -6,13 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.*;
-import pt.estga.auth.enums.ConfirmationStatus;
 import pt.estga.auth.mappers.AuthMapper;
 import pt.estga.auth.services.AuthenticationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
+import pt.estga.shared.exceptions.VerificationErrorMessages;
 import pt.estga.user.entities.User;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,20 +65,16 @@ public class AuthenticationController {
 
     @GetMapping("/confirm")
     public ResponseEntity<ConfirmationResponseDto> confirmToken(@RequestParam("token") String token) {
-        ConfirmationResponseDto response = verificationProcessingService.processTokenConfirmation(token);
-        if (ConfirmationStatus.ERROR.equals(response.status())) {
-            return ResponseEntity.badRequest().body(response);
-        }
-        return ResponseEntity.ok(response);
+        Optional<String> resultToken = verificationProcessingService.confirmToken(token);
+        return resultToken.map(t -> ResponseEntity.ok(ConfirmationResponseDto.passwordResetRequired(t)))
+                .orElseGet(() -> ResponseEntity.ok(ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL)));
     }
 
     @PostMapping("/confirm-code")
     public ResponseEntity<ConfirmationResponseDto> confirmCode(@RequestBody CodeConfirmationRequestDto request) {
-        ConfirmationResponseDto response = verificationProcessingService.processCodeConfirmation(request.code());
-        if (ConfirmationStatus.ERROR.equals(response.status())) {
-            return ResponseEntity.badRequest().body(response);
-        }
-        return ResponseEntity.ok(response);
+        Optional<String> resultToken = verificationProcessingService.confirmCode(request.code());
+        return resultToken.map(t -> ResponseEntity.ok(ConfirmationResponseDto.passwordResetRequired(t)))
+                .orElseGet(() -> ResponseEntity.ok(ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL)));
     }
 
     @PostMapping("/request-password-reset")

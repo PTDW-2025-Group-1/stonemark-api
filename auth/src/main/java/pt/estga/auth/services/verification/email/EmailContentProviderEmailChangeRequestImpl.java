@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class EmailChangeRequestContentProvider implements EmailContentProvider {
+public class EmailContentProviderEmailChangeRequestImpl implements EmailContentProvider {
 
     @Override
     public String getSubject() {

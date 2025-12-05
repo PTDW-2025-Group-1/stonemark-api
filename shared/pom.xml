@@ -20,6 +20,12 @@
     </properties>
 
     <dependencies>
+        <!-- Google's libphonenumber for phone number parsing and formatting -->
+        <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId>
+            <artifactId>libphonenumber</artifactId>
+            <version>8.13.37</version>
+        </dependency>
     </dependencies>
 
 </project>

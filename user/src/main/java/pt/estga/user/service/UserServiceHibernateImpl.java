@@ -56,4 +56,9 @@ public class UserServiceHibernateImpl implements UserService {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public boolean existsByTelephone(String newTelephone) {
+        return repository.findByTelephone(newTelephone).isPresent();
+    }
 }

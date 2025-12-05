@@ -25,4 +25,6 @@ public interface UserService {
 
     void deleteById(Long id);
 
+    boolean existsByTelephone(String newTelephone);
+
 }

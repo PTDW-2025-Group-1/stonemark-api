@@ -2,9 +2,11 @@ package pt.estga.auth.services.verification.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.auth.repositories.TelephoneChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.VerificationEmailService;
+import pt.estga.auth.services.verification.email.EmailVerificationService;
 import pt.estga.auth.repositories.EmailChangeRequestRepository;
+import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
 
@@ -13,19 +15,33 @@ import pt.estga.user.service.UserService;
 public class VerificationCommandFactory {
 
     private final VerificationTokenService verificationTokenService;
-    private final VerificationEmailService verificationEmailService;
+    private final EmailVerificationService emailVerificationService;
     private final EmailChangeRequestRepository emailChangeRequestRepository;
+    private final SmsVerificationService smsVerificationService;
+    private final TelephoneChangeRequestRepository telephoneChangeRequestRepository;
     private final UserService userService;
 
     public VerificationCommand createEmailVerificationCommand(User user) {
-        return new EmailVerificationCommand(user, verificationTokenService, verificationEmailService);
+        return new EmailVerificationCommand(user, verificationTokenService, emailVerificationService);
     }
 
     public VerificationCommand createPasswordResetCommand(User user) {
-        return new PasswordResetCommand(user, verificationTokenService, verificationEmailService);
+        return new PasswordResetCommand(user, verificationTokenService, emailVerificationService);
     }
 
     public VerificationCommand createEmailChangeCommand(User user, String newEmail) {
-        return new EmailChangeCommand(user, newEmail, verificationTokenService, verificationEmailService, emailChangeRequestRepository, userService);
+        return new EmailChangeCommand(user, newEmail, verificationTokenService, emailVerificationService, emailChangeRequestRepository, userService);
+    }
+
+    public VerificationCommand createTelephoneVerificationCommand(User user) {
+        return new TelephoneVerificationCommand(user, verificationTokenService, smsVerificationService);
+    }
+
+    public VerificationCommand createPasswordResetTelephoneCommand(User user) {
+        return new PasswordResetTelephoneCommand(user, verificationTokenService, smsVerificationService);
+    }
+
+    public VerificationCommand createTelephoneChangeCommand(User user, String newTelephone) {
+        return new TelephoneChangeCommand(user, newTelephone, verificationTokenService, smsVerificationService, telephoneChangeRequestRepository, userService);
     }
 }

@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class TwoFactorAuthenticationProcessor implements VerificationProcessor {
+public class TelephoneVerificationProcessor implements VerificationProcessor {
 
     private final UserService userService;
     private final VerificationTokenService verificationTokenService;
@@ -20,14 +20,14 @@ public class TwoFactorAuthenticationProcessor implements VerificationProcessor {
     @Override
     public Optional<String> process(VerificationToken token) {
         User user = token.getUser();
-        // Assuming 2FA is enabled by default or handled elsewhere,
-        // this processor just marks the token as used.
+        user.setEnabled(true);
+        userService.update(user);
         verificationTokenService.revokeToken(token);
         return Optional.empty();
     }
 
     @Override
     public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.TWO_FACTOR_AUTHENTICATION;
+        return VerificationTokenPurpose.TELEPHONE_VERIFICATION;
     }
 }

@@ -4,19 +4,19 @@ import lombok.RequiredArgsConstructor;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.email.EmailVerificationService;
+import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.user.entities.User;
 
 @RequiredArgsConstructor
-public class PasswordResetCommand implements VerificationCommand {
+public class TelephoneVerificationCommand implements VerificationCommand {
 
     private final User user;
     private final VerificationTokenService verificationTokenService;
-    private final EmailVerificationService emailVerificationService;
+    private final SmsVerificationService smsVerificationService;
 
     @Override
     public void execute() {
-        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.PASSWORD_RESET);
-        emailVerificationService.sendVerificationEmail(user.getEmail(), verificationToken);
+        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.TELEPHONE_VERIFICATION);
+        smsVerificationService.sendVerificationSms(user.getTelephone(), verificationToken);
     }
 }
