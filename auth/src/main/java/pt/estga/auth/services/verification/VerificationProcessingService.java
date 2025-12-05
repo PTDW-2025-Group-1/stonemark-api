@@ -14,4 +14,10 @@ public interface VerificationProcessingService {
     @Transactional
     void processPasswordReset(String token, String newPassword);
 
+    @Transactional
+    void processTelephoneChange(String token, String newTelephone);
+
+    @Transactional
+    void processTelephoneChangeConfirm(String token, String code);
+
 }

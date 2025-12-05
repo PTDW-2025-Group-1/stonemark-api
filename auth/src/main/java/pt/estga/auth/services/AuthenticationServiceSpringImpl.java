@@ -48,7 +48,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final VerificationProcessingService verificationProcessingService;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${application.security.email-verification-required:false}")
+    @Value("${application.security.email.verification-required:false}")
     private boolean emailVerificationRequired;
 
     @Override

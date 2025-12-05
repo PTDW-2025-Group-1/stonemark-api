@@ -1,4 +1,4 @@
-package pt.estga.user.service;
+package pt.estga.shared.services;
 
 import com.vonage.client.VonageClient;
 import com.vonage.client.sms.MessageStatus;
@@ -27,20 +27,16 @@ public class SmsServiceImpl implements SmsService {
         this.fromNumber = fromNumber;
     }
 
-    public void sendVerificationCode(String phoneNumber, String code) {
-        TextMessage message = new TextMessage(
-                fromNumber,
-                phoneNumber,
-                "Your Stonemark verification code is: " + code + ". Valid for 15 minutes."
-        );
+    public void sendMessage(String phoneNumber, String message) {
+        TextMessage textMessage = new TextMessage(fromNumber, phoneNumber, message);
 
-        SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
+        SmsSubmissionResponse response = client.getSmsClient().submitMessage(textMessage);
 
-        if (response.getMessages().get(0).getStatus() == MessageStatus.OK) {
-            log.info("SMS enviado com sucesso para {}", phoneNumber);
+        if (response.getMessages().getFirst().getStatus() == MessageStatus.OK) {
+            log.info("SMS sent successfully to {}", phoneNumber);
         } else {
-            log.error("Erro ao enviar SMS: {}",
-                    response.getMessages().get(0).getErrorText());
+            log.error("Error sending SMS: {}",
+                    response.getMessages().getFirst().getErrorText());
             throw new RuntimeException("Failed to send SMS");
         }
     }

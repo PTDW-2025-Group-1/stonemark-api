@@ -89,19 +89,4 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
     }
-
-    @PostMapping("/verify-telephone-change")
-    public ResponseEntity<?> verifyTelephoneChange(
-            @Valid @RequestBody TelephoneCodeVerificationDto request,
-            @AuthenticationPrincipal User user) {
-
-        boolean valid = accountManagementService.verifyTelephoneChange(user, request);
-
-        if (!valid) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new MessageResponseDto("Invalid or expired verification code."));
-        }
-
-        return ResponseEntity.ok(new MessageResponseDto("Your telephone number has been updated successfully."));
-    }
 }

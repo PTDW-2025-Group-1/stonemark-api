@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification;
+package pt.estga.auth.services.verification.email;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.shared.services.EmailService;
 import pt.estga.shared.models.Email;
-import pt.estga.auth.services.verification.email.EmailContentProvider;
-import pt.estga.auth.services.verification.email.EmailContentProviderFactory;
 
 import java.util.Map;
 

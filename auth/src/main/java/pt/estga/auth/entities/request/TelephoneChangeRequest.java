@@ -11,14 +11,14 @@ import pt.estga.user.entities.User;
 @Getter
 @Setter
 @Builder
-public class PhoneChangeRequest {
+public class TelephoneChangeRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
-    private String newPhone;
+    private String newTelephone;
 
     @OneToOne
     @JoinColumn(nullable = false)
