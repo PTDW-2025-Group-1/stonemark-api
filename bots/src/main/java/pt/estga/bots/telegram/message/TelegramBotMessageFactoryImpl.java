@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import pt.estga.bots.telegram.BotResponses;
 import pt.estga.content.entities.Mark;
+import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.enums.ProposalStatus;
@@ -73,14 +74,11 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
 
     @Override
     public BotApiMethod<?> createSubmissionNotReadyMessage(long chatId, ProposalStatus status) {
-        switch (status) {
-            case AWAITING_MONUMENT_INFO:
-                return new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_AWAITING_MONUMENT_INFO);
-            case AWAITING_MARK_INFO:
-                return new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_AWAITING_MARK_INFO);
-            default:
-                return new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_NOT_READY);
-        }
+        return switch (status) {
+            case AWAITING_MONUMENT_INFO -> new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_AWAITING_MONUMENT_INFO);
+            case AWAITING_MARK_INFO -> new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_AWAITING_MARK_INFO);
+            default -> new SendMessage(String.valueOf(chatId), BotResponses.SUBMISSION_NOT_READY);
+        };
     }
 
     @Override
@@ -95,20 +93,14 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
         switch (status) {
             case AWAITING_MARK_SELECTION:
                 try {
-                    List<String> suggestedMarkIds = objectMapper.readValue(proposal.getSuggestedMarkIds(), new TypeReference<List<String>>() {});
+                    List<String> suggestedMarkIds = objectMapper.readValue(proposal.getSuggestedMarkIds(), new TypeReference<>() {});
                     return createMarkSelectionMessage(chatId, suggestedMarkIds);
                 } catch (JsonProcessingException e) {
                     log.error("Error deserializing suggestedMarkIds for proposal {}: {}", proposal.getId(), e.getMessage());
                     return new SendMessage(String.valueOf(chatId), BotResponses.ERROR_DESERIALIZING_MARK_IDS);
                 }
             case AWAITING_MONUMENT_SELECTION:
-                try {
-                    List<String> suggestedMonumentIds = objectMapper.readValue(proposal.getSuggestedMonumentIds(), new TypeReference<List<String>>() {});
-                    return createMonumentSelectionMessage(chatId, suggestedMonumentIds);
-                } catch (JsonProcessingException e) {
-                    log.error("Error deserializing suggestedMonumentIds for proposal {}: {}", proposal.getId(), e.getMessage());
-                    return new SendMessage(String.valueOf(chatId), BotResponses.ERROR_DESERIALIZING_MONUMENT_IDS);
-                }
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_MONUMENT_SELECTION);
             case AWAITING_MONUMENT_VERIFICATION:
                 return createVerificationMessage(chatId);
             case AWAITING_MONUMENT_INFO:
@@ -121,6 +113,12 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
                 return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_NOTES_MESSAGE);
             case READY_TO_SUBMIT:
                 return new SendMessage(String.valueOf(chatId), BotResponses.READY_TO_SUBMIT_MESSAGE);
+            case AWAITING_PHOTO:
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_PHOTO);
+            case AWAITING_COORDINATES:
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_COORDINATES);
+            case AWAITING_COORDINATES_CONFIRMATION:
+                return new SendMessage(String.valueOf(chatId), BotResponses.AWAITING_COORDINATES_CONFIRMATION);
             default:
                 return new SendMessage(String.valueOf(chatId), "Unexpected proposal status: " + status);
         }
@@ -168,6 +166,38 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
         return new SendMessage(String.valueOf(chatId), String.format(BotResponses.WELCOME_BACK, name));
     }
 
+    @Override
+    public BotApiMethod<?> createMonumentSelectionMessage(long chatId, List<Monument> monuments) {
+        SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.SUGGESTED_MONUMENTS_FOUND);
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        for (Monument monument : monuments) {
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            InlineKeyboardButton button = new InlineKeyboardButton();
+            button.setText(monument.getName());
+            button.setCallbackData("SELECT_MONUMENT:" + monument.getId());
+            rowInline.add(button);
+            rowsInline.add(rowInline);
+        }
+
+        List<InlineKeyboardButton> proposeNewRow = new ArrayList<>();
+        InlineKeyboardButton proposeNewButton = new InlineKeyboardButton();
+        proposeNewButton.setText("Propose New Monument");
+        proposeNewButton.setCallbackData("PROPOSE_NEW_MONUMENT");
+        proposeNewRow.add(proposeNewButton);
+        rowsInline.add(proposeNewRow);
+
+        markupInline.setKeyboard(rowsInline);
+        message.setReplyMarkup(markupInline);
+        return message;
+    }
+
+    @Override
+    public BotApiMethod<?> createInvalidInputMessage(long chatId) {
+        return new SendMessage(String.valueOf(chatId), BotResponses.INVALID_INPUT);
+    }
+
     private SendMessage createMarkSelectionMessage(long chatId, List<String> markIds) {
         SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.SUGGESTED_MARKS_FOUND);
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
@@ -194,32 +224,6 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
         InlineKeyboardButton proposeNewButton = new InlineKeyboardButton();
         proposeNewButton.setText("Propose New Mark");
         proposeNewButton.setCallbackData("PROPOSE_NEW_MARK");
-        proposeNewRow.add(proposeNewButton);
-        rowsInline.add(proposeNewRow);
-
-        markupInline.setKeyboard(rowsInline);
-        message.setReplyMarkup(markupInline);
-        return message;
-    }
-
-    private SendMessage createMonumentSelectionMessage(long chatId, List<String> monumentIds) {
-        SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.SUGGESTED_MONUMENTS_FOUND);
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-
-        for (String monumentId : monumentIds) {
-            List<InlineKeyboardButton> rowInline = new ArrayList<>();
-            InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText("Monument ID: " + monumentId);
-            button.setCallbackData("SELECT_MONUMENT:" + monumentId);
-            rowInline.add(button);
-            rowsInline.add(rowInline);
-        }
-
-        List<InlineKeyboardButton> proposeNewRow = new ArrayList<>();
-        InlineKeyboardButton proposeNewButton = new InlineKeyboardButton();
-        proposeNewButton.setText("Propose New Monument");
-        proposeNewButton.setCallbackData("PROPOSE_NEW_MONUMENT");
         proposeNewRow.add(proposeNewButton);
         rowsInline.add(proposeNewRow);
 

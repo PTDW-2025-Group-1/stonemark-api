@@ -10,6 +10,10 @@ public interface ConversationState {
 
     ProposalStatus getAssociatedStatus();
 
+    default BotApiMethod<?> onEnter(ConversationContext context) {
+        return null;
+    }
+
     default BotApiMethod<?> handleTextMessage(ConversationContext context, String messageText) {
         return null;
     }

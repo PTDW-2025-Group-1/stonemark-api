@@ -41,4 +41,9 @@ public class BotResponses {
     public static final String AUTHENTICATION_SUCCESS = "Welcome, %s! You are now authenticated. To start a new submission, please send a photo.";
     public static final String AUTHENTICATION_FAILED = "Sorry, I couldn't find an account with that phone number. Please register on our website to use the bot.";
     public static final String WELCOME_BACK = "Welcome back, %s! To start a new submission, please send a photo.";
+    public static final String AWAITING_PHOTO = "Please send a photo of the monument.";
+    public static final String AWAITING_COORDINATES = "Please send the coordinates of the monument.";
+    public static final String AWAITING_COORDINATES_CONFIRMATION = "Do you want to use the coordinates from the photo?";
+    public static final String INVALID_INPUT = "Invalid input. Please try again.";
+    public static final String AWAITING_MONUMENT_SELECTION = "Please select a monument from the list or propose a new one.";
 }

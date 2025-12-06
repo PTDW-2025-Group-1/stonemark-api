@@ -25,13 +25,19 @@ public class AwaitingMonumentNameState implements ConversationState {
 
     @Override
     public BotApiMethod<?> handleTextMessage(ConversationContext context, String messageText) {
+        MarkOccurrenceProposal existingProposal = context.getProposal();
+        if (existingProposal == null) {
+            throw new IllegalStateException("Proposal not found in context for AwaitingMonumentNameState.");
+        }
+
         // The location is already stored in the proposal from the previous step
         MarkOccurrenceProposal proposal = proposalFlowService.proposeMonument(
                 context.getProposalId(),
                 messageText, // The monument name from the user
-                null, // Latitude is already set
-                null  // Longitude is already set
+                existingProposal.getLatitude(), // Latitude is already set
+                existingProposal.getLongitude()  // Longitude is already set
         );
+        context.setProposal(proposal);
         context.setState(stateFactory.createState(proposal.getStatus()));
         return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }

@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.bots.telegram.message.TelegramBotMessageFactory;
 import pt.estga.bots.telegram.state.factory.StateFactory;
+import pt.estga.content.services.MarkService;
+import pt.estga.content.services.MonumentService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
@@ -37,8 +39,6 @@ public class CallbackQueryHandlerImpl implements CallbackQueryHandler {
             }
         } else if (callbackData.equals("PROPOSE_NEW_MARK")) {
             proposal = proposalFlowService.requestNewMark(context.getProposalId());
-            context.setState(stateFactory.createState(proposal.getStatus()));
-            return messageFactory.createAwaitingMarkDetailsMessage(context.getChatId());
         } else if (callbackData.equals("CONFIRM_MONUMENT_LOCATION:YES")) {
             proposal = proposalFlowService.confirmMonumentLocation(context.getProposalId(), true);
         } else if (callbackData.equals("CONFIRM_MONUMENT_LOCATION:NO")) {
@@ -57,6 +57,7 @@ public class CallbackQueryHandlerImpl implements CallbackQueryHandler {
         }
 
         if (proposal != null) {
+            context.setProposal(proposal);
             context.setState(stateFactory.createState(proposal.getStatus()));
             return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
         }

@@ -1,5 +1,6 @@
 package pt.estga.file.services;
 
+import org.springframework.core.io.Resource;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.TargetType;
 
@@ -9,6 +10,6 @@ public interface MediaService {
 
     MediaFile save(byte[] fileData, String filename, TargetType targetType) throws IOException;
 
-    void delete(Long mediaId);
+    Resource loadFile(String filePath);
 
 }

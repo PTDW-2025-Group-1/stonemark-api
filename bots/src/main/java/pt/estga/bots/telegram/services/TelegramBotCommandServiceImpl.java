@@ -13,6 +13,7 @@ import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.bots.telegram.message.TelegramBotMessageFactory;
 import pt.estga.bots.telegram.state.factory.StateFactory;
 import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 import pt.estga.shared.models.Location;
 import pt.estga.user.entities.User;
 import pt.estga.user.repositories.UserRepository;
