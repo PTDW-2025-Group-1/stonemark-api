@@ -71,17 +71,17 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         }
 
         User user = vt.getUser();
-        log.debug("User associated with token {}: {}", token, user.getEmail());
+        log.debug("User associated with token {}: {}", token, user.getUsername());
 
         // Check if the new password is the same as the current password
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            log.warn("Attempted to reset password for user {} with same password.", user.getEmail());
+            log.warn("Attempted to reset password for user {} with same password.", user.getUsername());
             throw new SamePasswordException(VerificationErrorMessages.SAME_PASSWORD);
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userService.update(user);
-        log.info("Password successfully reset for user {}", user.getEmail());
+        log.info("Password successfully reset for user {}", user.getUsername());
 
         verificationTokenService.revokeToken(vt);
         log.debug("Token {} revoked after successful password reset.", token);

@@ -37,6 +37,8 @@ public class EmailChangeCommand implements VerificationCommand {
 
         emailChangeRequestRepository.save(emailChangeRequest);
 
-        emailVerificationService.sendVerificationEmail(user.getEmail(), verificationToken);
+        userService.getPrimaryEmail(user).ifPresent(primaryEmail ->
+                emailVerificationService.sendVerificationEmail(primaryEmail, verificationToken)
+        );
     }
 }

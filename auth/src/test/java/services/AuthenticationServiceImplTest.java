@@ -13,6 +13,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.auth.services.AuthenticationServiceSpringImpl;
 import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.token.AccessTokenService;
@@ -21,14 +23,18 @@ import pt.estga.auth.services.verification.VerificationInitiationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.auth.services.verification.commands.VerificationCommand;
 import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
-import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
-import pt.estga.user.Role;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.ContactType;
+import pt.estga.user.enums.Role;
+import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.service.UserService;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,34 +64,57 @@ class AuthenticationServiceImplTest {
     private GoogleIdTokenVerifier googleIdTokenVerifier;
     @Mock
     private VerificationProcessingService verificationProcessingService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private UserIdentityRepository userIdentityRepository;
 
     @InjectMocks
     private AuthenticationServiceSpringImpl authenticationService;
 
     private User testUser;
     private User disabledTestUser;
+    private final String testEmail = "test@example.com";
 
     @BeforeEach
     void setUp() {
         testUser = User.builder()
                 .id(1L)
-                .email("test@example.com")
-                .password("encodedPassword")
+                .username(testEmail)
+                .password("password")
                 .firstName("Test")
                 .lastName("User")
                 .role(Role.USER)
                 .enabled(true)
                 .build();
+        UserContact testUserContact = UserContact.builder()
+                .id(1L)
+                .type(ContactType.EMAIL)
+                .value(testEmail)
+                .primary(true)
+                .verified(true)
+                .user(testUser)
+                .build();
+        testUser.setContacts(new ArrayList<>(List.of(testUserContact)));
 
         disabledTestUser = User.builder()
                 .id(1L)
-                .email("test@example.com")
-                .password("encodedPassword")
+                .username(testEmail)
+                .password("password")
                 .firstName("Test")
                 .lastName("User")
                 .role(Role.USER)
                 .enabled(false)
                 .build();
+        UserContact disabledTestUserContact = UserContact.builder()
+                .id(2L)
+                .type(ContactType.EMAIL)
+                .value(testEmail)
+                .primary(true)
+                .verified(false)
+                .user(disabledTestUser)
+                .build();
+        disabledTestUser.setContacts(new ArrayList<>(List.of(disabledTestUserContact)));
     }
 
     // Helper method to set the private @Value field via reflection
@@ -103,7 +132,8 @@ class AuthenticationServiceImplTest {
     @DisplayName("Should register user and require email verification when enabled")
     void testRegister_success_emailVerificationRequired() {
         // Given
-        when(userService.existsByEmail(testUser.getEmail())).thenReturn(false);
+        when(userService.existsByEmail(testEmail)).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(verificationCommandFactory.createEmailVerificationCommand(any(User.class)))
                 .thenReturn(mock(VerificationCommand.class));
@@ -116,7 +146,7 @@ class AuthenticationServiceImplTest {
                 .isThrownBy(() -> authenticationService.register(testUser));
 
         // Then
-        verify(userService).existsByEmail(testUser.getEmail());
+        verify(userService).existsByEmail(testEmail);
 
         // Use ArgumentCaptor to verify the User object passed to userService.create
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -132,7 +162,8 @@ class AuthenticationServiceImplTest {
     @DisplayName("Should register user and return tokens when email verification is not required")
     void testRegister_success_noEmailVerificationRequired() {
         // Given
-        when(userService.existsByEmail(testUser.getEmail())).thenReturn(false);
+        when(userService.existsByEmail(testEmail)).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -151,7 +182,7 @@ class AuthenticationServiceImplTest {
         assertThat(response.accessToken()).isEqualTo("accessTokenString");
         assertThat(response.refreshToken()).isEqualTo("refreshTokenString");
 
-        verify(userService).existsByEmail(testUser.getEmail());
+        verify(userService).existsByEmail(testEmail);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userService).create(userCaptor.capture());
@@ -168,14 +199,14 @@ class AuthenticationServiceImplTest {
     @DisplayName("Should throw EmailAlreadyTakenException if email exists")
     void testRegister_emailAlreadyTaken() {
         // Given
-        when(userService.existsByEmail(testUser.getEmail())).thenReturn(true);
+        when(userService.existsByEmail(testEmail)).thenReturn(true);
 
         // When
         assertThatExceptionOfType(EmailAlreadyTakenException.class)
                 .isThrownBy(() -> authenticationService.register(testUser));
 
         // Then
-        verify(userService).existsByEmail(testUser.getEmail());
+        verify(userService).existsByEmail(testEmail);
         verifyNoMoreInteractions(userService); // No further calls to userService
         verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
     }
@@ -185,8 +216,8 @@ class AuthenticationServiceImplTest {
     void testAuthenticate_success_noEmailVerificationRequired() {
         // Given
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
-        
+        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
+
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
         when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
@@ -196,14 +227,14 @@ class AuthenticationServiceImplTest {
         setEmailVerificationRequired(false);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testUser.getEmail(), testUser.getPassword());
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword());
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(testUser.getEmail());
+        verify(userService).findByEmail(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
@@ -215,18 +246,18 @@ class AuthenticationServiceImplTest {
     void testAuthenticate_emailVerificationRequired_userNotEnabled() {
         // Given
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(disabledTestUser.getEmail())).thenReturn(Optional.of(disabledTestUser)); // User is disabled
+        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(disabledTestUser)); // User is disabled
 
         // Simulate emailVerificationRequired = true
         setEmailVerificationRequired(true);
 
         // When
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
-                .isThrownBy(() -> authenticationService.authenticate(disabledTestUser.getEmail(), disabledTestUser.getPassword()));
+                .isThrownBy(() -> authenticationService.authenticate(testEmail, disabledTestUser.getPassword()));
 
         // Then
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(disabledTestUser.getEmail());
+        verify(userService).findByEmail(testEmail);
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService); // No tokens generated
     }
 
@@ -235,8 +266,8 @@ class AuthenticationServiceImplTest {
     void testAuthenticate_emailVerificationRequired_userEnabled() {
         // Given
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser)); // User is enabled
-        
+        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser)); // User is enabled
+
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
         when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
@@ -246,14 +277,14 @@ class AuthenticationServiceImplTest {
         setEmailVerificationRequired(true);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testUser.getEmail(), testUser.getPassword());
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword());
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(testUser.getEmail());
+        verify(userService).findByEmail(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
@@ -280,15 +311,15 @@ class AuthenticationServiceImplTest {
     @DisplayName("Should initiate password reset request")
     void testRequestPasswordReset_success() {
         // Given
-        when(userService.findByEmail(testUser.getEmail())).thenReturn(Optional.of(testUser));
+        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
         when(verificationCommandFactory.createPasswordResetCommand(any(User.class)))
                 .thenReturn(mock(VerificationCommand.class));
 
         // When
-        authenticationService.requestPasswordReset(testUser.getEmail());
+        authenticationService.requestPasswordReset(testEmail);
 
         // Then
-        verify(userService).findByEmail(testUser.getEmail());
+        verify(userService).findByEmail(testEmail);
         verify(verificationCommandFactory).createPasswordResetCommand(testUser);
         verify(verificationInitiationService).initiate(any(VerificationCommand.class));
     }

@@ -6,6 +6,7 @@ import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.user.entities.User;
+import pt.estga.user.service.UserService;
 
 @RequiredArgsConstructor
 public class TelephoneVerificationCommand implements VerificationCommand {
@@ -13,10 +14,14 @@ public class TelephoneVerificationCommand implements VerificationCommand {
     private final User user;
     private final VerificationTokenService verificationTokenService;
     private final SmsVerificationService smsVerificationService;
+    private final UserService userService;
 
     @Override
     public void execute() {
         VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.TELEPHONE_VERIFICATION);
-        smsVerificationService.sendVerificationSms(user.getTelephone(), verificationToken);
+
+        userService.getPrimaryTelephone(user).ifPresent(primaryTelephone ->
+                smsVerificationService.sendVerificationSms(primaryTelephone, verificationToken)
+        );
     }
 }

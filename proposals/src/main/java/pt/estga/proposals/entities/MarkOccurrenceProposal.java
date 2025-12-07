@@ -60,6 +60,7 @@ public class MarkOccurrenceProposal {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ProposalStatus status = ProposalStatus.IN_PROGRESS;
 
     @Enumerated(EnumType.STRING)

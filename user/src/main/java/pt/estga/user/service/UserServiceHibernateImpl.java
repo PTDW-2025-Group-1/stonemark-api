@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.user.Role;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.ContactType;
+import pt.estga.user.enums.Role;
+import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
@@ -15,6 +18,7 @@ import java.util.Optional;
 public class UserServiceHibernateImpl implements UserService {
 
     private final UserRepository repository;
+    private final UserContactRepository contactRepository;
 
     @Override
     public Page<User> findAll(Pageable pageable) {
@@ -28,12 +32,19 @@ public class UserServiceHibernateImpl implements UserService {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return repository.findByEmail(email);
+        return contactRepository.findByTypeAndValue(ContactType.EMAIL, email)
+                .map(UserContact::getUser);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return repository.findByEmail(email).isPresent();
+        return contactRepository.findByTypeAndValue(ContactType.EMAIL, email).isPresent();
+    }
+
+    @Override
+    public Optional<User> findByTelephone(String telephone) {
+        return contactRepository.findByTypeAndValue(ContactType.TELEPHONE, telephone)
+                .map(UserContact::getUser);
     }
 
     @Override
@@ -59,6 +70,22 @@ public class UserServiceHibernateImpl implements UserService {
 
     @Override
     public boolean existsByTelephone(String newTelephone) {
-        return repository.findByTelephone(newTelephone).isPresent();
+        return contactRepository.findByTypeAndValue(ContactType.TELEPHONE, newTelephone).isPresent();
+    }
+
+    @Override
+    public Optional<String> getPrimaryTelephone(User user) {
+        return user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.TELEPHONE && c.isPrimary())
+                .map(UserContact::getValue)
+                .findFirst();
+    }
+
+    @Override
+    public Optional<String> getPrimaryEmail(User user) {
+        return user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.EMAIL && c.isPrimary())
+                .map(UserContact::getValue)
+                .findFirst();
     }
 }

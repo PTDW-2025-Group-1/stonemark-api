@@ -22,14 +22,18 @@ import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
-import pt.estga.user.Role;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.entities.UserIdentity;
+import pt.estga.user.enums.ContactType;
+import pt.estga.user.enums.Provider;
+import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
+import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.service.UserService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -47,6 +51,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final VerificationProcessingService verificationProcessingService;
     private final PasswordEncoder passwordEncoder;
+    private final UserIdentityRepository userIdentityRepository;
 
     @Value("${application.security.email.verification-required:false}")
     private boolean emailVerificationRequired;
@@ -57,10 +62,12 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
-        var email = user.getEmail();
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("email must not be null or blank");
-        }
+        var email = user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.EMAIL && c.isPrimary())
+                .map(UserContact::getValue)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Primary email not found"));
+
         if (userService.existsByEmail(email)) {
             throw new EmailAlreadyTakenException("email already in use");
         }
@@ -170,21 +177,37 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         String email = payload.getEmail();
         String googleId = payload.getSubject();
 
-        return userService.findByEmail(email)
-                .map(existingUser -> {
-                    existingUser.setGoogleId(googleId);
-                    return userService.update(existingUser);
-                })
+        return userIdentityRepository.findByProviderAndIdentity(Provider.GOOGLE, googleId)
+                .map(UserIdentity::getUser)
                 .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(email)
-                            .firstName((String) payload.get("given_name"))
-                            .lastName((String) payload.get("family_name"))
-                            .role(Role.USER)
-                            .enabled(!emailVerificationRequired)
-                            .googleId(googleId)
+                    User user = userService.findByEmail(email)
+                            .orElseGet(() -> {
+                                User newUser = User.builder()
+                                        .username(email)
+                                        .firstName((String) payload.get("given_name"))
+                                        .lastName((String) payload.get("family_name"))
+                                        .role(Role.USER)
+                                        .enabled(!emailVerificationRequired)
+                                        .build();
+                                UserContact primaryEmail = UserContact.builder()
+                                        .type(ContactType.EMAIL)
+                                        .value(email)
+                                        .primary(true)
+                                        .verified(true)
+                                        .user(newUser)
+                                        .build();
+                                newUser.setContacts(List.of(primaryEmail));
+                                return userService.create(newUser);
+                            });
+
+                    UserIdentity identity = UserIdentity.builder()
+                            .provider(Provider.GOOGLE)
+                            .identity(googleId)
+                            .user(user)
                             .build();
-                    return userService.create(newUser);
+                    userIdentityRepository.save(identity);
+                    user.getIdentities().add(identity);
+                    return userService.update(user);
                 });
     }
 

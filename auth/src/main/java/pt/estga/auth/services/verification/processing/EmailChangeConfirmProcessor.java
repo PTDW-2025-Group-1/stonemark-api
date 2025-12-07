@@ -11,6 +11,10 @@ import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.user.entities.User;
 import pt.estga.auth.entities.request.EmailChangeRequest;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.ContactType;
+import pt.estga.user.enums.Provider;
+import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.service.UserService;
 
 import java.util.Optional;
@@ -28,6 +32,7 @@ public class EmailChangeConfirmProcessor implements VerificationProcessor {
     private final UserService userService;
     private final EmailService emailService;
     private final VerificationTokenService tokenService;
+    private final UserIdentityRepository userIdentityRepository;
 
     /**
      * Processes the given verification token.
@@ -46,14 +51,31 @@ public class EmailChangeConfirmProcessor implements VerificationProcessor {
         User user = request.getUser();
         String newEmail = request.getNewEmail();
 
-        emailService.sendEmail(Email.builder()
-                .to(user.getEmail())
-                .subject("Email Address Changed")
-                .template("email/email-changed-notification.html")
-                .build());
+        user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.EMAIL && c.isPrimary())
+                .findFirst()
+                .ifPresent(primaryEmail -> {
+                    primaryEmail.setPrimary(false);
+                    emailService.sendEmail(Email.builder()
+                            .to(primaryEmail.getValue())
+                            .subject("Email Address Changed")
+                            .template("email/email-changed-notification.html")
+                            .build());
+                });
 
-        user.setEmail(newEmail);
-        user.setGoogleId(null);
+        UserContact newContact = UserContact.builder()
+                .user(user)
+                .type(ContactType.EMAIL)
+                .value(newEmail)
+                .primary(true)
+                .verified(true)
+                .build();
+
+        user.getContacts().add(newContact);
+
+        userIdentityRepository.findByProviderAndIdentity(Provider.GOOGLE, user.getUsername())
+                .ifPresent(userIdentityRepository::delete);
+
         userService.update(user);
 
         repository.delete(request);

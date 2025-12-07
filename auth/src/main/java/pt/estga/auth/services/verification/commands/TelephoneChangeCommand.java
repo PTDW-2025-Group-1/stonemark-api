@@ -37,6 +37,8 @@ public class TelephoneChangeCommand implements VerificationCommand {
 
         telephoneChangeRequestRepository.save(telephoneChangeRequest);
 
-        smsVerificationService.sendVerificationSms(user.getTelephone(), verificationToken);
+        userService.getPrimaryTelephone(user).ifPresent(primaryTelephone ->
+                smsVerificationService.sendVerificationSms(primaryTelephone, verificationToken)
+        );
     }
 }

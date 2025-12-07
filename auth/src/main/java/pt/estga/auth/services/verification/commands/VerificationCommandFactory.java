@@ -22,11 +22,11 @@ public class VerificationCommandFactory {
     private final UserService userService;
 
     public VerificationCommand createEmailVerificationCommand(User user) {
-        return new EmailVerificationCommand(user, verificationTokenService, emailVerificationService);
+        return new EmailVerificationCommand(user, verificationTokenService, emailVerificationService, userService);
     }
 
     public VerificationCommand createPasswordResetCommand(User user) {
-        return new PasswordResetCommand(user, verificationTokenService, emailVerificationService);
+        return new PasswordResetCommand(user, verificationTokenService, emailVerificationService, userService);
     }
 
     public VerificationCommand createEmailChangeCommand(User user, String newEmail) {
@@ -34,11 +34,11 @@ public class VerificationCommandFactory {
     }
 
     public VerificationCommand createTelephoneVerificationCommand(User user) {
-        return new TelephoneVerificationCommand(user, verificationTokenService, smsVerificationService);
+        return new TelephoneVerificationCommand(user, verificationTokenService, smsVerificationService, userService);
     }
 
     public VerificationCommand createPasswordResetTelephoneCommand(User user) {
-        return new PasswordResetTelephoneCommand(user, verificationTokenService, smsVerificationService);
+        return new PasswordResetTelephoneCommand(user, verificationTokenService, smsVerificationService, userService);
     }
 
     public VerificationCommand createTelephoneChangeCommand(User user, String newTelephone) {

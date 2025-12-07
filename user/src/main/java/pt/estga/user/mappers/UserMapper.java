@@ -1,4 +1,4 @@
-package pt.estga.user;
+package pt.estga.user.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

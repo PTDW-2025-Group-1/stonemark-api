@@ -2,7 +2,7 @@ package pt.estga.user.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.user.Role;
+import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
 
 import java.util.Optional;
@@ -17,6 +17,8 @@ public interface UserService {
 
     boolean existsByEmail(String email);
 
+    Optional<User> findByTelephone(String telephone);
+
     User create(User user);
 
     User update(User user);
@@ -26,5 +28,9 @@ public interface UserService {
     void deleteById(Long id);
 
     boolean existsByTelephone(String newTelephone);
+
+    Optional<String> getPrimaryTelephone(User user);
+
+    Optional<String> getPrimaryEmail(User user);
 
 }

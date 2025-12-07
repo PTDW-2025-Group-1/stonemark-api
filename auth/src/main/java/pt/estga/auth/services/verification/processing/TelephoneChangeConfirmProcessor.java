@@ -12,6 +12,8 @@ import pt.estga.shared.models.Email;
 import pt.estga.shared.services.EmailService;
 import pt.estga.shared.services.SmsService;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.ContactType;
 import pt.estga.user.service.UserService;
 
 import java.util.Optional;
@@ -47,22 +49,35 @@ public class TelephoneChangeConfirmProcessor implements VerificationProcessor {
 
         User user = request.getUser();
         String newTelephone = request.getNewTelephone();
-        String oldTelephone = user.getTelephone(); // Retrieve old telephone before updating
 
-        // Send SMS notification to the old telephone number if it exists
-        if (oldTelephone != null && !oldTelephone.isEmpty()) {
-            smsService.sendMessage(oldTelephone, "Your telephone number has been changed from " + oldTelephone + " to " + newTelephone + ".");
-        }
+        Optional<UserContact> oldPrimaryTelephone = user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.TELEPHONE && c.isPrimary())
+                .findFirst();
 
-        // Send email notification to the user's email
-        emailService.sendEmail(Email.builder()
-                .to(user.getEmail())
-                .subject("Telephone Number Changed")
-                .template("email/telephone-changed-notification.html") // Assuming a new template for telephone changes
-                .build());
+        oldPrimaryTelephone.ifPresent(contact -> {
+            contact.setPrimary(false);
+            smsService.sendMessage(contact.getValue(), "Your telephone number has been changed from " + contact.getValue() + " to " + newTelephone + ".");
+        });
 
-        user.setTelephone(newTelephone);
+        UserContact newContact = UserContact.builder()
+                .user(user)
+                .type(ContactType.TELEPHONE)
+                .value(newTelephone)
+                .primary(true)
+                .verified(true)
+                .build();
+
+        user.getContacts().add(newContact);
         userService.update(user);
+
+        user.getContacts().stream()
+                .filter(c -> c.getType() == ContactType.EMAIL && c.isPrimary())
+                .findFirst()
+                .ifPresent(primaryEmail -> emailService.sendEmail(Email.builder()
+                        .to(primaryEmail.getValue())
+                        .subject("Telephone Number Changed")
+                        .template("email/telephone-changed-notification.html") // Assuming a new template for telephone changes
+                        .build()));
 
         repository.delete(request);
         verificationTokenService.revokeToken(token);

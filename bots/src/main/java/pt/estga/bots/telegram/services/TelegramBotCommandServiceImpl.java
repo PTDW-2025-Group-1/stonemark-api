@@ -13,10 +13,11 @@ import pt.estga.bots.telegram.context.ConversationContext;
 import pt.estga.bots.telegram.message.TelegramBotMessageFactory;
 import pt.estga.bots.telegram.state.factory.StateFactory;
 import pt.estga.proposals.enums.ProposalStatus;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 import pt.estga.shared.models.Location;
 import pt.estga.user.entities.User;
-import pt.estga.user.repositories.UserRepository;
+import pt.estga.user.entities.UserIdentity;
+import pt.estga.user.enums.Provider;
+import pt.estga.user.repositories.UserIdentityRepository;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +30,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     private final TelegramBotMessageFactory messageFactory;
     private final StateFactory stateFactory;
     private final CallbackQueryHandler callbackQueryHandler;
-    private final UserRepository userRepository;
+    private final UserIdentityRepository userIdentityRepository;
     private final TelegramBotProperties telegramBotProperties;
 
     private final Cache<Long, ConversationContext> conversationContexts = Caffeine.newBuilder()
@@ -48,11 +49,12 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
             return messageFactory.createGreetingMessage(chatId);
         }
 
-        Optional<User> userOptional = userRepository.findByTelegramChatId(String.valueOf(chatId));
+        Optional<User> userOptional = userIdentityRepository.findByProviderAndIdentity(Provider.TELEGRAM, String.valueOf(chatId))
+                .map(UserIdentity::getUser);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            log.info("User already authenticated: {}", user.getEmail());
+            log.info("User already authenticated: {}", user.getUsername());
             context.setUserId(user.getId());
             context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
             return messageFactory.createWelcomeBackMessage(chatId, user.getFirstName());
@@ -121,9 +123,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     public BotApiMethod<?> handleSkipCommand(long chatId) {
         ConversationContext context = conversationContexts.getIfPresent(chatId);
         if (context != null) {
-            // Delegate to the current state's handleSkipCommand
-            BotApiMethod<?> result = context.getState().handleSkipCommand(context);
-            return result;
+            return context.getState().handleSkipCommand(context);
         }
         return messageFactory.createNothingToSkipMessage(chatId);
     }

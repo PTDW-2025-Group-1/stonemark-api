@@ -58,7 +58,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 
     @Override
     public AccessToken createToken(String username, String tokenValue, RefreshToken refreshToken) {
-        return userRepository.findByEmail(username)
+        return userRepository.findByUsername(username)
                 .map(user -> {
                     AccessToken accessToken = AccessToken.builder()
                             .user(user)

@@ -1,4 +1,4 @@
-package pt.estga.user;
+package pt.estga.user.enums;
 
 public enum Role {
     USER,

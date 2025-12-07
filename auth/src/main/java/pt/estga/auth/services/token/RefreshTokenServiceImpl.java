@@ -36,7 +36,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken createToken(String username, String tokenValue) {
-        return userRepository.findByEmail(username)
+        return userRepository.findByUsername(username)
                 .map(user -> {
                     RefreshToken refreshToken = RefreshToken.builder()
                             .user(user)

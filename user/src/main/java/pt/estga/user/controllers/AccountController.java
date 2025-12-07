@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.TelephoneAlreadyTakenException;
-import pt.estga.user.UserMapper;
+import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.AccountManagementService;
