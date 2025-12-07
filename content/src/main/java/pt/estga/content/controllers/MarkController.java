@@ -3,7 +3,9 @@ package pt.estga.content.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkDto;
@@ -31,6 +33,16 @@ public class MarkController {
                 .map(mapper::markToMarkDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/search")
+    public Page<MarkDto> searchMarks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("title"));
+        return service.searchByTitle(query, pageable).map(mapper::markToMarkDto);
     }
 
     @PostMapping

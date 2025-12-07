@@ -19,10 +19,10 @@ public class MarkOccurrence extends AuditableContentEntity {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Mark mark;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Monument monument;
 
     @OneToOne(cascade = CascadeType.ALL)
