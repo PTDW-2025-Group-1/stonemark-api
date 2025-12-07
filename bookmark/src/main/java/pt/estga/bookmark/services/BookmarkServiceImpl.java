@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.bookmark.dtos.BookmarkDto;
 import pt.estga.bookmark.entities.Bookmark;
-import pt.estga.bookmark.enums.BookmarkTargetType;
 import pt.estga.bookmark.mappers.BookmarkMapper;
 import pt.estga.bookmark.repositories.BookmarkRepository;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.file.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
     @Override
     @Transactional
-    public BookmarkDto createBookmark(User user, BookmarkTargetType type, Long targetId) {
+    public BookmarkDto createBookmark(User user, TargetType type, Long targetId) {
 
         bookmarkRepository.findByUserIdAndTargetTypeAndTargetId(user.getId(), type, targetId)
                 .ifPresent(existing -> {
@@ -37,6 +37,7 @@ public class BookmarkServiceImpl implements BookmarkService {
                     .orElseThrow(() -> new IllegalArgumentException("Monument not found"));
             case MARK -> markRepository.findById(targetId)
                     .orElseThrow(() -> new IllegalArgumentException("Mark not found"));
+            default ->  null;
         };
 
         Bookmark bookmark = Bookmark.builder()
@@ -59,6 +60,8 @@ public class BookmarkServiceImpl implements BookmarkService {
                     Object content = switch (b.getTargetType()) {
                         case MONUMENT -> monumentRepository.findById(b.getTargetId()).orElse(null);
                         case MARK -> markRepository.findById(b.getTargetId()).orElse(null);
+                        case MARK_OCCURRENCE -> null;
+                        default -> null;
                     };
                     BookmarkDto dto = mapper.toDto(b);
                     return new BookmarkDto(dto.id(), dto.type(), dto.targetId(), content);
@@ -75,7 +78,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     @Override
-    public boolean isBookmarked(User user, BookmarkTargetType type, Long targetId) {
+    public boolean isBookmarked(User user, TargetType type, Long targetId) {
         return bookmarkRepository
                 .findByUserIdAndTargetTypeAndTargetId(user.getId(), type, targetId)
                 .isPresent();

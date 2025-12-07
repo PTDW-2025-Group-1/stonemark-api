@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.bookmark.dtos.BookmarkDto;
-import pt.estga.bookmark.enums.BookmarkTargetType;
 import pt.estga.bookmark.services.BookmarkService;
+import pt.estga.file.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class BookmarkController {
     @PostMapping("/{type}/{targetId}")
     public BookmarkDto create(
             @AuthenticationPrincipal User user,
-            @PathVariable BookmarkTargetType type,
+            @PathVariable TargetType type,
             @PathVariable Long targetId
     ) {
         return service.createBookmark(user, type, targetId);
@@ -46,7 +46,7 @@ public class BookmarkController {
     @GetMapping("/check/{type}/{targetId}")
     public boolean isBookmarked(
             @AuthenticationPrincipal User user,
-            @PathVariable BookmarkTargetType type,
+            @PathVariable TargetType type,
             @PathVariable Long targetId
     ) {
         return service.isBookmarked(user, type, targetId);

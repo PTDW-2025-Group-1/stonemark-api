@@ -3,7 +3,7 @@ package pt.estga.bookmark.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import pt.estga.bookmark.enums.BookmarkTargetType;
+import pt.estga.file.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
@@ -28,7 +28,7 @@ public class Bookmark {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private BookmarkTargetType targetType;
+    private TargetType targetType;
 
     @CreationTimestamp
     private Instant createdAt;
