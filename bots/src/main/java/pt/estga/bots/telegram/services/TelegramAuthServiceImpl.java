@@ -17,33 +17,28 @@ import java.util.Optional;
 public class TelegramAuthServiceImpl implements TelegramAuthService {
 
     private final UserRepository userRepository;
-    private final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 
     @Override
-    public Optional<User> authenticateUser(String chatId, String phoneNumber) {
-        log.info("Received phone number: {}", phoneNumber);
-        String sanitized = sanitizePhone(phoneNumber);
-        log.info("Sanitized phone number: {}", sanitized);
-
-        Optional<User> userOptional = userRepository.findByTelephone(sanitized);
-        userOptional.ifPresent(user -> {
-            user.setTelegramChatId(chatId);
-            userRepository.save(user);
-        });
-
-        return userOptional;
-    }
-
-    private String sanitizePhone(String input) {
-        if (input == null || input.isBlank()) {
-            return "";
-        }
+    public Optional<User> authenticateUser(String telegramChatId, String phoneNumber) {
+        PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {
-            Phonenumber.PhoneNumber number = phoneNumberUtil.parse(input, "PT");
-            return phoneNumberUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.E164);
+            Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "PT"); // Assuming default region PT
+            String internationalFormat = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.E164);
+            log.info("Attempting to authenticate user with international phone number: {}", internationalFormat);
+
+            Optional<User> userOptional = userRepository.findByTelephone(internationalFormat);
+
+            userOptional.ifPresent(user -> {
+                user.setTelegramChatId(telegramChatId);
+                userRepository.save(user);
+                log.info("User {} authenticated and Telegram chat ID updated.", user.getEmail());
+            });
+
+            return userOptional;
+
         } catch (NumberParseException e) {
-            log.error("Could not parse phone number: {}", input, e);
-            return input.replaceAll("\\D", "");
+            log.warn("Could not parse phone number {}: {}", phoneNumber, e.getMessage());
+            return Optional.empty();
         }
     }
 }

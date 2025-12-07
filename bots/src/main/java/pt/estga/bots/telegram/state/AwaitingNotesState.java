@@ -26,6 +26,7 @@ public class AwaitingNotesState implements ConversationState {
     @Override
     public BotApiMethod<?> handleTextMessage(ConversationContext context, String messageText) {
         MarkOccurrenceProposal proposal = proposalFlowService.addNotesToProposal(context.getProposalId(), messageText);
+        context.setProposal(proposal);
         context.setState(stateFactory.createState(proposal.getStatus()));
         return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }
@@ -34,6 +35,7 @@ public class AwaitingNotesState implements ConversationState {
     public BotApiMethod<?> handleSkipCommand(ConversationContext context) {
         // User skipped adding notes
         MarkOccurrenceProposal proposal = proposalFlowService.addNotesToProposal(context.getProposalId(), null);
+        context.setProposal(proposal);
         context.setState(stateFactory.createState(proposal.getStatus()));
         return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }

@@ -10,11 +10,9 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
-import java.io.IOException;
-
 @Component
 @RequiredArgsConstructor
-public class InitialState implements ConversationState {
+public class ConfirmCoordinatesState implements ConversationState {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final TelegramBotMessageFactory messageFactory;
@@ -22,19 +20,19 @@ public class InitialState implements ConversationState {
 
     @Override
     public ProposalStatus getAssociatedStatus() {
-        return ProposalStatus.IN_PROGRESS;
+        return ProposalStatus.AWAITING_COORDINATES_CONFIRMATION;
     }
 
     @Override
-    public BotApiMethod<?> handlePhotoSubmission(ConversationContext context, byte[] photoData, String fileName) {
-        try {
-            MarkOccurrenceProposal proposal = proposalFlowService.initiate(context.getUserId(), photoData, fileName);
-            context.setProposalId(proposal.getId());
-            context.setProposal(proposal);
-            context.setState(stateFactory.createState(proposal.getStatus()));
-            return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
-        } catch (IOException e) {
-            return messageFactory.createPhotoErrorMessage(context.getChatId());
+    public BotApiMethod<?> handleTextMessage(ConversationContext context, String messageText) {
+        MarkOccurrenceProposal proposal;
+        if ("yes".equalsIgnoreCase(messageText)) {
+            proposal = proposalFlowService.confirmMonumentLocation(context.getProposalId(), true);
+        } else {
+            proposal = proposalFlowService.confirmMonumentLocation(context.getProposalId(), false);
         }
+        context.setProposal(proposal);
+        context.setState(stateFactory.createState(proposal.getStatus()));
+        return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }
 }

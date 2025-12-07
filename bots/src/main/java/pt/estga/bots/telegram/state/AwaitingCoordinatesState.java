@@ -9,12 +9,11 @@ import pt.estga.bots.telegram.state.factory.StateFactory;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
-
-import java.io.IOException;
+import pt.estga.shared.models.Location;
 
 @Component
 @RequiredArgsConstructor
-public class InitialState implements ConversationState {
+public class AwaitingCoordinatesState implements ConversationState {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final TelegramBotMessageFactory messageFactory;
@@ -22,19 +21,14 @@ public class InitialState implements ConversationState {
 
     @Override
     public ProposalStatus getAssociatedStatus() {
-        return ProposalStatus.IN_PROGRESS;
+        return ProposalStatus.AWAITING_COORDINATES;
     }
 
     @Override
-    public BotApiMethod<?> handlePhotoSubmission(ConversationContext context, byte[] photoData, String fileName) {
-        try {
-            MarkOccurrenceProposal proposal = proposalFlowService.initiate(context.getUserId(), photoData, fileName);
-            context.setProposalId(proposal.getId());
-            context.setProposal(proposal);
-            context.setState(stateFactory.createState(proposal.getStatus()));
-            return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
-        } catch (IOException e) {
-            return messageFactory.createPhotoErrorMessage(context.getChatId());
-        }
+    public BotApiMethod<?> handleLocationSubmission(ConversationContext context, Location location) {
+        MarkOccurrenceProposal proposal = proposalFlowService.addLocationToProposal(context.getProposalId(), location.getLatitude(), location.getLongitude());
+        context.setProposal(proposal);
+        context.setState(stateFactory.createState(proposal.getStatus()));
+        return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }
 }

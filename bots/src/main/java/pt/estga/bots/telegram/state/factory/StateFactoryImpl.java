@@ -22,6 +22,9 @@ public class StateFactoryImpl implements StateFactory {
     private final AwaitingNotesState awaitingNotesState;
     private final AwaitingMonumentNameState awaitingMonumentNameState;
     private final AwaitingAuthenticationState awaitingAuthenticationState;
+    private final AwaitingPhotoState awaitingPhotoState;
+    private final AwaitingCoordinatesState awaitingCoordinatesState;
+    private final ConfirmCoordinatesState confirmCoordinatesState;
 
     private Map<ProposalStatus, ConversationState> stateMap;
 
@@ -34,7 +37,10 @@ public class StateFactoryImpl implements StateFactory {
                             @Lazy InitialState initialState,
                             @Lazy AwaitingNotesState awaitingNotesState,
                             @Lazy AwaitingMonumentNameState awaitingMonumentNameState,
-                            @Lazy AwaitingAuthenticationState awaitingAuthenticationState) {
+                            @Lazy AwaitingAuthenticationState awaitingAuthenticationState,
+                            @Lazy AwaitingPhotoState awaitingPhotoState,
+                            @Lazy AwaitingCoordinatesState awaitingCoordinatesState,
+                            @Lazy ConfirmCoordinatesState confirmCoordinatesState) {
         this.awaitingMarkInfoState = awaitingMarkInfoState;
         this.awaitingMarkSelectionState = awaitingMarkSelectionState;
         this.awaitingMonumentInfoState = awaitingMonumentInfoState;
@@ -45,6 +51,9 @@ public class StateFactoryImpl implements StateFactory {
         this.awaitingNotesState = awaitingNotesState;
         this.awaitingMonumentNameState = awaitingMonumentNameState;
         this.awaitingAuthenticationState = awaitingAuthenticationState;
+        this.awaitingPhotoState = awaitingPhotoState;
+        this.awaitingCoordinatesState = awaitingCoordinatesState;
+        this.confirmCoordinatesState = confirmCoordinatesState;
     }
 
     @PostConstruct
@@ -59,6 +68,9 @@ public class StateFactoryImpl implements StateFactory {
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_SELECTION, awaitingMonumentSelectionState);
         stateMap.put(ProposalStatus.AWAITING_MONUMENT_VERIFICATION, awaitingMonumentVerificationState);
         stateMap.put(ProposalStatus.AWAITING_NOTES, awaitingNotesState);
+        stateMap.put(ProposalStatus.AWAITING_PHOTO, awaitingPhotoState);
+        stateMap.put(ProposalStatus.AWAITING_COORDINATES, awaitingCoordinatesState);
+        stateMap.put(ProposalStatus.AWAITING_COORDINATES_CONFIRMATION, confirmCoordinatesState);
         stateMap.put(ProposalStatus.READY_TO_SUBMIT, readyToSubmitState);
     }
 

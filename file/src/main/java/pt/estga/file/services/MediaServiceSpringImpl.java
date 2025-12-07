@@ -1,6 +1,7 @@
 package pt.estga.file.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
@@ -33,11 +34,15 @@ public class MediaServiceSpringImpl implements MediaService {
         return mediaFileRepository.save(media);
     }
 
+    /**
+     * Loads a file as a {@link Resource} from the given file path.
+     *
+     * @param filePath the path to the file to load
+     * @return the loaded file as a {@link Resource}
+     * @throws RuntimeException if the file cannot be loaded
+     */
     @Override
-    public void delete(Long mediaId) {
-        MediaFile media = mediaFileRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Media not found with id: " + mediaId));
-        fileStorageService.deleteFile(media.getStoragePath());
-        mediaFileRepository.delete(media);
+    public Resource loadFile(String filePath) {
+        return fileStorageService.loadFile(filePath);
     }
 }

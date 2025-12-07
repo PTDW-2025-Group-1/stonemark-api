@@ -2,6 +2,7 @@ package pt.estga.bots.telegram.context;
 
 import lombok.Data;
 import pt.estga.bots.telegram.state.ConversationState;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 
 @Data
 public class ConversationContext {
@@ -9,6 +10,7 @@ public class ConversationContext {
     private ConversationState state;
     private Long proposalId;
     private Long userId;
+    private MarkOccurrenceProposal proposal;
 
     public ConversationContext(long chatId) {
         this.chatId = chatId;

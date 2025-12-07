@@ -27,6 +27,7 @@ public class AwaitingMonumentInfoState implements ConversationState {
     @Override
     public BotApiMethod<?> handleLocationSubmission(ConversationContext context, Location location) {
         MarkOccurrenceProposal proposal = proposalFlowService.addLocationToProposal(context.getProposalId(), location.getLatitude(), location.getLongitude());
+        context.setProposal(proposal);
         context.setState(stateFactory.createState(proposal.getStatus()));
         return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
     }

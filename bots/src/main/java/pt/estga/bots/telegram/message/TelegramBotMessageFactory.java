@@ -1,8 +1,11 @@
 package pt.estga.bots.telegram.message;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.enums.ProposalStatus;
+
+import java.util.List;
 
 public interface TelegramBotMessageFactory {
 
@@ -27,7 +30,7 @@ public interface TelegramBotMessageFactory {
     BotApiMethod<?> createSubmissionSuccessMessage(long chatId);
 
     BotApiMethod<?> createMessageForProposalStatus(long chatId, MarkOccurrenceProposal proposal);
-    
+
     BotApiMethod<?> createAwaitingMarkDetailsMessage(long chatId);
 
     BotApiMethod<?> createNothingToSkipMessage(long chatId);
@@ -40,4 +43,7 @@ public interface TelegramBotMessageFactory {
 
     BotApiMethod<?> createWelcomeBackMessage(long chatId, String name);
 
+    BotApiMethod<?> createMonumentSelectionMessage(long chatId, List<Monument> monuments);
+
+    BotApiMethod<?> createInvalidInputMessage(long chatId);
 }

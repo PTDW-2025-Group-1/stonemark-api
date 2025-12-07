@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class InitialState implements ConversationState {
+public class AwaitingPhotoState implements ConversationState {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final TelegramBotMessageFactory messageFactory;
@@ -22,15 +22,15 @@ public class InitialState implements ConversationState {
 
     @Override
     public ProposalStatus getAssociatedStatus() {
-        return ProposalStatus.IN_PROGRESS;
+        return ProposalStatus.AWAITING_PHOTO;
     }
 
     @Override
     public BotApiMethod<?> handlePhotoSubmission(ConversationContext context, byte[] photoData, String fileName) {
         try {
             MarkOccurrenceProposal proposal = proposalFlowService.initiate(context.getUserId(), photoData, fileName);
-            context.setProposalId(proposal.getId());
             context.setProposal(proposal);
+            context.setProposalId(proposal.getId());
             context.setState(stateFactory.createState(proposal.getStatus()));
             return messageFactory.createMessageForProposalStatus(context.getChatId(), proposal);
         } catch (IOException e) {
