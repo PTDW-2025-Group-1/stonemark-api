@@ -5,5 +5,6 @@ import lombok.*;
 @Builder
 public record AuthenticationRequestDto(
         String email,
-        String password
+        String password,
+        String tfaCode
 ) { }

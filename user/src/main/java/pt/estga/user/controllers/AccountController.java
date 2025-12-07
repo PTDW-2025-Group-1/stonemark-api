@@ -3,14 +3,11 @@ package pt.estga.user.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
-import pt.estga.shared.exceptions.EmailAlreadyTakenException;
-import pt.estga.shared.exceptions.TelephoneAlreadyTakenException;
 import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
@@ -64,30 +61,6 @@ public class AccountController {
     public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
 
         return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
-    }
-
-    @PostMapping("/request-email-change")
-    public ResponseEntity<?> requestEmailChange(
-            @Valid @RequestBody EmailChangeRequestDto request,
-            @AuthenticationPrincipal User user) {
-        try {
-            accountManagementService.requestEmailChange(user, request);
-            return ResponseEntity.ok(new MessageResponseDto("A confirmation email has been sent to your new email address."));
-        } catch (EmailAlreadyTakenException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
-        }
-    }
-
-    @PostMapping("/request-telephone-change")
-    public ResponseEntity<?> requestTelephoneChange(
-            @Valid @RequestBody TelephoneChangeRequestDto request,
-            @AuthenticationPrincipal User user) {
-        try {
-            accountManagementService.requestTelephoneChange(user, request);
-            return ResponseEntity.ok(new MessageResponseDto("A confirmation SMS has been sent to your new telephone number."));
-        } catch (TelephoneAlreadyTakenException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
-        }
     }
 
     @PostMapping("/request-email-verification")

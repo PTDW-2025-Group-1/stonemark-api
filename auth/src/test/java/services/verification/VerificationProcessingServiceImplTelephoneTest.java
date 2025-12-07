@@ -11,8 +11,6 @@ import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
-import pt.estga.auth.services.verification.processing.TelephoneChangeConfirmProcessor;
-import pt.estga.auth.services.verification.processing.TelephoneChangeRequestProcessor;
 import pt.estga.auth.services.verification.processing.TelephoneVerificationProcessor;
 import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
 import pt.estga.shared.exceptions.InvalidTokenException;
@@ -39,10 +37,6 @@ class VerificationProcessingServiceImplTelephoneTest {
     private VerificationProcessorFactory verificationProcessorFactory;
     @Mock
     private TelephoneVerificationProcessor telephoneVerificationProcessor;
-    @Mock
-    private TelephoneChangeRequestProcessor telephoneChangeRequestProcessor;
-    @Mock
-    private TelephoneChangeConfirmProcessor telephoneChangeConfirmProcessor;
 
     @InjectMocks
     private VerificationProcessingServiceImpl verificationProcessingService;
@@ -115,40 +109,6 @@ class VerificationProcessingServiceImplTelephoneTest {
         verify(verificationTokenService).findByCode(telephoneVerificationToken.getCode());
         verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.TELEPHONE_VERIFICATION);
         verify(telephoneVerificationProcessor).process(telephoneVerificationToken);
-    }
-
-    @Test
-    @DisplayName("Should successfully process telephone change request")
-    void testProcessTelephoneChangeRequest_success() {
-        when(verificationTokenService.findByToken(telephoneChangeRequestToken.getToken()))
-                .thenReturn(Optional.of(telephoneChangeRequestToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.TELEPHONE_CHANGE_REQUEST))
-                .thenReturn(telephoneChangeRequestProcessor);
-        when(telephoneChangeRequestProcessor.process(telephoneChangeRequestToken)).thenReturn(Optional.empty());
-
-        Optional<String> result = verificationProcessingService.confirmToken(telephoneChangeRequestToken.getToken());
-
-        assertThat(result).isEmpty();
-        verify(verificationTokenService).findByToken(telephoneChangeRequestToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.TELEPHONE_CHANGE_REQUEST);
-        verify(telephoneChangeRequestProcessor).process(telephoneChangeRequestToken);
-    }
-
-    @Test
-    @DisplayName("Should successfully process telephone change confirmation")
-    void testProcessTelephoneChangeConfirm_success() {
-        when(verificationTokenService.findByToken(telephoneChangeConfirmToken.getToken()))
-                .thenReturn(Optional.of(telephoneChangeConfirmToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.TELEPHONE_CHANGE_CONFIRM))
-                .thenReturn(telephoneChangeConfirmProcessor);
-        when(telephoneChangeConfirmProcessor.process(telephoneChangeConfirmToken)).thenReturn(Optional.empty());
-
-        Optional<String> result = verificationProcessingService.confirmToken(telephoneChangeConfirmToken.getToken());
-
-        assertThat(result).isEmpty();
-        verify(verificationTokenService).findByToken(telephoneChangeConfirmToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.TELEPHONE_CHANGE_CONFIRM);
-        verify(telephoneChangeConfirmProcessor).process(telephoneChangeConfirmToken);
     }
 
     @Test

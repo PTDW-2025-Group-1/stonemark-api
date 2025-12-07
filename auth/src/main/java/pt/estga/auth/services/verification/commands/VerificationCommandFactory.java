@@ -2,10 +2,8 @@ package pt.estga.auth.services.verification.commands;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.auth.repositories.TelephoneChangeRequestRepository;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.email.EmailVerificationService;
-import pt.estga.auth.repositories.EmailChangeRequestRepository;
 import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.user.entities.User;
 import pt.estga.user.service.UserService;
@@ -16,9 +14,7 @@ public class VerificationCommandFactory {
 
     private final VerificationTokenService verificationTokenService;
     private final EmailVerificationService emailVerificationService;
-    private final EmailChangeRequestRepository emailChangeRequestRepository;
     private final SmsVerificationService smsVerificationService;
-    private final TelephoneChangeRequestRepository telephoneChangeRequestRepository;
     private final UserService userService;
 
     public VerificationCommand createEmailVerificationCommand(User user) {
@@ -29,19 +25,11 @@ public class VerificationCommandFactory {
         return new PasswordResetCommand(user, verificationTokenService, emailVerificationService, userService);
     }
 
-    public VerificationCommand createEmailChangeCommand(User user, String newEmail) {
-        return new EmailChangeCommand(user, newEmail, verificationTokenService, emailVerificationService, emailChangeRequestRepository, userService);
-    }
-
     public VerificationCommand createTelephoneVerificationCommand(User user) {
         return new TelephoneVerificationCommand(user, verificationTokenService, smsVerificationService, userService);
     }
 
     public VerificationCommand createPasswordResetTelephoneCommand(User user) {
         return new PasswordResetTelephoneCommand(user, verificationTokenService, smsVerificationService, userService);
-    }
-
-    public VerificationCommand createTelephoneChangeCommand(User user, String newTelephone) {
-        return new TelephoneChangeCommand(user, newTelephone, verificationTokenService, smsVerificationService, telephoneChangeRequestRepository, userService);
     }
 }

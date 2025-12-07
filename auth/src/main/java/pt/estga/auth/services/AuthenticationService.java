@@ -10,7 +10,7 @@ public interface AuthenticationService {
 
     Optional<AuthenticationResponseDto> register(@Valid User user);
 
-    Optional<AuthenticationResponseDto> authenticate(String email, String password);
+    Optional<AuthenticationResponseDto> authenticate(String email, String password, String tfaCode);
 
     Optional<AuthenticationResponseDto> refreshToken(String refreshToken);
 

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.auth.services.AuthenticationServiceSpringImpl;
 import pt.estga.auth.services.JwtService;
+import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
 import pt.estga.auth.services.verification.VerificationInitiationService;
@@ -68,13 +69,17 @@ class AuthenticationServiceImplTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private UserIdentityRepository userIdentityRepository;
+    @Mock
+    private TwoFactorAuthenticationService twoFactorAuthenticationService;
 
     @InjectMocks
     private AuthenticationServiceSpringImpl authenticationService;
 
     private User testUser;
     private User disabledTestUser;
+    private User tfaEnabledUser;
     private final String testEmail = "test@example.com";
+    private final String tfaSecret = "TFA_SECRET_KEY";
 
     @BeforeEach
     void setUp() {
@@ -86,6 +91,8 @@ class AuthenticationServiceImplTest {
                 .lastName("User")
                 .role(Role.USER)
                 .enabled(true)
+                .tfaEnabled(false)
+                .tfaSecret(null)
                 .build();
         UserContact testUserContact = UserContact.builder()
                 .id(1L)
@@ -105,6 +112,8 @@ class AuthenticationServiceImplTest {
                 .lastName("User")
                 .role(Role.USER)
                 .enabled(false)
+                .tfaEnabled(false)
+                .tfaSecret(null)
                 .build();
         UserContact disabledTestUserContact = UserContact.builder()
                 .id(2L)
@@ -115,6 +124,27 @@ class AuthenticationServiceImplTest {
                 .user(disabledTestUser)
                 .build();
         disabledTestUser.setContacts(new ArrayList<>(List.of(disabledTestUserContact)));
+
+        tfaEnabledUser = User.builder()
+                .id(3L)
+                .username("tfa@example.com")
+                .password("password")
+                .firstName("Tfa")
+                .lastName("User")
+                .role(Role.USER)
+                .enabled(true)
+                .tfaEnabled(true)
+                .tfaSecret(tfaSecret)
+                .build();
+        UserContact tfaUserContact = UserContact.builder()
+                .id(3L)
+                .type(ContactType.EMAIL)
+                .value("tfa@example.com")
+                .primary(true)
+                .verified(true)
+                .user(tfaEnabledUser)
+                .build();
+        tfaEnabledUser.setContacts(new ArrayList<>(List.of(tfaUserContact)));
     }
 
     // Helper method to set the private @Value field via reflection
@@ -181,6 +211,8 @@ class AuthenticationServiceImplTest {
         AuthenticationResponseDto response = optionalResponse.get();
         assertThat(response.accessToken()).isEqualTo("accessTokenString");
         assertThat(response.refreshToken()).isEqualTo("refreshTokenString");
+        assertThat(response.tfaEnabled()).isFalse();
+        assertThat(response.tfaRequired()).isFalse();
 
         verify(userService).existsByEmail(testEmail);
 
@@ -212,8 +244,8 @@ class AuthenticationServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should authenticate user successfully when email verification is not required")
-    void testAuthenticate_success_noEmailVerificationRequired() {
+    @DisplayName("Should authenticate user successfully when email verification is not required and 2FA is not enabled")
+    void testAuthenticate_success_noEmailVerificationRequired_noTfa() {
         // Given
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
         when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
@@ -227,19 +259,102 @@ class AuthenticationServiceImplTest {
         setEmailVerificationRequired(false);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword());
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword(), null);
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
+        assertThat(response.get().tfaEnabled()).isFalse();
+        assertThat(response.get().tfaRequired()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userService).findByEmail(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
         verify(accessTokenService).createToken(anyString(), anyString(), any());
+        verifyNoInteractions(twoFactorAuthenticationService);
     }
+
+    @Test
+    @DisplayName("Should return 2FA required when 2FA is enabled but no code is provided")
+    void testAuthenticate_tfaEnabled_tfaCodeRequired() {
+        // Given
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
+        when(userService.findByEmail(tfaEnabledUser.getUsername())).thenReturn(Optional.of(tfaEnabledUser));
+
+        // Simulate emailVerificationRequired = false
+        setEmailVerificationRequired(false);
+
+        // When
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(tfaEnabledUser.getUsername(), tfaEnabledUser.getPassword(), null);
+
+        // Then
+        assertThat(response).isPresent();
+        assertThat(response.get().accessToken()).isNull(); // No access token yet
+        assertThat(response.get().refreshToken()).isNull(); // No refresh token yet
+        assertThat(response.get().tfaEnabled()).isTrue();
+        assertThat(response.get().tfaRequired()).isTrue();
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userService).findByEmail(tfaEnabledUser.getUsername());
+        verifyNoInteractions(jwtService, accessTokenService, refreshTokenService, twoFactorAuthenticationService); // No tokens generated, no TFA verification yet
+    }
+
+    @Test
+    @DisplayName("Should return empty optional for invalid 2FA code")
+    void testAuthenticate_tfaEnabled_invalidTfaCode() {
+        // Given
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
+        when(userService.findByEmail(tfaEnabledUser.getUsername())).thenReturn(Optional.of(tfaEnabledUser));
+        when(twoFactorAuthenticationService.isCodeValid(tfaSecret, "invalidCode")).thenReturn(false);
+
+        // Simulate emailVerificationRequired = false
+        setEmailVerificationRequired(false);
+
+        // When
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(tfaEnabledUser.getUsername(), tfaEnabledUser.getPassword(), "invalidCode");
+
+        // Then
+        assertThat(response).isNotPresent();
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userService).findByEmail(tfaEnabledUser.getUsername());
+        verify(twoFactorAuthenticationService).isCodeValid(tfaSecret, "invalidCode");
+        verifyNoInteractions(jwtService, accessTokenService, refreshTokenService); // No tokens generated
+    }
+
+    @Test
+    @DisplayName("Should authenticate successfully with valid 2FA code")
+    void testAuthenticate_tfaEnabled_validTfaCode() {
+        // Given
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
+        when(userService.findByEmail(tfaEnabledUser.getUsername())).thenReturn(Optional.of(tfaEnabledUser));
+        when(twoFactorAuthenticationService.isCodeValid(tfaSecret, "validCode")).thenReturn(true);
+        when(jwtService.generateRefreshToken(tfaEnabledUser)).thenReturn("refreshTokenString");
+        when(jwtService.generateAccessToken(tfaEnabledUser)).thenReturn("accessTokenString");
+        when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
+        when(accessTokenService.createToken(anyString(), anyString(), any())).thenReturn(null);
+
+        // Simulate emailVerificationRequired = false
+        setEmailVerificationRequired(false);
+
+        // When
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(tfaEnabledUser.getUsername(), tfaEnabledUser.getPassword(), "validCode");
+
+        // Then
+        assertThat(response).isPresent();
+        assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
+        assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
+        assertThat(response.get().tfaEnabled()).isTrue();
+        assertThat(response.get().tfaRequired()).isFalse();
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(userService).findByEmail(tfaEnabledUser.getUsername());
+        verify(twoFactorAuthenticationService).isCodeValid(tfaSecret, "validCode");
+        verify(jwtService).generateRefreshToken(tfaEnabledUser);
+        verify(jwtService).generateAccessToken(tfaEnabledUser);
+        verify(refreshTokenService).createToken(anyString(), anyString());
+        verify(accessTokenService).createToken(anyString(), anyString(), any());
+    }
+
 
     @Test
     @DisplayName("Should throw EmailVerificationRequiredException when email verification is required and user is not enabled")
@@ -253,12 +368,12 @@ class AuthenticationServiceImplTest {
 
         // When
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
-                .isThrownBy(() -> authenticationService.authenticate(testEmail, disabledTestUser.getPassword()));
+                .isThrownBy(() -> authenticationService.authenticate(testEmail, disabledTestUser.getPassword(), null));
 
         // Then
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userService).findByEmail(testEmail);
-        verifyNoInteractions(jwtService, accessTokenService, refreshTokenService); // No tokens generated
+        verifyNoInteractions(jwtService, accessTokenService, refreshTokenService, twoFactorAuthenticationService); // No tokens generated
     }
 
     @Test
@@ -277,18 +392,21 @@ class AuthenticationServiceImplTest {
         setEmailVerificationRequired(true);
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword());
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword(), null);
 
         // Then
         assertThat(response).isPresent();
         assertThat(response.get().accessToken()).isEqualTo("accessTokenString");
         assertThat(response.get().refreshToken()).isEqualTo("refreshTokenString");
+        assertThat(response.get().tfaEnabled()).isFalse();
+        assertThat(response.get().tfaRequired()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userService).findByEmail(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
         verify(accessTokenService).createToken(anyString(), anyString(), any());
+        verifyNoInteractions(twoFactorAuthenticationService);
     }
 
     @Test
@@ -299,12 +417,12 @@ class AuthenticationServiceImplTest {
                 .thenThrow(mock(AuthenticationException.class));
 
         // When
-        Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "wrongpassword");
+        Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "wrongpassword", null);
 
         // Then
         assertThat(response).isNotPresent();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verifyNoInteractions(userService, jwtService, accessTokenService, refreshTokenService);
+        verifyNoInteractions(userService, jwtService, accessTokenService, refreshTokenService, twoFactorAuthenticationService);
     }
 
     @Test

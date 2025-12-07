@@ -43,10 +43,18 @@ public class AuthenticationController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponseDto> login(@RequestBody AuthenticationRequestDto request) {
-        return authService.authenticate(request.email(), request.password())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    public ResponseEntity<?> login(@RequestBody AuthenticationRequestDto request) {
+        Optional<AuthenticationResponseDto> response = authService.authenticate(request.email(), request.password(), request.tfaCode());
+
+        if (response.isPresent()) {
+            AuthenticationResponseDto authResponse = response.get();
+            if (authResponse.tfaRequired()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new MessageResponseDto("Two-Factor Authentication required. Please provide a valid TFA code."));
+            }
+            return ResponseEntity.ok(authResponse);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @PostMapping("/google")
