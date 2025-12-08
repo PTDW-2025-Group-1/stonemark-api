@@ -1,6 +1,7 @@
 package pt.estga.auth.services.tfa;
 
 import pt.estga.user.entities.User;
+import pt.estga.user.enums.TfaMethod;
 
 public interface TwoFactorAuthenticationService {
 
@@ -10,7 +11,7 @@ public interface TwoFactorAuthenticationService {
 
     boolean isCodeValid(String secret, String code);
 
-    void enableTfa(User user);
+    void enableTfa(User user, TfaMethod method);
 
     void disableTfa(User user);
 }

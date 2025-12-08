@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.user.enums.Role;
+import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -36,7 +37,10 @@ public class User implements UserDetails {
     private boolean accountLocked;
     private boolean enabled;
 
-    private boolean tfaEnabled;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TfaMethod tfaMethod = TfaMethod.NONE;
     private String tfaSecret;
 
     @CreationTimestamp
@@ -107,11 +111,11 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return accountLocked == user.accountLocked && enabled == user.enabled && tfaEnabled == user.tfaEnabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && role == user.role && Objects.equals(tfaSecret, user.tfaSecret) && Objects.equals(createdAt, user.createdAt);
+        return accountLocked == user.accountLocked && enabled == user.enabled && tfaMethod == user.tfaMethod && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && role == user.role && Objects.equals(tfaSecret, user.tfaSecret) && Objects.equals(createdAt, user.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, lastName, username, password, role, accountLocked, enabled, tfaEnabled, tfaSecret, createdAt);
+        return Objects.hash(id, firstName, lastName, username, password, role, accountLocked, enabled, tfaMethod, tfaSecret, createdAt);
     }
 }

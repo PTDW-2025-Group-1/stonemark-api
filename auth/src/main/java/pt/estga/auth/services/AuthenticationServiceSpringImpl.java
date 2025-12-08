@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.RefreshToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
@@ -29,6 +31,7 @@ import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
+import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.service.UserService;
 
@@ -54,6 +57,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserIdentityRepository userIdentityRepository;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
+    private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
 
     @Value("${application.security.email.verification-required:false}")
     private boolean emailVerificationRequired;
@@ -76,7 +80,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
-
+        // Default to NONE for 2FA method on registration
+        user.setTfaMethod(TfaMethod.NONE);
         user.setEnabled(!emailVerificationRequired);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User createdUser = userService.create(user);
@@ -86,18 +91,22 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         }
-        return generateAuthenticationResponse(createdUser, false);
+        return generateAuthenticationResponse(createdUser, false, false);
     }
 
     @NotNull
-    private Optional<AuthenticationResponseDto> generateAuthenticationResponse(User user, boolean tfaRequired) {
+    private Optional<AuthenticationResponseDto> generateAuthenticationResponse(User user, boolean tfaRequired, boolean tfaCodeSent) {
+        if (tfaRequired) {
+            return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
+        }
+
         var refreshTokenString = jwtService.generateRefreshToken(user);
         var accessTokenString = jwtService.generateAccessToken(user);
 
         var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
         accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
 
-        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name(), user.isTfaEnabled(), tfaRequired));
+        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, tfaCodeSent));
     }
 
     @Override
@@ -117,17 +126,48 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             throw new EmailVerificationRequiredException("Email verification required.");
         }
 
-        if (user.isTfaEnabled()) {
+        boolean tfaCodeSent = false;
+        if (user.getTfaMethod() != TfaMethod.NONE) {
             if (tfaCode == null || tfaCode.isBlank()) {
-                return generateAuthenticationResponse(user, true); // Indicate that 2FA is required
+                // 2FA is enabled, but no code provided. Initiate sending a code based on method.
+                switch (user.getTfaMethod()) {
+                    case TOTP:
+                        // For TOTP, the user is expected to provide the code from their app.
+                        // If no code is provided, we just indicate it's required.
+                        break;
+                    case SMS:
+                        contactBasedTwoFactorAuthenticationService.generateAndSendSmsCode(user);
+                        tfaCodeSent = true;
+                        break;
+                    case EMAIL:
+                        contactBasedTwoFactorAuthenticationService.generateAndSendEmailCode(user);
+                        tfaCodeSent = true;
+                        break;
+                }
+                return generateAuthenticationResponse(user, true, tfaCodeSent); // Indicate that 2FA is required
             }
-            if (!twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode)) {
+
+            // A 2FA code was provided, verify it.
+            boolean isCodeValid = false;
+            switch (user.getTfaMethod()) {
+                case TOTP:
+                    isCodeValid = twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
+                    break;
+                case SMS:
+                    isCodeValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.SMS_2FA);
+                    break;
+                case EMAIL:
+                    isCodeValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.EMAIL_2FA);
+                    break;
+            }
+
+            if (!isCodeValid) {
                 log.warn("Invalid 2FA code for user: {}", email);
                 return Optional.empty(); // Invalid 2FA code
             }
         }
 
-        return generateAuthenticationResponse(user, false);
+        return generateAuthenticationResponse(user, false, false);
     }
 
 
@@ -145,7 +185,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                     String newAccessToken = jwtService.generateAccessToken(userDetails);
                     accessTokenService.createToken(userDetails.getUsername(), newAccessToken, refreshToken);
 
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority(), ((User)userDetails).isTfaEnabled(), false);
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority(), ((User)userDetails).getTfaMethod() != TfaMethod.NONE, false, false);
                 });
     }
 
@@ -178,7 +218,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                 throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
             }
 
-            return generateAuthenticationResponse(user, false);
+            return generateAuthenticationResponse(user, false, false);
         } catch (GeneralSecurityException | IOException e) {
             log.error("Error while authenticating with Google", e);
             throw new RuntimeException("Google authentication failed.", e);
@@ -200,6 +240,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                                         .lastName((String) payload.get("family_name"))
                                         .role(Role.USER)
                                         .enabled(!emailVerificationRequired)
+                                        .tfaMethod(TfaMethod.NONE)
                                         .build();
                                 UserContact primaryEmail = UserContact.builder()
                                         .type(ContactType.EMAIL)

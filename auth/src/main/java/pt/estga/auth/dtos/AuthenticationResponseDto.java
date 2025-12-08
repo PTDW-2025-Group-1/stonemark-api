@@ -8,5 +8,6 @@ public record AuthenticationResponseDto(
         String refreshToken,
         String role,
         boolean tfaEnabled,
-        boolean tfaRequired
+        boolean tfaRequired,
+        boolean tfaCodeSent
 ) { }

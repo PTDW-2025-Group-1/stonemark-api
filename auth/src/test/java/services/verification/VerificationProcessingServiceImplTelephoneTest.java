@@ -44,8 +44,6 @@ class VerificationProcessingServiceImplTelephoneTest {
     @Mock
     private User testUser;
     private VerificationToken telephoneVerificationToken;
-    private VerificationToken telephoneChangeRequestToken;
-    private VerificationToken telephoneChangeConfirmToken;
 
     @BeforeEach
     void setUp() {
@@ -54,24 +52,6 @@ class VerificationProcessingServiceImplTelephoneTest {
                 .code("789012")
                 .user(testUser)
                 .purpose(VerificationTokenPurpose.TELEPHONE_VERIFICATION)
-                .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
-                .build();
-
-        telephoneChangeRequestToken = VerificationToken.builder()
-                .token("uuid-telephone-change-request")
-                .code("987654")
-                .user(testUser)
-                .purpose(VerificationTokenPurpose.TELEPHONE_CHANGE_REQUEST)
-                .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
-                .build();
-
-        telephoneChangeConfirmToken = VerificationToken.builder()
-                .token("uuid-telephone-change-confirm")
-                .code("initialPlaceholderCode")
-                .user(testUser)
-                .purpose(VerificationTokenPurpose.TELEPHONE_CHANGE_CONFIRM)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .revoked(false)
                 .build();

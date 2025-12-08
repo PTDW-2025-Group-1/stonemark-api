@@ -92,11 +92,7 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
             case EMAIL_VERIFICATION -> emailVerificationTokenExpiration;
             case TELEPHONE_VERIFICATION -> telephoneVerificationTokenExpiration;
             case PASSWORD_RESET -> passwordResetTokenExpiration;
-            case TWO_FACTOR_AUTHENTICATION -> twoFactorAuthenticationTokenExpiration;
-            case EMAIL_CHANGE_REQUEST -> emailChangeRequestTokenExpiration;
-            case EMAIL_CHANGE_CONFIRM -> emailChangeConfirmTokenExpiration;
-            case TELEPHONE_CHANGE_REQUEST -> telephoneChangeRequestTokenExpiration;
-            case TELEPHONE_CHANGE_CONFIRM -> telephoneChangeConfirmTokenExpiration;
+            case SMS_2FA, EMAIL_2FA -> twoFactorAuthenticationTokenExpiration;
         };
     }
 }

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Factor Authentication Code</title>
+</head>
+<body>
+    <p>Dear User,</p>
+    <p>Your Two-Factor Authentication (2FA) code is: <strong><span th:text="${code}"></span></strong></p>
+    <p>This code is valid for a limited time. Please enter it to complete your login or action.</p>
+    <p>If you did not request this code, please ignore this email.</p>
+    <p>Thank you,</p>
+    <p>The Stonemark Team</p>
+</body>
+</html>

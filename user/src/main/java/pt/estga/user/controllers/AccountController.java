@@ -59,7 +59,7 @@ public class AccountController {
 
     @DeleteMapping("/google")
     public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
-
+        // Todo: get reed of old logic
         return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
     }
 

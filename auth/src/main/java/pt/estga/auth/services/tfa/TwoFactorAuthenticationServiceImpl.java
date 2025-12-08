@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.user.entities.User;
+import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.service.UserService;
 
 import static dev.samstevens.totp.util.Utils.getDataUriForImage;
@@ -49,14 +50,14 @@ public class TwoFactorAuthenticationServiceImpl implements TwoFactorAuthenticati
     }
 
     @Override
-    public void enableTfa(User user) {
-        user.setTfaEnabled(true);
+    public void enableTfa(User user, TfaMethod method) {
+        user.setTfaMethod(method);
         userService.update(user);
     }
 
     @Override
     public void disableTfa(User user) {
-        user.setTfaEnabled(false);
+        user.setTfaMethod(TfaMethod.NONE);
         user.setTfaSecret(null);
         userService.update(user);
     }
