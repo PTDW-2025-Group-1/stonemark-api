@@ -104,7 +104,7 @@ class SocialAuthenticationServiceImplTest {
         when(payload.get("family_name")).thenReturn(LAST_NAME);
 
         when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
-        when(userService.findByEmail(USER_EMAIL)).thenReturn(Optional.empty());
+        when(userService.findByContact(USER_EMAIL)).thenReturn(Optional.empty());
         when(userService.create(any(User.class))).thenReturn(newUser);
         when(userIdentityService.createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID))).thenReturn(newIdentity);
 
@@ -189,7 +189,7 @@ class SocialAuthenticationServiceImplTest {
         when(payload.get("family_name")).thenReturn(LAST_NAME);
 
         when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
-        when(userService.findByEmail(USER_EMAIL)).thenReturn(Optional.empty());
+        when(userService.findByContact(USER_EMAIL)).thenReturn(Optional.empty());
         when(userService.create(any(User.class))).thenReturn(newUser);
         when(userIdentityService.createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID))).thenReturn(newIdentity);
 

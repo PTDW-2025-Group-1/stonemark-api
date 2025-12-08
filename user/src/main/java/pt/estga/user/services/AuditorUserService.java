@@ -16,6 +16,6 @@ public class AuditorUserService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<User> findByEmail(String email) {
-        return userService.findByEmail(email);
+        return userService.findByContact(email);
     }
 }

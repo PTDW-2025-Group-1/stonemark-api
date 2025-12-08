@@ -53,7 +53,6 @@ class VerificationProcessingServiceImplEmailTest {
                 .user(testUser)
                 .purpose(VerificationTokenPurpose.EMAIL_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
                 .build();
     }
 

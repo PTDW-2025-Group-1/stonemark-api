@@ -33,6 +33,6 @@ public abstract class BaseToken {
     private Instant expiresAt;
 
     @Builder.Default
-    private boolean revoked = false;
+    private boolean isRevoked = false;
 
 }

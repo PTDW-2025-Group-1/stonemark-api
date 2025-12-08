@@ -31,20 +31,20 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return contactRepository.findByTypeAndValue(ContactType.EMAIL, email)
+    public Optional<User> findByContact(String contactValue) {
+        return contactRepository.findByValue(contactValue)
+                .map(UserContact::getUser);
+    }
+
+    @Override
+    public Optional<User> findByContact(String contactValue, ContactType contactType) {
+        return contactRepository.findByTypeAndValue(contactType, contactValue)
                 .map(UserContact::getUser);
     }
 
     @Override
     public boolean existsByEmail(String email) {
         return contactRepository.findByTypeAndValue(ContactType.EMAIL, email).isPresent();
-    }
-
-    @Override
-    public Optional<User> findByTelephone(String telephone) {
-        return contactRepository.findByTypeAndValue(ContactType.TELEPHONE, telephone)
-                .map(UserContact::getUser);
     }
 
     @Override

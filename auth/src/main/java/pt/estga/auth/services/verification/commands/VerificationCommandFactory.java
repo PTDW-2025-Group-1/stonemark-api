@@ -21,15 +21,7 @@ public class VerificationCommandFactory {
         return new EmailVerificationCommand(user, verificationTokenService, emailVerificationService, userService);
     }
 
-    public VerificationCommand createPasswordResetCommand(User user) {
-        return new PasswordResetCommand(user, verificationTokenService, emailVerificationService, userService);
-    }
-
     public VerificationCommand createTelephoneVerificationCommand(User user) {
         return new TelephoneVerificationCommand(user, verificationTokenService, smsVerificationService, userService);
-    }
-
-    public VerificationCommand createPasswordResetTelephoneCommand(User user) {
-        return new PasswordResetTelephoneCommand(user, verificationTokenService, smsVerificationService, userService);
     }
 }

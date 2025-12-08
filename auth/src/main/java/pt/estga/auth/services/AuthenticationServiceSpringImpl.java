@@ -114,7 +114,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.empty();
         }
 
-        User user = userService.findByEmail(email)
+        User user = userService.findByContact(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (emailVerificationRequired && !user.isEnabled()) {
@@ -178,19 +178,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
                     return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority(), ((User)userDetails).getTfaMethod() != TfaMethod.NONE, false, false);
                 });
-    }
-
-    @Override
-    public void requestPasswordReset(String email) {
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        var command = verificationCommandFactory.createPasswordResetCommand(user);
-        verificationInitiationService.initiate(command);
-    }
-
-    @Override
-    public void resetPassword(String token, String newPassword) {
-        verificationProcessingService.processPasswordReset(token, newPassword);
     }
 
     @Override

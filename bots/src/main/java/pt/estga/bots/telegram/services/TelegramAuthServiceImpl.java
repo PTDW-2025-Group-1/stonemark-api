@@ -26,7 +26,7 @@ public class TelegramAuthServiceImpl implements TelegramAuthService {
             String internationalFormat = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.E164);
             log.info("Attempting to authenticate user with international phone number: {}", internationalFormat);
 
-            Optional<User> userOptional = userService.findByTelephone(internationalFormat);
+            Optional<User> userOptional = userService.findByContact(internationalFormat);
 
             userOptional.ifPresent(user ->
                     log.info("User {} authenticated and Telegram chat ID updated.", user.getUsername())

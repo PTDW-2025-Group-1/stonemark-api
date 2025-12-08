@@ -1,4 +1,4 @@
-package services.verification;
+package services.passwordreset;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,9 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.services.passwordreset.PasswordResetConfirmationProcessor;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
-import pt.estga.auth.services.verification.processing.PasswordResetConfirmationProcessor;
+import pt.estga.auth.services.verification.processing.VerificationProcessor;
 import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.exceptions.SamePasswordException;
@@ -62,7 +63,6 @@ class VerificationProcessingServiceImplPasswordResetTest {
                 .user(testUser)
                 .purpose(VerificationTokenPurpose.EMAIL_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
                 .build();
 
         passwordResetToken = VerificationToken.builder()
@@ -71,7 +71,6 @@ class VerificationProcessingServiceImplPasswordResetTest {
                 .user(testUser)
                 .purpose(VerificationTokenPurpose.PASSWORD_RESET)
                 .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
                 .build();
     }
 
@@ -81,7 +80,7 @@ class VerificationProcessingServiceImplPasswordResetTest {
         when(verificationTokenService.findByToken(passwordResetToken.getToken()))
                 .thenReturn(Optional.of(passwordResetToken));
         when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.PASSWORD_RESET))
-                .thenReturn(passwordResetConfirmationProcessor);
+                .thenReturn((VerificationProcessor) passwordResetConfirmationProcessor);
         when(passwordResetConfirmationProcessor.process(passwordResetToken))
                 .thenReturn(Optional.of(passwordResetToken.getToken()));
 
@@ -100,7 +99,7 @@ class VerificationProcessingServiceImplPasswordResetTest {
         when(verificationTokenService.findByCode(passwordResetToken.getCode()))
                 .thenReturn(Optional.of(passwordResetToken));
         when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.PASSWORD_RESET))
-                .thenReturn(passwordResetConfirmationProcessor);
+                .thenReturn((VerificationProcessor) passwordResetConfirmationProcessor);
         when(passwordResetConfirmationProcessor.process(passwordResetToken))
                 .thenReturn(Optional.of(passwordResetToken.getToken()));
 

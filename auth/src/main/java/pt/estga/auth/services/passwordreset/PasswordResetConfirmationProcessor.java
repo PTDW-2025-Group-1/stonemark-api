@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.processing;
+package pt.estga.auth.services.passwordreset;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,16 +9,14 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class PasswordResetConfirmationProcessor implements VerificationProcessor {
+public class PasswordResetConfirmationProcessor {
 
-    @Override
     public Optional<String> process(VerificationToken token) {
         // For password reset, we just validate the token and return it.
         // The actual password change and token revocation happens via the /reset-password endpoint.
         return Optional.of(token.getToken());
     }
 
-    @Override
     public VerificationTokenPurpose getPurpose() {
         return VerificationTokenPurpose.PASSWORD_RESET;
     }

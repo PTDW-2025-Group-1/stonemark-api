@@ -7,22 +7,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pt.estga.auth.services.AuthenticationServiceSpringImpl;
-import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
-import pt.estga.auth.services.verification.commands.VerificationCommand;
-import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import pt.estga.auth.entities.token.VerificationToken;
+import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.services.passwordreset.PasswordResetServiceImpl;
+import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.auth.services.verification.email.EmailVerificationService;
+import pt.estga.auth.services.verification.sms.SmsVerificationService;
+import pt.estga.shared.exceptions.ContactMethodNotAvailableException;
+import pt.estga.shared.exceptions.InvalidPasswordResetTokenException;
+import pt.estga.shared.exceptions.UserNotFoundException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
-import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -32,33 +37,39 @@ class AuthenticationServicePasswordResetTest {
 
     @Mock
     private UserService userService;
+
     @Mock
-    private VerificationInitiationService verificationInitiationService;
+    private VerificationTokenService verificationTokenService;
+
     @Mock
-    private VerificationCommandFactory verificationCommandFactory;
+    private EmailVerificationService emailVerificationService;
+
     @Mock
-    private VerificationProcessingService verificationProcessingService;
+    private SmsVerificationService smsVerificationService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private AuthenticationServiceSpringImpl authenticationService;
+    private PasswordResetServiceImpl passwordResetService;
 
     private User testUser;
+    private UserContact testUserContact;
     private final String testEmail = "test@example.com";
 
     @BeforeEach
     void setUp() {
         testUser = User.builder()
                 .id(1L)
-                .username(testEmail)
+                .username("testuser")
                 .password("password")
                 .firstName("Test")
                 .lastName("User")
                 .role(Role.USER)
                 .enabled(true)
-                .tfaMethod(TfaMethod.NONE)
-                .tfaSecret(null)
                 .build();
-        UserContact testUserContact = UserContact.builder()
+
+        testUserContact = UserContact.builder()
                 .id(1L)
                 .type(ContactType.EMAIL)
                 .value(testEmail)
@@ -66,45 +77,129 @@ class AuthenticationServicePasswordResetTest {
                 .isVerified(true)
                 .user(testUser)
                 .build();
-        testUser.setContacts(new ArrayList<>(List.of(testUserContact)));
     }
 
     @Test
-    @DisplayName("Should initiate password reset request")
-    void testRequestPasswordReset_success() {
-        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
-        when(verificationCommandFactory.createPasswordResetCommand(any(User.class)))
-                .thenReturn(mock(VerificationCommand.class));
+    @DisplayName("Should initiate password reset for verified email")
+    void testInitiatePasswordReset_email_success() {
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
+        when(verificationTokenService.createAndSaveToken(testUser, VerificationTokenPurpose.PASSWORD_RESET))
+                .thenReturn(new VerificationToken());
 
-        authenticationService.requestPasswordReset(testEmail);
+        passwordResetService.initiatePasswordReset(testEmail);
 
-        verify(userService).findByEmail(testEmail);
-        verify(verificationCommandFactory).createPasswordResetCommand(testUser);
-        verify(verificationInitiationService).initiate(any(VerificationCommand.class));
+        verify(emailVerificationService).sendVerificationEmail(eq(testEmail), any(VerificationToken.class));
+        verifyNoInteractions(smsVerificationService);
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException if user not found for password reset")
-    void testRequestPasswordReset_userNotFound() {
-        String email = "nonexistent@example.com";
-        when(userService.findByEmail(email)).thenReturn(Optional.empty());
+    @DisplayName("Should initiate password reset for verified telephone")
+    void testInitiatePasswordReset_telephone_success() {
+        String testTelephone = "123456789";
+        testUserContact.setType(ContactType.TELEPHONE);
+        testUserContact.setValue(testTelephone);
+        when(userService.findByContact(testTelephone)).thenReturn(Optional.of(testUser));
+        when(verificationTokenService.createAndSaveToken(testUser, VerificationTokenPurpose.PASSWORD_RESET))
+                .thenReturn(new VerificationToken());
 
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> authenticationService.requestPasswordReset(email))
-                .withMessage("User not found");
+        passwordResetService.initiatePasswordReset(testTelephone);
 
-        verify(userService).findByEmail(email);
-        verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
+        verify(smsVerificationService).sendVerificationSms(eq(testTelephone), any(VerificationToken.class));
+        verifyNoInteractions(emailVerificationService);
     }
 
     @Test
-    @DisplayName("Should delegate password reset to verification processing service")
+    @DisplayName("Should throw UserNotFoundException if contact does not exist")
+    void testInitiatePasswordReset_contactNotFound() {
+        when(userService.findByContact(testEmail)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(UserNotFoundException.class)
+                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
+    }
+
+    @Test
+    @DisplayName("Should throw ContactMethodNotAvailableException if contact is not verified")
+    void testInitiatePasswordReset_contactNotVerified() {
+        testUserContact.setVerified(false);
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
+
+        assertThatExceptionOfType(ContactMethodNotAvailableException.class)
+                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException if user is disabled")
+    void testInitiatePasswordReset_userDisabled() {
+        testUser.setEnabled(false);
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
+
+        assertThatExceptionOfType(UserNotFoundException.class)
+                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
+
+        verify(userService).findByContact(testEmail);
+        verifyNoInteractions(verificationTokenService, emailVerificationService, smsVerificationService);
+    }
+
+    @Test
+    @DisplayName("Should reset password with a valid token")
     void testResetPassword_success() {
-        String token = "validToken";
+        String token = UUID.randomUUID().toString();
         String newPassword = "newPassword";
+        VerificationToken verificationToken = VerificationToken.builder()
+                .token(token)
+                .user(testUser)
+                .purpose(VerificationTokenPurpose.PASSWORD_RESET)
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .isRevoked(false)
+                .build();
 
-        authenticationService.resetPassword(token, newPassword);
+        when(verificationTokenService.findByToken(token)).thenReturn(Optional.of(verificationToken));
+        when(passwordEncoder.encode(newPassword)).thenReturn("encodedPassword");
 
-        verify(verificationProcessingService).processPasswordReset(token, newPassword);
+        passwordResetService.resetPassword(token, newPassword);
+
+        verify(passwordEncoder).encode(newPassword);
+        verify(userService).update(testUser);
+        verify(verificationTokenService).revokeToken(verificationToken);
+        assertThat(testUser.getPassword()).isEqualTo("encodedPassword");
+    }
+
+    @Test
+    @DisplayName("Should throw InvalidPasswordResetTokenException for invalid token")
+    void testResetPassword_invalidToken() {
+        String token = "invalidToken";
+        when(verificationTokenService.findByToken(token)).thenReturn(Optional.empty());
+
+        assertThatExceptionOfType(InvalidPasswordResetTokenException.class)
+                .isThrownBy(() -> passwordResetService.resetPassword(token, "newPassword"));
+    }
+
+    @Test
+    @DisplayName("Should validate a valid password reset token")
+    void testValidatePasswordResetToken_valid() {
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = VerificationToken.builder()
+                .token(token)
+                .user(testUser)
+                .purpose(VerificationTokenPurpose.PASSWORD_RESET)
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build();
+
+        when(verificationTokenService.findByToken(token)).thenReturn(Optional.of(verificationToken));
+
+        Optional<User> result = passwordResetService.validatePasswordResetToken(token);
+
+        assertThat(result).isPresent().contains(testUser);
+    }
+
+    @Test
+    @DisplayName("Should not validate an invalid password reset token")
+    void testValidatePasswordResetToken_invalid() {
+        String token = "invalidToken";
+        when(verificationTokenService.findByToken(token)).thenReturn(Optional.empty());
+
+        Optional<User> result = passwordResetService.validatePasswordResetToken(token);
+
+        assertThat(result).isNotPresent();
     }
 }

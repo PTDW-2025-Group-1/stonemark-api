@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.commands;
+package pt.estga.auth.services.passwordreset;
 
 import lombok.RequiredArgsConstructor;
 import pt.estga.auth.entities.token.VerificationToken;
@@ -7,6 +7,7 @@ import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.email.EmailVerificationService;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
+import pt.estga.auth.services.verification.commands.VerificationCommand;
 
 @RequiredArgsConstructor
 public class PasswordResetCommand implements VerificationCommand {

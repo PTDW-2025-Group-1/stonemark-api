@@ -116,7 +116,7 @@ class AuthenticationServiceAuthenticationTest {
     @DisplayName("Should authenticate user successfully when email verification is not required and 2FA is not enabled")
     void testAuthenticate_success_noEmailVerificationRequired_noTfa() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
 
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -134,7 +134,7 @@ class AuthenticationServiceAuthenticationTest {
         assertThat(response.get().tfaRequired()).isFalse();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(testEmail);
+        verify(userService).findByContact(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
@@ -145,7 +145,7 @@ class AuthenticationServiceAuthenticationTest {
     @DisplayName("Should throw EmailVerificationRequiredException when email verification is required and user is not enabled")
     void testAuthenticate_emailVerificationRequired_userNotEnabled() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(disabledTestUser));
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(disabledTestUser));
 
         setEmailVerificationRequired(true);
 
@@ -153,14 +153,14 @@ class AuthenticationServiceAuthenticationTest {
                 .isThrownBy(() -> authenticationService.authenticate(testEmail, disabledTestUser.getPassword(), null));
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(testEmail);
+        verify(userService).findByContact(testEmail);
     }
 
     @Test
     @DisplayName("Should authenticate user successfully when email verification is required and user is enabled")
     void testAuthenticate_emailVerificationRequired_userEnabled() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(testEmail)).thenReturn(Optional.of(testUser));
+        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
 
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(testUser)).thenReturn("accessTokenString");
@@ -178,7 +178,7 @@ class AuthenticationServiceAuthenticationTest {
         assertThat(response.get().tfaRequired()).isFalse();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(testEmail);
+        verify(userService).findByContact(testEmail);
         verify(jwtService).generateRefreshToken(testUser);
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());

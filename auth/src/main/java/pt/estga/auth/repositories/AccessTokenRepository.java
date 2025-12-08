@@ -20,7 +20,7 @@ public interface AccessTokenRepository extends BaseTokenRepository<AccessToken> 
     Optional<AccessToken> findByTokenWithRefreshToken(String token);
 
     @Modifying
-    @Query("UPDATE AccessToken t SET t.revoked = true WHERE t.refreshToken = :refreshToken")
+    @Query("UPDATE AccessToken t SET t.isRevoked = true WHERE t.refreshToken = :refreshToken")
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
     List<AccessToken> findAllByUserIdAndRevokedFalse(Long userId);

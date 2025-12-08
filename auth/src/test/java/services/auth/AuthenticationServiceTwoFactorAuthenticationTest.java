@@ -151,7 +151,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return 2FA required when TOTP is enabled but no code is provided")
     void testAuthenticate_tfaEnabledTotp_tfaCodeRequired() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
+        when(userService.findByContact(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
 
         setEmailVerificationRequired(false);
 
@@ -164,7 +164,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isTrue();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserTotp.getUsername());
+        verify(userService).findByContact(tfaEnabledUserTotp.getUsername());
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService);
         verifyNoInteractions(twoFactorAuthenticationService, contactBasedTwoFactorAuthenticationService);
     }
@@ -173,7 +173,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return empty optional for invalid TOTP 2FA code")
     void testAuthenticate_tfaEnabledTotp_invalidTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
+        when(userService.findByContact(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
         when(twoFactorAuthenticationService.isCodeValid(tfaSecret, "invalidCode")).thenReturn(false);
 
         setEmailVerificationRequired(false);
@@ -182,7 +182,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
 
         assertThat(response).isNotPresent();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserTotp.getUsername());
+        verify(userService).findByContact(tfaEnabledUserTotp.getUsername());
         verify(twoFactorAuthenticationService).isCodeValid(tfaSecret, "invalidCode");
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService, contactBasedTwoFactorAuthenticationService);
     }
@@ -191,7 +191,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should authenticate successfully with valid TOTP 2FA code")
     void testAuthenticate_tfaEnabledTotp_validTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
+        when(userService.findByContact(tfaEnabledUserTotp.getUsername())).thenReturn(Optional.of(tfaEnabledUserTotp));
         when(twoFactorAuthenticationService.isCodeValid(tfaSecret, "validCode")).thenReturn(true);
         when(jwtService.generateRefreshToken(tfaEnabledUserTotp)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(tfaEnabledUserTotp)).thenReturn("accessTokenString");
@@ -209,7 +209,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isFalse();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserTotp.getUsername());
+        verify(userService).findByContact(tfaEnabledUserTotp.getUsername());
         verify(twoFactorAuthenticationService).isCodeValid(tfaSecret, "validCode");
         verify(jwtService).generateRefreshToken(tfaEnabledUserTotp);
         verify(jwtService).generateAccessToken(tfaEnabledUserTotp);
@@ -222,7 +222,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return 2FA required and code sent when SMS is enabled but no code is provided")
     void testAuthenticate_tfaEnabledSms_tfaCodeRequired() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
+        when(userService.findByContact(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
         doNothing().when(contactBasedTwoFactorAuthenticationService).generateAndSendSmsCode(tfaEnabledUserSms);
 
         setEmailVerificationRequired(false);
@@ -236,7 +236,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isTrue();
         assertThat(response.get().tfaCodeSent()).isTrue();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserSms.getUsername());
+        verify(userService).findByContact(tfaEnabledUserSms.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).generateAndSendSmsCode(tfaEnabledUserSms);
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService);
         verifyNoInteractions(twoFactorAuthenticationService);
@@ -246,7 +246,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return empty optional for invalid SMS 2FA code")
     void testAuthenticate_tfaEnabledSms_invalidTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
+        when(userService.findByContact(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
         when(contactBasedTwoFactorAuthenticationService.verifyCode(tfaEnabledUserSms, "invalidCode", VerificationTokenPurpose.SMS_2FA)).thenReturn(false);
 
         setEmailVerificationRequired(false);
@@ -255,7 +255,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
 
         assertThat(response).isNotPresent();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserSms.getUsername());
+        verify(userService).findByContact(tfaEnabledUserSms.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).verifyCode(tfaEnabledUserSms, "invalidCode", VerificationTokenPurpose.SMS_2FA);
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService, twoFactorAuthenticationService);
     }
@@ -264,7 +264,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should authenticate successfully with valid SMS 2FA code")
     void testAuthenticate_tfaEnabledSms_validTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
+        when(userService.findByContact(tfaEnabledUserSms.getUsername())).thenReturn(Optional.of(tfaEnabledUserSms));
         when(contactBasedTwoFactorAuthenticationService.verifyCode(tfaEnabledUserSms, "validCode", VerificationTokenPurpose.SMS_2FA)).thenReturn(true);
         when(jwtService.generateRefreshToken(tfaEnabledUserSms)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(tfaEnabledUserSms)).thenReturn("accessTokenString");
@@ -282,7 +282,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isFalse();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserSms.getUsername());
+        verify(userService).findByContact(tfaEnabledUserSms.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).verifyCode(tfaEnabledUserSms, "validCode", VerificationTokenPurpose.SMS_2FA);
         verify(jwtService).generateRefreshToken(tfaEnabledUserSms);
         verify(jwtService).generateAccessToken(tfaEnabledUserSms);
@@ -295,7 +295,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return 2FA required and code sent when Email is enabled but no code is provided")
     void testAuthenticate_tfaEnabledEmail_tfaCodeRequired() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
+        when(userService.findByContact(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
         doNothing().when(contactBasedTwoFactorAuthenticationService).generateAndSendEmailCode(tfaEnabledUserEmail);
 
         setEmailVerificationRequired(false);
@@ -309,7 +309,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isTrue();
         assertThat(response.get().tfaCodeSent()).isTrue();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserEmail.getUsername());
+        verify(userService).findByContact(tfaEnabledUserEmail.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).generateAndSendEmailCode(tfaEnabledUserEmail);
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService);
         verifyNoInteractions(twoFactorAuthenticationService);
@@ -319,7 +319,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should return empty optional for invalid Email 2FA code")
     void testAuthenticate_tfaEnabledEmail_invalidTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
+        when(userService.findByContact(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
         when(contactBasedTwoFactorAuthenticationService.verifyCode(tfaEnabledUserEmail, "invalidCode", VerificationTokenPurpose.EMAIL_2FA)).thenReturn(false);
 
         setEmailVerificationRequired(false);
@@ -328,7 +328,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
 
         assertThat(response).isNotPresent();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserEmail.getUsername());
+        verify(userService).findByContact(tfaEnabledUserEmail.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).verifyCode(tfaEnabledUserEmail, "invalidCode", VerificationTokenPurpose.EMAIL_2FA);
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService, twoFactorAuthenticationService);
     }
@@ -337,7 +337,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
     @DisplayName("Should authenticate successfully with valid Email 2FA code")
     void testAuthenticate_tfaEnabledEmail_validTfaCode() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
-        when(userService.findByEmail(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
+        when(userService.findByContact(tfaEnabledUserEmail.getUsername())).thenReturn(Optional.of(tfaEnabledUserEmail));
         when(contactBasedTwoFactorAuthenticationService.verifyCode(tfaEnabledUserEmail, "validCode", VerificationTokenPurpose.EMAIL_2FA)).thenReturn(true);
         when(jwtService.generateRefreshToken(tfaEnabledUserEmail)).thenReturn("refreshTokenString");
         when(jwtService.generateAccessToken(tfaEnabledUserEmail)).thenReturn("accessTokenString");
@@ -355,7 +355,7 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
         assertThat(response.get().tfaRequired()).isFalse();
         assertThat(response.get().tfaCodeSent()).isFalse();
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userService).findByEmail(tfaEnabledUserEmail.getUsername());
+        verify(userService).findByContact(tfaEnabledUserEmail.getUsername());
         verify(contactBasedTwoFactorAuthenticationService).verifyCode(tfaEnabledUserEmail, "validCode", VerificationTokenPurpose.EMAIL_2FA);
         verify(jwtService).generateRefreshToken(tfaEnabledUserEmail);
         verify(jwtService).generateAccessToken(tfaEnabledUserEmail);

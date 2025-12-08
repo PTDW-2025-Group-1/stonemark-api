@@ -74,7 +74,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
         return userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, googleId)
                 .map(UserIdentity::getUser)
                 .orElseGet(() -> {
-                    User user = userService.findByEmail(email)
+                    User user = userService.findByContact(email)
                             .orElseGet(() -> {
                                 User newUser = User.builder()
                                         .username(email)

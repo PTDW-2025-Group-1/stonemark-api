@@ -14,10 +14,6 @@ public interface AuthenticationService {
 
     Optional<AuthenticationResponseDto> refreshToken(String refreshToken);
 
-    void requestPasswordReset(String email);
-
-    void resetPassword(String token, String newPassword);
-
     void logoutFromAllDevices(User user);
 
 }

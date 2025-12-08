@@ -53,7 +53,6 @@ class VerificationProcessingServiceImplTelephoneTest {
                 .user(testUser)
                 .purpose(VerificationTokenPurpose.TELEPHONE_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
-                .revoked(false)
                 .build();
     }
 

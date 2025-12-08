@@ -12,4 +12,6 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long> 
 
     Optional<UserContact> findByTypeAndValue(ContactType type, String value);
 
+    Optional<UserContact> findByValue(String value);
+
 }

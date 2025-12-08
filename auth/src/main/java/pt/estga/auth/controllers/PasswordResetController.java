@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.PasswordResetRequestDto;
 import pt.estga.auth.dtos.ResetPasswordRequestDto;
-import pt.estga.auth.services.AuthenticationService;
+import pt.estga.auth.services.passwordreset.PasswordResetService;
 
 @RestController
 @RequiredArgsConstructor
@@ -14,17 +14,17 @@ import pt.estga.auth.services.AuthenticationService;
 @Tag(name = "Password Reset", description = "Endpoints for requesting and performing password resets.")
 public class PasswordResetController {
 
-    private final AuthenticationService authService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
-        authService.requestPasswordReset(request.email());
+        passwordResetService.initiatePasswordReset(request.contactValue());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
-        authService.resetPassword(request.token(), request.newPassword());
+        passwordResetService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.ok().build();
     }
 }
