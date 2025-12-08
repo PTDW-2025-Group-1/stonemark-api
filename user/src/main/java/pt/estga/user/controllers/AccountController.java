@@ -11,9 +11,9 @@ import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.AccountManagementService;
-import pt.estga.user.service.PasswordService;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.AccountManagementService;
+import pt.estga.user.services.PasswordService;
+import pt.estga.user.services.UserService;
 
 @RestController
 @RequestMapping("/api/v1/account")

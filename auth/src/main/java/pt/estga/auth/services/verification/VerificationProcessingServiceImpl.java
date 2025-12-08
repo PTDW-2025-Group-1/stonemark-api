@@ -17,7 +17,7 @@ import pt.estga.shared.exceptions.TokenExpiredException;
 import pt.estga.shared.exceptions.TokenRevokedException;
 import pt.estga.shared.exceptions.InvalidVerificationPurposeException;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.time.Instant;
 import java.util.Optional;

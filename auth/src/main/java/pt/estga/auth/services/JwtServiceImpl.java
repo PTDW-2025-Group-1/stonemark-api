@@ -1,6 +1,7 @@
 package pt.estga.auth.services;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -37,13 +38,14 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        Claims claims = extractAllClaims(token);
+        return claims == null ? null : extractClaim(token, Claims::getSubject);
     }
 
     @Override
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+        return claims == null ? null : claimsResolver.apply(claims);
     }
 
     @Override
@@ -76,11 +78,12 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Boolean isTokenValid(String token, UserDetails userDetail) {
         final String username = extractUsername(token);
-        return (username.equals(userDetail.getUsername())) && !isTokenExpired(token);
+        return username != null && (username.equals(userDetail.getUsername())) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date expiration = extractExpiration(token);
+        return expiration == null || expiration.before(new Date());
     }
 
     private Date extractExpiration(String token) {
@@ -88,7 +91,11 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return jwtParser.parseSignedClaims(token).getPayload();
+        try {
+            return jwtParser.parseSignedClaims(token).getPayload();
+        } catch (JwtException e) {
+            return null;
+        }
     }
 
     private SecretKey getSigningKey() {

@@ -17,7 +17,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +62,8 @@ class AuthenticationServicePasswordResetTest {
                 .id(1L)
                 .type(ContactType.EMAIL)
                 .value(testEmail)
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(testUser)
                 .build();
         testUser.setContacts(new ArrayList<>(List.of(testUserContact)));

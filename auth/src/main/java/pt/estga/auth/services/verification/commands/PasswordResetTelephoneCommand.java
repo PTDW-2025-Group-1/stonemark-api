@@ -6,7 +6,7 @@ import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.sms.SmsVerificationService;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 @RequiredArgsConstructor
 public class PasswordResetTelephoneCommand implements VerificationCommand {

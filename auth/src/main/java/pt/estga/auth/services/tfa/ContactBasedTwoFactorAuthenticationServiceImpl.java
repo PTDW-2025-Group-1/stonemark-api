@@ -13,7 +13,7 @@ import pt.estga.shared.services.EmailService;
 import pt.estga.shared.services.SmsService;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.time.Instant;
 import java.util.HashMap;

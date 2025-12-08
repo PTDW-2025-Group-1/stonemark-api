@@ -1,4 +1,4 @@
-package pt.estga.user.service;
+package pt.estga.user.services;
 
 import pt.estga.user.dtos.PasswordChangeRequestDto;
 import pt.estga.user.dtos.PasswordSetRequestDto;

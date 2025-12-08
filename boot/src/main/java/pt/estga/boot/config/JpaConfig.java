@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.AuditorUserService;
+import pt.estga.user.services.AuditorUserService;
 
 import java.util.Optional;
 

@@ -1,4 +1,4 @@
-package pt.estga.user.service;
+package pt.estga.user.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

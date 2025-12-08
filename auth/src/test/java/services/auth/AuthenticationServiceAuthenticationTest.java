@@ -22,7 +22,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -74,8 +74,8 @@ class AuthenticationServiceAuthenticationTest {
                 .id(1L)
                 .type(ContactType.EMAIL)
                 .value(testEmail)
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(testUser)
                 .build();
         testUser.setContacts(new ArrayList<>(List.of(testUserContact)));
@@ -95,8 +95,8 @@ class AuthenticationServiceAuthenticationTest {
                 .id(2L)
                 .type(ContactType.EMAIL)
                 .value(testEmail)
-                .primary(true)
-                .verified(false)
+                .isPrimary(true)
+                .isVerified(false)
                 .user(disabledTestUser)
                 .build();
         disabledTestUser.setContacts(new ArrayList<>(List.of(disabledTestUserContact)));

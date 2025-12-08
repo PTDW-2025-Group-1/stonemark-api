@@ -12,7 +12,7 @@ import pt.estga.user.enums.Role;
 import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 @RestController
 @RequestMapping("/api/v1/users")

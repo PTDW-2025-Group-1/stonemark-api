@@ -12,7 +12,7 @@ import pt.estga.auth.dtos.TfaSetupResponseDto;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import static dev.samstevens.totp.util.Utils.getDataUriForImage;
 

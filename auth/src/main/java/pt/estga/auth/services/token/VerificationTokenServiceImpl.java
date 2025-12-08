@@ -28,18 +28,6 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     @Value("${application.security.jwt.two-factor-authentication-token.expiration}")
     private long twoFactorAuthenticationTokenExpiration;
 
-    @Value("${application.security.jwt.email-change-request-token.expiration}")
-    private long emailChangeRequestTokenExpiration;
-
-    @Value("${application.security.jwt.email-change-confirm-token.expiration}")
-    private long emailChangeConfirmTokenExpiration;
-
-    @Value("${application.security.jwt.telephone-change-request-token.expiration}")
-    private long telephoneChangeRequestTokenExpiration;
-
-    @Value("${application.security.jwt.telephone-change-confirm-token.expiration}")
-    private long telephoneChangeConfirmTokenExpiration;
-
     @Value("${application.security.jwt.telephone-verification-token.expiration}")
     private long telephoneVerificationTokenExpiration;
 

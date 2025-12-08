@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.util.Optional;
 

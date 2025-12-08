@@ -24,9 +24,9 @@ public class UserContact {
 
     private String value;
 
-    private boolean verified;
+    private boolean isVerified;
 
-    private boolean primary;
+    private boolean isPrimary;
 
     private Instant verifiedAt;
 

@@ -1,4 +1,4 @@
-package pt.estga.user.service;
+package pt.estga.user.services;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 @Configuration
 @RequiredArgsConstructor

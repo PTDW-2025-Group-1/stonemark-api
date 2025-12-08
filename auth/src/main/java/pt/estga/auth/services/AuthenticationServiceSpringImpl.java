@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.entities.token.RefreshToken;
 import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
@@ -28,9 +27,8 @@ import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j

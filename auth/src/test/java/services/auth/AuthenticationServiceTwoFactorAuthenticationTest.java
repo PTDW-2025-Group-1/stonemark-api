@@ -23,7 +23,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserService;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -80,8 +80,8 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
                 .id(3L)
                 .type(ContactType.EMAIL)
                 .value("tfa.totp@example.com")
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(tfaEnabledUserTotp)
                 .build();
         tfaEnabledUserTotp.setContacts(new ArrayList<>(List.of(tfaTotpUserContact)));
@@ -101,16 +101,16 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
                 .id(4L)
                 .type(ContactType.EMAIL)
                 .value("tfa.sms@example.com")
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(tfaEnabledUserSms)
                 .build();
         UserContact tfaSmsUserContactPhone = UserContact.builder()
                 .id(5L)
                 .type(ContactType.TELEPHONE)
                 .value(tfaTelephone)
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(tfaEnabledUserSms)
                 .build();
         tfaEnabledUserSms.setContacts(new ArrayList<>(List.of(tfaSmsUserContactEmail, tfaSmsUserContactPhone)));
@@ -130,8 +130,8 @@ class AuthenticationServiceTwoFactorAuthenticationTest {
                 .id(6L)
                 .type(ContactType.EMAIL)
                 .value("tfa.email@example.com")
-                .primary(true)
-                .verified(true)
+                .isPrimary(true)
+                .isVerified(true)
                 .user(tfaEnabledUserEmail)
                 .build();
         tfaEnabledUserEmail.setContacts(new ArrayList<>(List.of(tfaEmailUserContact)));

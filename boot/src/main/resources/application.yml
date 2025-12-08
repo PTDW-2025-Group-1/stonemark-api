@@ -95,15 +95,7 @@ application:
         expiration: 3600000 # 1 hour
       password-reset-token:
         expiration: 3600000 # 1 hour
-      email-change-request-token:
-        expiration: 900000 # 15 minutes
-      email-change-confirm-token:
-        expiration: 900000 # 15 minutes
-      telephone-change-request-token:
-        expiration: 900000 # 15 minutes
       telephone-verification-token:
-        expiration: 900000 # 15 minutes
-      telephone-change-confirm-token:
         expiration: 900000 # 15 minutes
     email:
       verification-required: false

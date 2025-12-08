@@ -1,4 +1,4 @@
-package pt.estga.auth.services.impl;
+package pt.estga.auth.services;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.auth.services.JwtService;
-import pt.estga.auth.services.SocialAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
@@ -20,23 +18,25 @@ import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.repositories.UserIdentityRepository;
-import pt.estga.user.service.UserService;
+import pt.estga.user.services.UserIdentityService;
+import pt.estga.user.services.UserService;
+
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static pt.estga.auth.services.AuthenticationServiceSpringImpl.getAuthenticationResponseDto;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SocialAuthenticationServiceImpl implements SocialAuthenticationService {
 
     private final UserService userService;
-    private final UserIdentityRepository userIdentityRepository;
+    private final UserIdentityService userIdentityService;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final JwtService jwtService;
     private final AccessTokenService accessTokenService;
@@ -71,7 +71,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
         String email = payload.getEmail();
         String googleId = payload.getSubject();
 
-        return userIdentityRepository.findByProviderAndIdentity(Provider.GOOGLE, googleId)
+        return userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, googleId)
                 .map(UserIdentity::getUser)
                 .orElseGet(() -> {
                     User user = userService.findByEmail(email)
@@ -87,22 +87,17 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                 UserContact primaryEmail = UserContact.builder()
                                         .type(ContactType.EMAIL)
                                         .value(email)
-                                        .primary(true)
-                                        .verified(true)
+                                        .isPrimary(true)
+                                        .isVerified(true)
                                         .user(newUser)
                                         .build();
-                                newUser.setContacts(List.of(primaryEmail));
+
+                                newUser.setContacts(new ArrayList<>(List.of(primaryEmail)));
                                 return userService.create(newUser);
                             });
 
-                    UserIdentity identity = UserIdentity.builder()
-                            .provider(Provider.GOOGLE)
-                            .identity(googleId)
-                            .user(user)
-                            .build();
-                    userIdentityRepository.save(identity);
-                    user.getIdentities().add(identity);
-                    return userService.update(user);
+                    userIdentityService.createAndAssociateUserIdentity(user, Provider.GOOGLE, googleId);
+                    return user;
                 });
     }
 
