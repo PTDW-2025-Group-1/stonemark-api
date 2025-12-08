@@ -50,6 +50,11 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     }
 
     @Override
+    public long countByMarkId(Long markId) {
+        return repository.countByMarkId(markId);
+    }
+
+    @Override
     public MarkOccurrence create(MarkOccurrence occurrence) {
         return repository.save(occurrence);
     }

@@ -64,6 +64,11 @@ public class MarkOccurrenceController {
         return ResponseEntity.ok(service.countByMonumentId(monumentId));
     }
 
+    @GetMapping("/count-by-mark/{markId}")
+    public ResponseEntity<Long> countByMark(@PathVariable Long markId) {
+        return ResponseEntity.ok(service.countByMarkId(markId));
+    }
+
     @GetMapping("/by-monument/{monumentId}")
     public Page<MarkOccurrenceDto> getOccurrencesByMonument(
             @PathVariable Long monumentId,

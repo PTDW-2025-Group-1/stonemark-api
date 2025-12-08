@@ -23,7 +23,11 @@ public class MarkController {
     private final MarkMapper mapper;
 
     @GetMapping
-    public Page<MarkDto> getMarks(Pageable pageable) {
+    public Page<MarkDto> getMarks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
         return service.findAll(pageable).map(mapper::markToMarkDto);
     }
 

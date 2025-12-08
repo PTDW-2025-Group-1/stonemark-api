@@ -15,4 +15,6 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
 
     long countByMonumentId(Long monumentId);
+
+    long countByMarkId(Long markId);
 }

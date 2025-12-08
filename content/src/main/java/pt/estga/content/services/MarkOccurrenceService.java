@@ -21,6 +21,8 @@ public interface MarkOccurrenceService {
 
     long countByMonumentId(Long monumentId);
 
+    long countByMarkId(Long markId);
+
     MarkOccurrence create(MarkOccurrence occurrence);
 
     MarkOccurrence update(MarkOccurrence occurrence);
