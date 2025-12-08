@@ -14,14 +14,10 @@ public interface AuthenticationService {
 
     Optional<AuthenticationResponseDto> refreshToken(String refreshToken);
 
-    Optional<AuthenticationResponseDto> authenticateWithGoogle(String googleToken);
-
     void requestPasswordReset(String email);
 
     void resetPassword(String token, String newPassword);
 
     void logoutFromAllDevices(User user);
-
-    void logoutFromAllOtherDevices(User user, String currentToken);
 
 }

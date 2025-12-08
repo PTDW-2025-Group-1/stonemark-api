@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.*;
 import pt.estga.auth.mappers.AuthMapper;
 import pt.estga.auth.services.AuthenticationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
+import pt.estga.auth.services.SocialAuthenticationService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
-import pt.estga.shared.exceptions.VerificationErrorMessages;
 import pt.estga.user.entities.User;
 
 import java.util.Optional;
@@ -23,8 +22,8 @@ import java.util.Optional;
 public class AuthenticationController {
 
     private final AuthenticationService authService;
-    private final VerificationProcessingService verificationProcessingService;
     private final AuthMapper authMapper;
+    private final SocialAuthenticationService socialAuthenticationService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
@@ -59,7 +58,14 @@ public class AuthenticationController {
 
     @PostMapping("/google")
     public ResponseEntity<AuthenticationResponseDto> google(@RequestBody GoogleAuthenticationRequestDto request) {
-        return authService.authenticateWithGoogle(request.token())
+        return socialAuthenticationService.authenticateWithGoogle(request.token())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @PostMapping("/telegram")
+    public ResponseEntity<AuthenticationResponseDto> telegram(@RequestBody TelegramAuthenticationRequestDto request) {
+        return socialAuthenticationService.authenticateWithTelegram(request.telegramData())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
@@ -69,31 +75,5 @@ public class AuthenticationController {
         return authService.refreshToken(request.refreshToken())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
-    }
-
-    @GetMapping("/confirm")
-    public ResponseEntity<ConfirmationResponseDto> confirmToken(@RequestParam("token") String token) {
-        Optional<String> resultToken = verificationProcessingService.confirmToken(token);
-        return resultToken.map(t -> ResponseEntity.ok(ConfirmationResponseDto.passwordResetRequired(t)))
-                .orElseGet(() -> ResponseEntity.ok(ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL)));
-    }
-
-    @PostMapping("/confirm-code")
-    public ResponseEntity<ConfirmationResponseDto> confirmCode(@RequestBody CodeConfirmationRequestDto request) {
-        Optional<String> resultToken = verificationProcessingService.confirmCode(request.code());
-        return resultToken.map(t -> ResponseEntity.ok(ConfirmationResponseDto.passwordResetRequired(t)))
-                .orElseGet(() -> ResponseEntity.ok(ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL)));
-    }
-
-    @PostMapping("/request-password-reset")
-    public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
-        authService.requestPasswordReset(request.email());
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
-        authService.resetPassword(request.token(), request.newPassword());
-        return ResponseEntity.ok().build();
     }
 }

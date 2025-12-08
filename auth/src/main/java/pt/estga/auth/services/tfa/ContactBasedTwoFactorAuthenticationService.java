@@ -10,4 +10,9 @@ public interface ContactBasedTwoFactorAuthenticationService {
     void generateAndSendEmailCode(User user);
 
     boolean verifyCode(User user, String code, VerificationTokenPurpose purpose);
+
+    void requestTfaContactCode(User user);
+
+    boolean verifyTfaContactCode(User user, String code);
+
 }

@@ -12,16 +12,14 @@ import pt.estga.auth.dtos.SetTfaMethodRequestDto;
 import pt.estga.auth.dtos.TfaContactVerificationRequestDto;
 import pt.estga.auth.dtos.TfaSetupResponseDto;
 import pt.estga.auth.dtos.TfaVerificationRequestDto;
-import pt.estga.auth.enums.VerificationTokenPurpose;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.service.UserService;
 
 @RestController
-@RequestMapping("/api/v1/tfa")
+@RequestMapping("/api/v1/auth/tfa")
 @RequiredArgsConstructor
 @Tag(name = "Two-Factor Authentication", description = "Operations related to Two-Factor Authentication (2FA) for user accounts.")
 @PreAuthorize("isAuthenticated()")
@@ -29,15 +27,11 @@ public class TwoFactorAuthenticationController {
 
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
     private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
-    private final UserService userService;
 
     @PostMapping("/setup/totp")
     public ResponseEntity<TfaSetupResponseDto> setupTotp(@AuthenticationPrincipal User user) {
-        String newSecret = twoFactorAuthenticationService.generateNewSecret();
-        user.setTfaSecret(newSecret);
-        userService.update(user); // Save the secret to the user
-        String qrCodeImageUrl = twoFactorAuthenticationService.generateQrCode(user);
-        return ResponseEntity.ok(new TfaSetupResponseDto(newSecret, qrCodeImageUrl));
+        TfaSetupResponseDto response = twoFactorAuthenticationService.setupTotpForUser(user);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/enable/totp")
@@ -54,65 +48,43 @@ public class TwoFactorAuthenticationController {
         if (user.getTfaMethod() == TfaMethod.NONE) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Two-Factor Authentication is not enabled."));
         }
-        // For disabling, we need to verify the current active 2FA method
-        boolean isValid = false;
-        if (user.getTfaMethod() == TfaMethod.TOTP) {
-            if (user.getTfaSecret() != null) {
-                isValid = twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), request.code());
-            }
-        } else if (user.getTfaMethod() == TfaMethod.SMS) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, request.code(), VerificationTokenPurpose.SMS_2FA);
-        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, request.code(), VerificationTokenPurpose.EMAIL_2FA);
-        }
 
-        if (!isValid) {
+        if (!twoFactorAuthenticationService.verifyAndDisableTfa(user, request.code())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
         }
 
-        twoFactorAuthenticationService.disableTfa(user); // This will set tfaMethod to NONE and clear secret
         return ResponseEntity.ok(new MessageResponseDto("Two-Factor Authentication disabled successfully."));
     }
 
-    // New endpoints moved from AccountController
     @PostMapping("/method")
     public ResponseEntity<?> setTfaMethod(@AuthenticationPrincipal User user, @Valid @RequestBody SetTfaMethodRequestDto request) {
         if (request.tfaMethod() == TfaMethod.TOTP && user.getTfaSecret() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("TOTP secret not set. Please set up TOTP first."));
         }
-        user.setTfaMethod(request.tfaMethod());
-        userService.update(user);
+        twoFactorAuthenticationService.setTfaMethod(user, request.tfaMethod());
         return ResponseEntity.ok(new MessageResponseDto("Two-Factor Authentication method updated successfully."));
     }
 
     @PostMapping("/contact/request-code")
     public ResponseEntity<?> requestContactTfaCode(@AuthenticationPrincipal User user) {
-        if (user.getTfaMethod() == TfaMethod.SMS) {
-            contactBasedTwoFactorAuthenticationService.generateAndSendSmsCode(user);
-            return ResponseEntity.ok(new MessageResponseDto("SMS 2FA code sent to your primary telephone."));
-        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
-            contactBasedTwoFactorAuthenticationService.generateAndSendEmailCode(user);
-            return ResponseEntity.ok(new MessageResponseDto("Email 2FA code sent to your primary email."));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Contact-based 2FA is not enabled for this user."));
+        try {
+            contactBasedTwoFactorAuthenticationService.requestTfaContactCode(user);
+            return ResponseEntity.ok(new MessageResponseDto("2FA code sent to your primary contact method."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
     }
 
     @PostMapping("/contact/verify-code")
     public ResponseEntity<?> verifyContactTfaCode(@AuthenticationPrincipal User user, @Valid @RequestBody TfaContactVerificationRequestDto request) {
-        boolean isValid;
-        if (user.getTfaMethod() == TfaMethod.SMS) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, request.code(), VerificationTokenPurpose.SMS_2FA);
-        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, request.code(), VerificationTokenPurpose.EMAIL_2FA);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Contact-based 2FA is not enabled for this user."));
-        }
-
-        if (isValid) {
-            return ResponseEntity.ok(new MessageResponseDto("2FA code verified successfully."));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
+        try {
+            if (contactBasedTwoFactorAuthenticationService.verifyTfaContactCode(user, request.code())) {
+                return ResponseEntity.ok(new MessageResponseDto("2FA code verified successfully."));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
+            }
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
     }
 }

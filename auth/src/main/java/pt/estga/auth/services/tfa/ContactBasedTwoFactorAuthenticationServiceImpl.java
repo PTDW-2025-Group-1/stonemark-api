@@ -12,6 +12,7 @@ import pt.estga.shared.models.Email;
 import pt.estga.shared.services.EmailService;
 import pt.estga.shared.services.SmsService;
 import pt.estga.user.entities.User;
+import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.service.UserService;
 
 import java.time.Instant;
@@ -85,6 +86,29 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
             return true;
         }
         return false;
+    }
+
+    @Override
+    @Transactional
+    public void requestTfaContactCode(User user) {
+        if (user.getTfaMethod() == TfaMethod.SMS) {
+            generateAndSendSmsCode(user);
+        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
+            generateAndSendEmailCode(user);
+        } else {
+            throw new IllegalStateException("Contact-based 2FA is not enabled for this user.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean verifyTfaContactCode(User user, String code) {
+        if (user.getTfaMethod() == TfaMethod.SMS) {
+            return verifyCode(user, code, VerificationTokenPurpose.SMS_2FA);
+        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
+            return verifyCode(user, code, VerificationTokenPurpose.EMAIL_2FA);
+        }
+        return false; // Or throw an exception if contact-based 2FA is not enabled
     }
 
     private String generateRandomCode() {

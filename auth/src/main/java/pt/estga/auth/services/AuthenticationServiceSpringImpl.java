@@ -1,7 +1,5 @@
 package pt.estga.auth.services;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +24,12 @@ import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.ContactType;
-import pt.estga.user.enums.Provider;
 import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.service.UserService;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,12 +45,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final VerificationInitiationService verificationInitiationService;
     private final VerificationCommandFactory verificationCommandFactory;
-    private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final VerificationProcessingService verificationProcessingService;
     private final PasswordEncoder passwordEncoder;
-    private final UserIdentityRepository userIdentityRepository;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
     private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
+    private final SocialAuthenticationService socialAuthenticationService;
 
     @Value("${application.security.email.verification-required:false}")
     private boolean emailVerificationRequired;
@@ -96,6 +88,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     @NotNull
     private Optional<AuthenticationResponseDto> generateAuthenticationResponse(User user, boolean tfaRequired, boolean tfaCodeSent) {
+        return getAuthenticationResponseDto(user, tfaRequired, tfaCodeSent, jwtService, refreshTokenService, accessTokenService);
+    }
+
+    @NotNull
+    public static Optional<AuthenticationResponseDto> getAuthenticationResponseDto(User user, boolean tfaRequired, boolean tfaCodeSent, JwtService jwtService, RefreshTokenService refreshTokenService, AccessTokenService accessTokenService) {
         if (tfaRequired) {
             return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
         }
@@ -148,18 +145,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             }
 
             // A 2FA code was provided, verify it.
-            boolean isCodeValid = false;
-            switch (user.getTfaMethod()) {
-                case TOTP:
-                    isCodeValid = twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
-                    break;
-                case SMS:
-                    isCodeValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.SMS_2FA);
-                    break;
-                case EMAIL:
-                    isCodeValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.EMAIL_2FA);
-                    break;
-            }
+            boolean isCodeValid = switch (user.getTfaMethod()) {
+                case TOTP -> twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
+                case SMS ->
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.SMS_2FA);
+                case EMAIL ->
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.EMAIL_2FA);
+                default -> false;
+            };
 
             if (!isCodeValid) {
                 log.warn("Invalid 2FA code for user: {}", email);
@@ -202,80 +195,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         verificationProcessingService.processPasswordReset(token, newPassword);
     }
 
-
-    @Override
-    @Transactional
-    public Optional<AuthenticationResponseDto> authenticateWithGoogle(String token) {
-        try {
-            GoogleIdToken idToken = googleIdTokenVerifier.verify(token);
-            if (idToken == null) {
-                return Optional.empty();
-            }
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            User user = upsertUserFromGooglePayload(payload);
-
-            if (emailVerificationRequired && !user.isEnabled()) {
-                throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-            }
-
-            return generateAuthenticationResponse(user, false, false);
-        } catch (GeneralSecurityException | IOException e) {
-            log.error("Error while authenticating with Google", e);
-            throw new RuntimeException("Google authentication failed.", e);
-        }
-    }
-
-    private User upsertUserFromGooglePayload(GoogleIdToken.Payload payload) {
-        String email = payload.getEmail();
-        String googleId = payload.getSubject();
-
-        return userIdentityRepository.findByProviderAndIdentity(Provider.GOOGLE, googleId)
-                .map(UserIdentity::getUser)
-                .orElseGet(() -> {
-                    User user = userService.findByEmail(email)
-                            .orElseGet(() -> {
-                                User newUser = User.builder()
-                                        .username(email)
-                                        .firstName((String) payload.get("given_name"))
-                                        .lastName((String) payload.get("family_name"))
-                                        .role(Role.USER)
-                                        .enabled(!emailVerificationRequired)
-                                        .tfaMethod(TfaMethod.NONE)
-                                        .build();
-                                UserContact primaryEmail = UserContact.builder()
-                                        .type(ContactType.EMAIL)
-                                        .value(email)
-                                        .primary(true)
-                                        .verified(true)
-                                        .user(newUser)
-                                        .build();
-                                newUser.setContacts(List.of(primaryEmail));
-                                return userService.create(newUser);
-                            });
-
-                    UserIdentity identity = UserIdentity.builder()
-                            .provider(Provider.GOOGLE)
-                            .identity(googleId)
-                            .user(user)
-                            .build();
-                    userIdentityRepository.save(identity);
-                    user.getIdentities().add(identity);
-                    return userService.update(user);
-                });
-    }
-
     @Override
     public void logoutFromAllDevices(User user) {
         refreshTokenService.revokeAllByUser(user);
         accessTokenService.revokeAllByUser(user);
-    }
-
-    @Override
-    public void logoutFromAllOtherDevices(User user, String currentToken) {
-        List<RefreshToken> otherRefreshTokens = refreshTokenService.findAllValidByUser(user);
-        otherRefreshTokens.removeIf(token -> token.getToken().equals(currentToken));
-
-        otherRefreshTokens.forEach(accessTokenService::revokeAllByRefreshToken);
-        refreshTokenService.revokeAll(otherRefreshTokens);
     }
 }
