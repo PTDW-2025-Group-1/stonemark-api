@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.email;
+package pt.estga.auth.services.verification.contact;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

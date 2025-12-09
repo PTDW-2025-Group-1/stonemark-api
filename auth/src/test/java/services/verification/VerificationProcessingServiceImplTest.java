@@ -10,14 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.auth.services.verification.GenericVerificationProcessor;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
-import pt.estga.auth.services.verification.processing.VerificationProcessor;
-import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
 import pt.estga.shared.exceptions.InvalidTokenException;
-import pt.estga.shared.exceptions.VerificationErrorMessages;
 import pt.estga.shared.exceptions.TokenExpiredException;
 import pt.estga.shared.exceptions.TokenRevokedException;
+import pt.estga.shared.exceptions.VerificationErrorMessages;
 import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -29,30 +29,46 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class VerificationProcessingServiceImplEmailTest {
+class VerificationProcessingServiceImplTest {
 
     @Mock
     private VerificationTokenService verificationTokenService;
     @Mock
-    private VerificationProcessorFactory verificationProcessorFactory;
+    private GenericVerificationProcessor genericVerificationProcessor;
     @Mock
-    private VerificationProcessor mockProcessor;
+    private UserService userService;
 
     @InjectMocks
     private VerificationProcessingServiceImpl verificationProcessingService;
 
-    @Mock
     private User testUser;
     private VerificationToken emailVerificationToken;
+    private VerificationToken telephoneVerificationToken;
 
     @BeforeEach
     void setUp() {
+        testUser = User.builder()
+                .id(1L)
+                .username("testuser")
+                .enabled(false)
+                .build();
+
         emailVerificationToken = VerificationToken.builder()
                 .token("uuid-email-verify")
                 .code("ABCDEF")
                 .user(testUser)
                 .purpose(VerificationPurpose.EMAIL_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
+                .isRevoked(false)
+                .build();
+
+        telephoneVerificationToken = VerificationToken.builder()
+                .token("uuid-telephone-verify")
+                .code("789012")
+                .user(testUser)
+                .purpose(VerificationPurpose.TELEPHONE_VERIFICATION)
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .isRevoked(false)
                 .build();
     }
 
@@ -61,16 +77,27 @@ class VerificationProcessingServiceImplEmailTest {
     void testConfirmToken_emailVerification_success() {
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationPurpose.EMAIL_VERIFICATION))
-                .thenReturn(mockProcessor);
-        when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
+        when(genericVerificationProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
 
         Optional<String> result = verificationProcessingService.confirmToken(emailVerificationToken.getToken());
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.EMAIL_VERIFICATION);
-        verify(mockProcessor).process(emailVerificationToken);
+        verify(genericVerificationProcessor).process(emailVerificationToken);
+    }
+
+    @Test
+    @DisplayName("Should confirm telephone verification token successfully")
+    void testConfirmToken_telephoneVerification_success() {
+        when(verificationTokenService.findByToken(telephoneVerificationToken.getToken()))
+                .thenReturn(Optional.of(telephoneVerificationToken));
+        when(genericVerificationProcessor.process(telephoneVerificationToken)).thenReturn(Optional.empty());
+
+        Optional<String> result = verificationProcessingService.confirmToken(telephoneVerificationToken.getToken());
+
+        assertThat(result).isEmpty();
+        verify(verificationTokenService).findByToken(telephoneVerificationToken.getToken());
+        verify(genericVerificationProcessor).process(telephoneVerificationToken);
     }
 
     @Test
@@ -83,7 +110,7 @@ class VerificationProcessingServiceImplEmailTest {
 
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_NOT_FOUND);
         verify(verificationTokenService).findByToken("nonexistent");
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 
     @Test
@@ -99,7 +126,7 @@ class VerificationProcessingServiceImplEmailTest {
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_EXPIRED);
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
         verify(verificationTokenService).revokeToken(emailVerificationToken);
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 
     @Test
@@ -115,7 +142,7 @@ class VerificationProcessingServiceImplEmailTest {
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.TOKEN_REVOKED);
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
         verify(verificationTokenService, never()).revokeToken(any());
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 
     @Test
@@ -123,16 +150,27 @@ class VerificationProcessingServiceImplEmailTest {
     void testConfirmCode_emailVerification_success() {
         when(verificationTokenService.findByCode(emailVerificationToken.getCode()))
                 .thenReturn(Optional.of(emailVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationPurpose.EMAIL_VERIFICATION))
-                .thenReturn(mockProcessor);
-        when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
+        when(genericVerificationProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
 
         Optional<String> result = verificationProcessingService.confirmCode(emailVerificationToken.getCode());
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
-        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.EMAIL_VERIFICATION);
-        verify(mockProcessor).process(emailVerificationToken);
+        verify(genericVerificationProcessor).process(emailVerificationToken);
+    }
+
+    @Test
+    @DisplayName("Should confirm telephone verification code successfully")
+    void testConfirmCode_telephoneVerification_success() {
+        when(verificationTokenService.findByCode(telephoneVerificationToken.getCode()))
+                .thenReturn(Optional.of(telephoneVerificationToken));
+        when(genericVerificationProcessor.process(telephoneVerificationToken)).thenReturn(Optional.empty());
+
+        Optional<String> result = verificationProcessingService.confirmCode(telephoneVerificationToken.getCode());
+
+        assertThat(result).isEmpty();
+        verify(verificationTokenService).findByCode(telephoneVerificationToken.getCode());
+        verify(genericVerificationProcessor).process(telephoneVerificationToken);
     }
 
     @Test
@@ -145,7 +183,7 @@ class VerificationProcessingServiceImplEmailTest {
 
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_NOT_FOUND);
         verify(verificationTokenService).findByCode("nonexistent");
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 
     @Test
@@ -161,7 +199,7 @@ class VerificationProcessingServiceImplEmailTest {
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_EXPIRED);
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
         verify(verificationTokenService).revokeToken(emailVerificationToken);
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 
     @Test
@@ -177,6 +215,6 @@ class VerificationProcessingServiceImplEmailTest {
         assertThat(exception.getMessage()).isEqualTo(VerificationErrorMessages.CODE_REVOKED);
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
         verify(verificationTokenService, never()).revokeToken(any());
-        verifyNoInteractions(verificationProcessorFactory, mockProcessor);
+        verifyNoInteractions(genericVerificationProcessor);
     }
 }

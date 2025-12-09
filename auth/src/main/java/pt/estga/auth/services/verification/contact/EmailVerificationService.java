@@ -1,4 +1,4 @@
-package pt.estga.auth.services.verification.email;
+package pt.estga.auth.services.verification.contact;
 
 import pt.estga.auth.entities.token.VerificationToken;
 

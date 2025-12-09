@@ -3,8 +3,8 @@ package pt.estga.auth.services.verification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.services.verification.email.EmailVerificationService;
-import pt.estga.auth.services.verification.sms.SmsVerificationService;
+import pt.estga.auth.services.verification.contact.EmailVerificationService;
+import pt.estga.auth.services.verification.contact.SmsVerificationService;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 

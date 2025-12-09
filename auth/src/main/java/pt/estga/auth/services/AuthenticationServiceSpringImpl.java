@@ -20,7 +20,6 @@ import pt.estga.auth.services.token.RefreshTokenService;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationDispatchService;
 import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.auth.services.verification.commands.EmailVerificationCommand;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
@@ -37,6 +36,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(noRollbackFor = {EmailVerificationRequiredException.class})
 public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     private final UserService userService;
@@ -56,7 +56,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private boolean contactVerificationRequired;
 
     @Override
-    @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
     public Optional<AuthenticationResponseDto> register(User user) {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
@@ -80,7 +79,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         User createdUser = userService.create(user);
 
         if (contactVerificationRequired) {
-            var command = new EmailVerificationCommand(createdUser, verificationTokenService, verificationDispatchService, userContactService);
+            UserContact primaryEmailContact = userContactService.findPrimary(createdUser, ContactType.EMAIL)
+                    .orElseThrow(() -> new IllegalArgumentException("Primary email contact not found for newly created user " + createdUser.getUsername()));
+            var command = new EmailVerificationCommand(createdUser, primaryEmailContact, verificationTokenService, verificationDispatchService);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         }
@@ -108,7 +109,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public Optional<AuthenticationResponseDto> authenticate(String email, String password, String tfaCode) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));

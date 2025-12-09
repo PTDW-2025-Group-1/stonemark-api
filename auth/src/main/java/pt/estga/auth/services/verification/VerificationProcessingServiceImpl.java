@@ -8,15 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.VerificationToken;
 import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.processing.VerificationProcessor;
-import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
-import pt.estga.shared.exceptions.InvalidTokenException;
-import pt.estga.shared.exceptions.SamePasswordException;
-import pt.estga.shared.exceptions.VerificationErrorMessages;
-import pt.estga.shared.exceptions.TokenExpiredException;
-import pt.estga.shared.exceptions.TokenRevokedException;
-import pt.estga.shared.exceptions.InvalidVerificationPurposeException;
+import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.user.services.UserService;
 
 import java.time.Instant;
@@ -28,9 +23,11 @@ import java.util.Optional;
 public class VerificationProcessingServiceImpl implements VerificationProcessingService {
 
     private final VerificationTokenService verificationTokenService;
-    private final VerificationProcessorFactory verificationProcessorFactory;
+    private final GenericVerificationProcessor genericVerificationProcessor;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final UserContactRepository userContactRepository;
+    private final VerificationDispatchService verificationDispatchService;
 
     @Transactional
     @Override
@@ -39,10 +36,15 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         VerificationToken vt = getValidatedVerificationToken(token, false);
         log.debug("Token {} validated successfully. Purpose: {}", token, vt.getPurpose());
 
-        VerificationProcessor processor = verificationProcessorFactory.getProcessor(vt.getPurpose());
-        Optional<String> resultToken = processor.process(vt);
-        log.info("Token confirmation for {} completed. Password reset required: {}", token, resultToken.isPresent());
-        return resultToken;
+        if (vt.getPurpose() == VerificationPurpose.EMAIL_VERIFICATION || vt.getPurpose() == VerificationPurpose.TELEPHONE_VERIFICATION) {
+            return genericVerificationProcessor.process(vt);
+        }
+
+        if (vt.getPurpose() == VerificationPurpose.PASSWORD_RESET) {
+            return Optional.of(vt.getToken());
+        }
+
+        throw new InvalidVerificationPurposeException("Invalid purpose for token confirmation");
     }
 
     @Transactional
@@ -52,17 +54,18 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         VerificationToken vt = getValidatedVerificationToken(code, true);
         log.debug("Code {} validated successfully. Purpose: {}", code, vt.getPurpose());
 
-        VerificationProcessor processor = verificationProcessorFactory.getProcessor(vt.getPurpose());
-        Optional<String> resultToken = processor.process(vt);
-        log.info("Code confirmation for {} completed. Password reset required: {}", code, resultToken.isPresent());
-        return resultToken;
+        if (vt.getPurpose() == VerificationPurpose.EMAIL_VERIFICATION || vt.getPurpose() == VerificationPurpose.TELEPHONE_VERIFICATION) {
+            return genericVerificationProcessor.process(vt);
+        }
+
+        throw new InvalidVerificationPurposeException("Invalid purpose for code confirmation");
     }
 
     @Transactional
     @Override
     public void processPasswordReset(String token, String newPassword) {
         log.info("Attempting to process password reset for token: {}", token);
-        VerificationToken vt = getValidatedVerificationToken(token, false); // Use helper for validation
+        VerificationToken vt = getValidatedVerificationToken(token, false);
         log.debug("Token {} validated for password reset. Purpose: {}", token, vt.getPurpose());
 
         if (vt.getPurpose() != VerificationPurpose.PASSWORD_RESET) {
@@ -73,7 +76,6 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         User user = vt.getUser();
         log.debug("User associated with token {}: {}", token, user.getUsername());
 
-        // Check if the new password is the same as the current password
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             log.warn("Attempted to reset password for user {} with same password.", user.getUsername());
             throw new SamePasswordException(VerificationErrorMessages.SAME_PASSWORD);
@@ -87,16 +89,35 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         log.debug("Token {} revoked after successful password reset.", token);
     }
 
-    /**
-     * Validates a verification token or code for existence, expiration, and revocation status.
-     *
-     * @param value The token string or code string.
-     * @param isCode True if the value is a code, false if it's a token.
-     * @return The validated VerificationToken.
-     * @throws InvalidTokenException if the token/code is not found.
-     * @throws TokenExpiredException if the token/code is expired.
-     * @throws TokenRevokedException if the token/code is revoked.
-     */
+    @Override
+    @Transactional
+    public void initiatePasswordReset(String contactValue) {
+        UserContact userContact = userContactRepository.findByValue(contactValue)
+                .orElseThrow(() -> new UserNotFoundException("User not found with contact: " + contactValue));
+
+        User user = userContact.getUser();
+        if (!user.isEnabled()) {
+            throw new UserNotFoundException("User not found with contact: " + contactValue);
+        }
+
+        if (!userContact.isVerified()) {
+            throw new ContactMethodNotAvailableException("Contact is not verified: " + contactValue);
+        }
+
+        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationPurpose.PASSWORD_RESET);
+
+        verificationDispatchService.sendVerification(userContact, verificationToken);
+    }
+
+    @Override
+    public Optional<User> validatePasswordResetToken(String token) {
+        return verificationTokenService.findByToken(token)
+                .filter(t -> t.getPurpose() == VerificationPurpose.PASSWORD_RESET)
+                .filter(t -> !t.isRevoked())
+                .filter(t -> t.getExpiresAt().isAfter(java.time.Instant.now()))
+                .map(VerificationToken::getUser);
+    }
+
     private VerificationToken getValidatedVerificationToken(String value, boolean isCode) {
         log.debug("Validating {} with value: {}", isCode ? "code" : "token", value);
         Optional<VerificationToken> optionalVt;

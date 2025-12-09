@@ -1,6 +1,8 @@
 package pt.estga.auth.services.verification;
 
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.user.entities.User;
+
 import java.util.Optional;
 
 public interface VerificationProcessingService {
@@ -14,4 +16,7 @@ public interface VerificationProcessingService {
     @Transactional
     void processPasswordReset(String token, String newPassword);
 
+    void initiatePasswordReset(String contactValue);
+
+    Optional<User> validatePasswordResetToken(String token);
 }

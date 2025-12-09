@@ -14,9 +14,11 @@ import pt.estga.auth.services.AuthenticationServiceSpringImpl;
 import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
+import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.auth.services.verification.VerificationDispatchService;
 import pt.estga.auth.services.verification.VerificationInitiationService;
+import pt.estga.auth.services.verification.commands.EmailVerificationCommand;
 import pt.estga.auth.services.verification.commands.VerificationCommand;
-import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.user.entities.User;
@@ -24,6 +26,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
+import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
 
 import java.lang.reflect.Field;
@@ -51,7 +54,11 @@ class AuthenticationServiceRegisterTest {
     @Mock
     private VerificationInitiationService verificationInitiationService;
     @Mock
-    private VerificationCommandFactory verificationCommandFactory;
+    private VerificationTokenService verificationTokenService; // Added mock for VerificationTokenService
+    @Mock
+    private VerificationDispatchService verificationDispatchService; // Added mock for VerificationDispatchService
+    @Mock
+    private UserContactService userContactService; // Added mock for UserContactService
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -59,6 +66,7 @@ class AuthenticationServiceRegisterTest {
     private AuthenticationServiceSpringImpl authenticationService;
 
     private User testUser;
+    private UserContact testUserContact; // Declare testUserContact at class level
     private final String testEmail = "test@example.com";
 
     @BeforeEach
@@ -74,7 +82,7 @@ class AuthenticationServiceRegisterTest {
                 .tfaMethod(TfaMethod.NONE)
                 .tfaSecret(null)
                 .build();
-        UserContact testUserContact = UserContact.builder()
+        testUserContact = UserContact.builder() // Initialize testUserContact
                 .id(1L)
                 .type(ContactType.EMAIL)
                 .value(testEmail)
@@ -101,8 +109,7 @@ class AuthenticationServiceRegisterTest {
         when(userService.existsByContactValue(testEmail)).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
-        when(verificationCommandFactory.createEmailVerificationCommand(any(User.class)))
-                .thenReturn(mock(VerificationCommand.class));
+        when(userContactService.findPrimary(any(User.class), eq(ContactType.EMAIL))).thenReturn(Optional.of(testUserContact)); // Mock userContactService
 
         setContactVerificationRequired(true);
 
@@ -116,8 +123,13 @@ class AuthenticationServiceRegisterTest {
         assertThat(userCaptor.getValue().isEnabled()).isFalse();
         assertThat(userCaptor.getValue().getTfaMethod()).isEqualTo(TfaMethod.NONE);
 
-        verify(verificationCommandFactory).createEmailVerificationCommand(any(User.class));
-        verify(verificationInitiationService).initiate(any(VerificationCommand.class));
+        ArgumentCaptor<VerificationCommand> commandCaptor = ArgumentCaptor.forClass(VerificationCommand.class);
+        verify(verificationInitiationService).initiate(commandCaptor.capture());
+        assertThat(commandCaptor.getValue()).isInstanceOf(EmailVerificationCommand.class);
+        verify(verificationTokenService).createAndSaveToken(any(User.class), eq(pt.estga.auth.enums.VerificationPurpose.EMAIL_VERIFICATION));
+        verify(verificationDispatchService).sendVerification(eq(testUserContact), any());
+        verify(userContactService).findPrimary(any(User.class), eq(ContactType.EMAIL));
+
         verifyNoInteractions(jwtService, accessTokenService, refreshTokenService);
     }
 
@@ -156,7 +168,7 @@ class AuthenticationServiceRegisterTest {
         verify(jwtService).generateAccessToken(testUser);
         verify(refreshTokenService).createToken(anyString(), anyString());
         verify(accessTokenService).createToken(anyString(), anyString(), any());
-        verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
+        verifyNoInteractions(verificationInitiationService, verificationTokenService, verificationDispatchService, userContactService);
     }
 
     @Test
@@ -169,6 +181,6 @@ class AuthenticationServiceRegisterTest {
 
         verify(userService).existsByContactValue(testEmail);
         verifyNoMoreInteractions(userService);
-        verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
+        verifyNoInteractions(verificationInitiationService, verificationTokenService, verificationDispatchService, userContactService);
     }
 }
