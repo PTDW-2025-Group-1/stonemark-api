@@ -3,7 +3,7 @@ package pt.estga.auth.services.verification.processing;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
@@ -27,7 +27,7 @@ public class TelephoneVerificationProcessor implements VerificationProcessor {
     }
 
     @Override
-    public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.TELEPHONE_VERIFICATION;
+    public VerificationPurpose getPurpose() {
+        return VerificationPurpose.TELEPHONE_VERIFICATION;
     }
 }

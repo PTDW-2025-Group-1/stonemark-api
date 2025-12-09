@@ -5,13 +5,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
-import pt.estga.auth.services.verification.email.EmailVerificationService;
-import pt.estga.auth.services.verification.sms.SmsVerificationService;
+import pt.estga.auth.services.verification.VerificationDispatchService;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.ContactType;
 import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.user.services.UserService;
 import pt.estga.shared.exceptions.UserNotFoundException;
@@ -26,8 +24,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserService userService;
     private final VerificationTokenService verificationTokenService;
-    private final EmailVerificationService emailVerificationService;
-    private final SmsVerificationService smsVerificationService;
+    private final VerificationDispatchService verificationDispatchService;
     private final PasswordEncoder passwordEncoder;
     private final UserContactRepository userContactRepository;
 
@@ -37,32 +34,27 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         UserContact userContact = userContactRepository.findByValue(contactValue)
                 .orElseThrow(() -> new UserNotFoundException("User not found with contact: " + contactValue));
 
+        User user = userContact.getUser();
+        if (!user.isEnabled()) {
+            throw new UserNotFoundException("User not found with contact: " + contactValue);
+        }
+
         if (!userContact.isVerified()) {
             throw new ContactMethodNotAvailableException("Contact is not verified: " + contactValue);
         }
 
-        User user = userContact.getUser();
-        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationTokenPurpose.PASSWORD_RESET);
+        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationPurpose.PASSWORD_RESET);
 
-        if (userContact.getType() == ContactType.EMAIL) {
-            emailVerificationService.sendVerificationEmail(userContact.getValue(), verificationToken);
-        } else if (userContact.getType() == ContactType.TELEPHONE) {
-            smsVerificationService.sendVerificationSms(userContact.getValue(), verificationToken);
-        } else {
-            throw new IllegalArgumentException("Unsupported contact type for password reset: " + userContact.getType());
-        }
+        verificationDispatchService.sendVerification(userContact, verificationToken);
     }
 
     @Override
     public Optional<User> validatePasswordResetToken(String token) {
-        try {
-            VerificationToken verificationToken = getValidPasswordResetToken(token);
-            return Optional.of(verificationToken.getUser());
-        } catch (InvalidPasswordResetTokenException e) {
-            // If the token is invalid, expired, or used, we return empty optional
-            // The exception is caught here to allow the caller to handle it gracefully
-            return Optional.empty();
-        }
+        return verificationTokenService.findByToken(token)
+                .filter(t -> t.getPurpose() == VerificationPurpose.PASSWORD_RESET)
+                .filter(t -> !t.isRevoked())
+                .filter(t -> t.getExpiresAt().isAfter(java.time.Instant.now()))
+                .map(VerificationToken::getUser);
     }
 
     @Override
@@ -86,7 +78,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
      */
     private VerificationToken getValidPasswordResetToken(String token) {
         return verificationTokenService.findByToken(token)
-                .filter(t -> t.getPurpose() == VerificationTokenPurpose.PASSWORD_RESET)
+                .filter(t -> t.getPurpose() == VerificationPurpose.PASSWORD_RESET)
                 .filter(t -> !t.isRevoked())
                 .filter(t -> t.getExpiresAt().isAfter(java.time.Instant.now()))
                 .orElseThrow(() -> new InvalidPasswordResetTokenException("Invalid or expired password reset token"));

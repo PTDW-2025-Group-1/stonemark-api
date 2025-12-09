@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.processing;
 
 import org.springframework.stereotype.Component;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.Map;
 @Component
 public class VerificationProcessorFactory {
 
-    private final Map<VerificationTokenPurpose, VerificationProcessor> processors = new EnumMap<>(VerificationTokenPurpose.class);
+    private final Map<VerificationPurpose, VerificationProcessor> processors = new EnumMap<>(VerificationPurpose.class);
 
     public VerificationProcessorFactory(List<VerificationProcessor> processors) {
         for (VerificationProcessor processor : processors) {
@@ -18,7 +18,7 @@ public class VerificationProcessorFactory {
         }
     }
 
-    public VerificationProcessor getProcessor(VerificationTokenPurpose purpose) {
+    public VerificationProcessor getProcessor(VerificationPurpose purpose) {
                 VerificationProcessor processor = processors.get(purpose);
         if (processor == null) {
             throw new IllegalArgumentException("No VerificationProcessor found for purpose: " + purpose);

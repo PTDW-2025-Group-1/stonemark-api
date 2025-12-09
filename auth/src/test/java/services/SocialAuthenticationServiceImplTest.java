@@ -63,11 +63,6 @@ class SocialAuthenticationServiceImplTest {
     private final String FIRST_NAME = "Test";
     private final String LAST_NAME = "User";
 
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(socialAuthenticationService, "emailVerificationRequired", false);
-    }
-
     private User createTestUser(boolean enabled) {
         User user = User.builder()
                 .id(1L)
@@ -173,31 +168,6 @@ class SocialAuthenticationServiceImplTest {
                 () -> socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN));
         assertTrue(thrown.getMessage().contains("Google authentication failed."));
         assertInstanceOf(IOException.class, thrown.getCause());
-    }
-
-    @Test
-    void authenticateWithGoogle_shouldThrowEmailVerificationRequiredException_whenEmailVerificationRequiredAndUserNotEnabled() throws GeneralSecurityException, IOException {
-        ReflectionTestUtils.setField(socialAuthenticationService, "emailVerificationRequired", true);
-        User newUser = createTestUser(false);
-        UserIdentity newIdentity = UserIdentity.builder().provider(Provider.GOOGLE).identity(GOOGLE_ID).user(newUser).build();
-
-        when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenReturn(googleIdToken);
-        when(googleIdToken.getPayload()).thenReturn(payload);
-        when(payload.getEmail()).thenReturn(USER_EMAIL);
-        when(payload.getSubject()).thenReturn(GOOGLE_ID);
-        when(payload.get("given_name")).thenReturn(FIRST_NAME);
-        when(payload.get("family_name")).thenReturn(LAST_NAME);
-
-        when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
-        when(userService.findByContact(USER_EMAIL)).thenReturn(Optional.empty());
-        when(userService.create(any(User.class))).thenReturn(newUser);
-        when(userIdentityService.createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID))).thenReturn(newIdentity);
-
-        EmailVerificationRequiredException thrown = assertThrows(EmailVerificationRequiredException.class,
-                () -> socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN));
-        assertTrue(thrown.getMessage().contains("Email verification required."));
-        verify(userService, times(1)).create(any(User.class));
-        verify(userIdentityService, times(1)).createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID));
     }
 
     @Test

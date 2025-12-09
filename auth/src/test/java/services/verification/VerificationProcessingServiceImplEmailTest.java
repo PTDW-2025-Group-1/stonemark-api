@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
 import pt.estga.auth.services.verification.processing.VerificationProcessor;
@@ -51,7 +51,7 @@ class VerificationProcessingServiceImplEmailTest {
                 .token("uuid-email-verify")
                 .code("ABCDEF")
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.EMAIL_VERIFICATION)
+                .purpose(VerificationPurpose.EMAIL_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
     }
@@ -61,7 +61,7 @@ class VerificationProcessingServiceImplEmailTest {
     void testConfirmToken_emailVerification_success() {
         when(verificationTokenService.findByToken(emailVerificationToken.getToken()))
                 .thenReturn(Optional.of(emailVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION))
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.EMAIL_VERIFICATION))
                 .thenReturn(mockProcessor);
         when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
 
@@ -69,7 +69,7 @@ class VerificationProcessingServiceImplEmailTest {
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByToken(emailVerificationToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.EMAIL_VERIFICATION);
         verify(mockProcessor).process(emailVerificationToken);
     }
 
@@ -123,7 +123,7 @@ class VerificationProcessingServiceImplEmailTest {
     void testConfirmCode_emailVerification_success() {
         when(verificationTokenService.findByCode(emailVerificationToken.getCode()))
                 .thenReturn(Optional.of(emailVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION))
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.EMAIL_VERIFICATION))
                 .thenReturn(mockProcessor);
         when(mockProcessor.process(emailVerificationToken)).thenReturn(Optional.empty());
 
@@ -131,7 +131,7 @@ class VerificationProcessingServiceImplEmailTest {
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByCode(emailVerificationToken.getCode());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.EMAIL_VERIFICATION);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.EMAIL_VERIFICATION);
         verify(mockProcessor).process(emailVerificationToken);
     }
 

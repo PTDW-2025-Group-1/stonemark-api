@@ -1,6 +1,6 @@
 package pt.estga.auth.enums;
 
-public enum VerificationTokenPurpose {
+public enum VerificationPurpose {
     EMAIL_VERIFICATION,
     TELEPHONE_VERIFICATION,
     PASSWORD_RESET,

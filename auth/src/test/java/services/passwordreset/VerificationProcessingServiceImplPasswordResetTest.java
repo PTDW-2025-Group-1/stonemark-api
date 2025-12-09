@@ -9,11 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.passwordreset.PasswordResetConfirmationProcessor;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
-import pt.estga.auth.services.verification.processing.VerificationProcessor;
 import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.exceptions.SamePasswordException;
@@ -50,18 +49,22 @@ class VerificationProcessingServiceImplPasswordResetTest {
     @InjectMocks
     private VerificationProcessingServiceImpl verificationProcessingService;
 
-    @Mock
     private User testUser;
     private VerificationToken emailVerificationToken;
     private VerificationToken passwordResetToken;
 
     @BeforeEach
     void setUp() {
+        testUser = User.builder()
+                .id(1L)
+                .password("oldHashedPassword")
+                .build();
+
         emailVerificationToken = VerificationToken.builder()
                 .token("uuid-email-verify")
                 .code("ABCDEF")
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.EMAIL_VERIFICATION)
+                .purpose(VerificationPurpose.EMAIL_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
 
@@ -69,7 +72,7 @@ class VerificationProcessingServiceImplPasswordResetTest {
                 .token("uuid-password-reset")
                 .code("123456")
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.PASSWORD_RESET)
+                .purpose(VerificationPurpose.PASSWORD_RESET)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
     }
@@ -79,8 +82,8 @@ class VerificationProcessingServiceImplPasswordResetTest {
     void testConfirmToken_passwordReset_success() {
         when(verificationTokenService.findByToken(passwordResetToken.getToken()))
                 .thenReturn(Optional.of(passwordResetToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.PASSWORD_RESET))
-                .thenReturn((VerificationProcessor) passwordResetConfirmationProcessor);
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.PASSWORD_RESET))
+                .thenReturn(passwordResetConfirmationProcessor);
         when(passwordResetConfirmationProcessor.process(passwordResetToken))
                 .thenReturn(Optional.of(passwordResetToken.getToken()));
 
@@ -89,7 +92,7 @@ class VerificationProcessingServiceImplPasswordResetTest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(passwordResetToken.getToken());
         verify(verificationTokenService).findByToken(passwordResetToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.PASSWORD_RESET);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.PASSWORD_RESET);
         verify(passwordResetConfirmationProcessor).process(passwordResetToken);
     }
 
@@ -98,8 +101,8 @@ class VerificationProcessingServiceImplPasswordResetTest {
     void testConfirmCode_passwordReset_success() {
         when(verificationTokenService.findByCode(passwordResetToken.getCode()))
                 .thenReturn(Optional.of(passwordResetToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.PASSWORD_RESET))
-                .thenReturn((VerificationProcessor) passwordResetConfirmationProcessor);
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.PASSWORD_RESET))
+                .thenReturn(passwordResetConfirmationProcessor);
         when(passwordResetConfirmationProcessor.process(passwordResetToken))
                 .thenReturn(Optional.of(passwordResetToken.getToken()));
 
@@ -108,7 +111,7 @@ class VerificationProcessingServiceImplPasswordResetTest {
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(passwordResetToken.getToken());
         verify(verificationTokenService).findByCode(passwordResetToken.getCode());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.PASSWORD_RESET);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.PASSWORD_RESET);
         verify(passwordResetConfirmationProcessor).process(passwordResetToken);
     }
 
@@ -116,9 +119,8 @@ class VerificationProcessingServiceImplPasswordResetTest {
     @DisplayName("Should successfully process password reset")
     void testProcessPasswordReset_success() {
         String newHashedPassword = "newHashedPassword";
-        String oldPasswordInTestUser = "oldHashedPassword";
+        String oldPasswordInTestUser = testUser.getPassword();
 
-        when(testUser.getPassword()).thenReturn(oldPasswordInTestUser);
         when(verificationTokenService.findByToken(passwordResetToken.getToken()))
                 .thenReturn(Optional.of(passwordResetToken));
         when(passwordEncoder.matches(anyString(), eq(oldPasswordInTestUser))).thenReturn(false);
@@ -128,16 +130,15 @@ class VerificationProcessingServiceImplPasswordResetTest {
 
         verify(verificationTokenService).findByToken(passwordResetToken.getToken());
         verify(passwordEncoder).matches("newPassword", oldPasswordInTestUser);
-        verify(testUser).setPassword(newHashedPassword);
         verify(userService).update(testUser);
         verify(verificationTokenService).revokeToken(passwordResetToken);
+        assertThat(testUser.getPassword()).isEqualTo(newHashedPassword);
     }
 
     @Test
     @DisplayName("Should throw SamePasswordException if new password is same as old")
     void testProcessPasswordReset_samePassword() {
-        String oldPasswordInTestUser = "oldHashedPassword";
-        when(testUser.getPassword()).thenReturn(oldPasswordInTestUser);
+        String oldPasswordInTestUser = testUser.getPassword();
 
         when(verificationTokenService.findByToken(passwordResetToken.getToken()))
                 .thenReturn(Optional.of(passwordResetToken));

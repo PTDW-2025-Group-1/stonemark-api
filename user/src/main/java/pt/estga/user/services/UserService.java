@@ -16,9 +16,7 @@ public interface UserService {
 
     Optional<User> findByContact(String contactValue);
 
-    Optional<User> findByContact(String contactValue, ContactType contactType);
-
-    boolean existsByEmail(String email);
+    boolean existsByContactValue(String contactValue);
 
     User create(User user);
 
@@ -27,11 +25,5 @@ public interface UserService {
     Optional<User> updateRole(User user, Role role);
 
     void deleteById(Long id);
-
-    boolean existsByTelephone(String newTelephone);
-
-    Optional<String> getPrimaryTelephone(User user);
-
-    Optional<String> getPrimaryEmail(User user);
 
 }

@@ -97,7 +97,7 @@ application:
         expiration: 3600000 # 1 hour
       telephone-verification-token:
         expiration: 900000 # 15 minutes
-    email:
+    contact:
       verification-required: false
 
 sms:

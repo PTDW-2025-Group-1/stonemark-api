@@ -3,7 +3,7 @@ package pt.estga.auth.entities.token;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 
 import java.time.Instant;
 
@@ -16,7 +16,7 @@ import java.time.Instant;
 public class VerificationToken extends BaseToken {
 
     @Enumerated(EnumType.STRING)
-    private VerificationTokenPurpose purpose;
+    private VerificationPurpose purpose;
 
     @Column(unique = true)
     private String code;

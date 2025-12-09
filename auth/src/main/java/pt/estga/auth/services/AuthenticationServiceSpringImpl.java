@@ -11,22 +11,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.dtos.AuthenticationResponseDto;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
+import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.auth.services.verification.VerificationDispatchService;
 import pt.estga.auth.services.verification.VerificationInitiationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
-import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
-import pt.estga.auth.dtos.AuthenticationResponseDto;
+import pt.estga.auth.services.verification.commands.EmailVerificationCommand;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
+import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
-import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
+import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
 
 import java.util.Optional;
@@ -37,20 +40,20 @@ import java.util.Optional;
 public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     private final UserService userService;
+    private final UserContactService userContactService;
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final VerificationInitiationService verificationInitiationService;
-    private final VerificationCommandFactory verificationCommandFactory;
-    private final VerificationProcessingService verificationProcessingService;
+    private final VerificationTokenService verificationTokenService;
+    private final VerificationDispatchService verificationDispatchService;
     private final PasswordEncoder passwordEncoder;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
     private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
-    private final SocialAuthenticationService socialAuthenticationService;
 
-    @Value("${application.security.email.verification-required:false}")
-    private boolean emailVerificationRequired;
+    @Value("${application.security.contact.verification-required:false}")
+    private boolean contactVerificationRequired;
 
     @Override
     @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
@@ -64,7 +67,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Primary email not found"));
 
-        if (userService.existsByEmail(email)) {
+        if (userService.existsByContactValue(email)) {
             throw new EmailAlreadyTakenException("email already in use");
         }
         if (user.getRole() == null) {
@@ -72,12 +75,12 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
         // Default to NONE for 2FA method on registration
         user.setTfaMethod(TfaMethod.NONE);
-        user.setEnabled(!emailVerificationRequired);
+        user.setEnabled(!contactVerificationRequired);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User createdUser = userService.create(user);
 
-        if (emailVerificationRequired) {
-            var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
+        if (contactVerificationRequired) {
+            var command = new EmailVerificationCommand(createdUser, verificationTokenService, verificationDispatchService, userContactService);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         }
@@ -117,7 +120,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         User user = userService.findByContact(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (emailVerificationRequired && !user.isEnabled()) {
+        if (contactVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required.");
         }
 
@@ -146,9 +149,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             boolean isCodeValid = switch (user.getTfaMethod()) {
                 case TOTP -> twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
                 case SMS ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.SMS_2FA);
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationPurpose.SMS_2FA);
                 case EMAIL ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationTokenPurpose.EMAIL_2FA);
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationPurpose.EMAIL_2FA);
                 default -> false;
             };
 

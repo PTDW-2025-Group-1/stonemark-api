@@ -85,31 +85,31 @@ class AuthenticationServiceRegisterTest {
         testUser.setContacts(new ArrayList<>(List.of(testUserContact)));
     }
 
-    private void setEmailVerificationRequired(boolean value) {
+    private void setContactVerificationRequired(boolean value) {
         try {
-            Field field = AuthenticationServiceSpringImpl.class.getDeclaredField("emailVerificationRequired");
+            Field field = AuthenticationServiceSpringImpl.class.getDeclaredField("contactVerificationRequired");
             field.setAccessible(true);
             field.set(authenticationService, value);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to set emailVerificationRequired field via reflection", e);
+            throw new RuntimeException("Failed to set contactVerificationRequired field via reflection", e);
         }
     }
 
     @Test
     @DisplayName("Should register user and require email verification when enabled")
     void testRegister_success_emailVerificationRequired() {
-        when(userService.existsByEmail(testEmail)).thenReturn(false);
+        when(userService.existsByContactValue(testEmail)).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(verificationCommandFactory.createEmailVerificationCommand(any(User.class)))
                 .thenReturn(mock(VerificationCommand.class));
 
-        setEmailVerificationRequired(true);
+        setContactVerificationRequired(true);
 
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
                 .isThrownBy(() -> authenticationService.register(testUser));
 
-        verify(userService).existsByEmail(testEmail);
+        verify(userService).existsByContactValue(testEmail);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userService).create(userCaptor.capture());
@@ -124,7 +124,7 @@ class AuthenticationServiceRegisterTest {
     @Test
     @DisplayName("Should register user and return tokens when email verification is not required")
     void testRegister_success_noEmailVerificationRequired() {
-        when(userService.existsByEmail(testEmail)).thenReturn(false);
+        when(userService.existsByContactValue(testEmail)).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(testUser);
         when(jwtService.generateRefreshToken(testUser)).thenReturn("refreshTokenString");
@@ -132,7 +132,7 @@ class AuthenticationServiceRegisterTest {
         when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
         when(accessTokenService.createToken(anyString(), anyString(), any())).thenReturn(null);
 
-        setEmailVerificationRequired(false);
+        setContactVerificationRequired(false);
 
         Optional<AuthenticationResponseDto> optionalResponse = authenticationService.register(testUser);
 
@@ -144,7 +144,7 @@ class AuthenticationServiceRegisterTest {
         assertThat(response.tfaRequired()).isFalse();
         assertThat(response.tfaCodeSent()).isFalse();
 
-        verify(userService).existsByEmail(testEmail);
+        verify(userService).existsByContactValue(testEmail);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userService).create(userCaptor.capture());
@@ -162,12 +162,12 @@ class AuthenticationServiceRegisterTest {
     @Test
     @DisplayName("Should throw EmailAlreadyTakenException if email exists")
     void testRegister_emailAlreadyTaken() {
-        when(userService.existsByEmail(testEmail)).thenReturn(true);
+        when(userService.existsByContactValue(testEmail)).thenReturn(true);
 
         assertThatExceptionOfType(EmailAlreadyTakenException.class)
                 .isThrownBy(() -> authenticationService.register(testUser));
 
-        verify(userService).existsByEmail(testEmail);
+        verify(userService).existsByContactValue(testEmail);
         verifyNoMoreInteractions(userService);
         verifyNoInteractions(verificationCommandFactory, verificationInitiationService);
     }

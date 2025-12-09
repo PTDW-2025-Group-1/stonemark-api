@@ -1,6 +1,6 @@
 package pt.estga.auth.services.verification.sms;
 
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 
 import java.util.Map;
 
@@ -10,6 +10,6 @@ public interface SmsContentProvider {
 
     Map<String, Object> getProperties(long remainingMillis);
 
-    VerificationTokenPurpose getPurpose();
+    VerificationPurpose getPurpose();
 
 }

@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.passwordreset.PasswordResetServiceImpl;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.email.EmailVerificationService;
@@ -21,6 +21,7 @@ import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
+import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.user.services.UserService;
 
 import java.time.Instant;
@@ -28,15 +29,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServicePasswordResetTest {
-
-    @Mock
-    private UserService userService;
 
     @Mock
     private VerificationTokenService verificationTokenService;
@@ -49,6 +47,12 @@ class AuthenticationServicePasswordResetTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private UserContactRepository userContactRepository;
+
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private PasswordResetServiceImpl passwordResetService;
@@ -82,8 +86,8 @@ class AuthenticationServicePasswordResetTest {
     @Test
     @DisplayName("Should initiate password reset for verified email")
     void testInitiatePasswordReset_email_success() {
-        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
-        when(verificationTokenService.createAndSaveToken(testUser, VerificationTokenPurpose.PASSWORD_RESET))
+        when(userContactRepository.findByValue(testEmail)).thenReturn(Optional.of(testUserContact));
+        when(verificationTokenService.createAndSaveToken(testUser, VerificationPurpose.PASSWORD_RESET))
                 .thenReturn(new VerificationToken());
 
         passwordResetService.initiatePasswordReset(testEmail);
@@ -98,8 +102,8 @@ class AuthenticationServicePasswordResetTest {
         String testTelephone = "123456789";
         testUserContact.setType(ContactType.TELEPHONE);
         testUserContact.setValue(testTelephone);
-        when(userService.findByContact(testTelephone)).thenReturn(Optional.of(testUser));
-        when(verificationTokenService.createAndSaveToken(testUser, VerificationTokenPurpose.PASSWORD_RESET))
+        when(userContactRepository.findByValue(testTelephone)).thenReturn(Optional.of(testUserContact));
+        when(verificationTokenService.createAndSaveToken(testUser, VerificationPurpose.PASSWORD_RESET))
                 .thenReturn(new VerificationToken());
 
         passwordResetService.initiatePasswordReset(testTelephone);
@@ -111,33 +115,27 @@ class AuthenticationServicePasswordResetTest {
     @Test
     @DisplayName("Should throw UserNotFoundException if contact does not exist")
     void testInitiatePasswordReset_contactNotFound() {
-        when(userService.findByContact(testEmail)).thenReturn(Optional.empty());
+        when(userContactRepository.findByValue(testEmail)).thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(UserNotFoundException.class)
-                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
+        assertThrows(UserNotFoundException.class, () -> passwordResetService.initiatePasswordReset(testEmail));
     }
 
     @Test
     @DisplayName("Should throw ContactMethodNotAvailableException if contact is not verified")
     void testInitiatePasswordReset_contactNotVerified() {
         testUserContact.setVerified(false);
-        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
+        when(userContactRepository.findByValue(testEmail)).thenReturn(Optional.of(testUserContact));
 
-        assertThatExceptionOfType(ContactMethodNotAvailableException.class)
-                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
+        assertThrows(ContactMethodNotAvailableException.class, () -> passwordResetService.initiatePasswordReset(testEmail));
     }
 
     @Test
     @DisplayName("Should throw UserNotFoundException if user is disabled")
     void testInitiatePasswordReset_userDisabled() {
         testUser.setEnabled(false);
-        when(userService.findByContact(testEmail)).thenReturn(Optional.of(testUser));
+        when(userContactRepository.findByValue(testEmail)).thenReturn(Optional.of(testUserContact));
 
-        assertThatExceptionOfType(UserNotFoundException.class)
-                .isThrownBy(() -> passwordResetService.initiatePasswordReset(testEmail));
-
-        verify(userService).findByContact(testEmail);
-        verifyNoInteractions(verificationTokenService, emailVerificationService, smsVerificationService);
+        assertThrows(UserNotFoundException.class, () -> passwordResetService.initiatePasswordReset(testEmail));
     }
 
     @Test
@@ -148,7 +146,7 @@ class AuthenticationServicePasswordResetTest {
         VerificationToken verificationToken = VerificationToken.builder()
                 .token(token)
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.PASSWORD_RESET)
+                .purpose(VerificationPurpose.PASSWORD_RESET)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .isRevoked(false)
                 .build();
@@ -170,8 +168,7 @@ class AuthenticationServicePasswordResetTest {
         String token = "invalidToken";
         when(verificationTokenService.findByToken(token)).thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(InvalidPasswordResetTokenException.class)
-                .isThrownBy(() -> passwordResetService.resetPassword(token, "newPassword"));
+        assertThrows(InvalidPasswordResetTokenException.class, () -> passwordResetService.resetPassword(token, "newPassword"));
     }
 
     @Test
@@ -181,7 +178,7 @@ class AuthenticationServicePasswordResetTest {
         VerificationToken verificationToken = VerificationToken.builder()
                 .token(token)
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.PASSWORD_RESET)
+                .purpose(VerificationPurpose.PASSWORD_RESET)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
 

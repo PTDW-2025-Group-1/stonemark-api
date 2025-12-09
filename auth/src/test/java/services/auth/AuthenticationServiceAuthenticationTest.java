@@ -102,13 +102,13 @@ class AuthenticationServiceAuthenticationTest {
         disabledTestUser.setContacts(new ArrayList<>(List.of(disabledTestUserContact)));
     }
 
-    private void setEmailVerificationRequired(boolean value) {
+    private void setContactVerificationRequired(boolean value) {
         try {
-            Field field = AuthenticationServiceSpringImpl.class.getDeclaredField("emailVerificationRequired");
+            Field field = AuthenticationServiceSpringImpl.class.getDeclaredField("contactVerificationRequired");
             field.setAccessible(true);
             field.set(authenticationService, value);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to set emailVerificationRequired field via reflection", e);
+            throw new RuntimeException("Failed to set contactVerificationRequired field via reflection", e);
         }
     }
 
@@ -123,7 +123,7 @@ class AuthenticationServiceAuthenticationTest {
         when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
         when(accessTokenService.createToken(anyString(), anyString(), any())).thenReturn(null);
 
-        setEmailVerificationRequired(false);
+        setContactVerificationRequired(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword(), null);
 
@@ -147,7 +147,7 @@ class AuthenticationServiceAuthenticationTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(mock(Authentication.class));
         when(userService.findByContact(testEmail)).thenReturn(Optional.of(disabledTestUser));
 
-        setEmailVerificationRequired(true);
+        setContactVerificationRequired(true);
 
         assertThatExceptionOfType(EmailVerificationRequiredException.class)
                 .isThrownBy(() -> authenticationService.authenticate(testEmail, disabledTestUser.getPassword(), null));
@@ -167,7 +167,7 @@ class AuthenticationServiceAuthenticationTest {
         when(refreshTokenService.createToken(anyString(), anyString())).thenReturn(null);
         when(accessTokenService.createToken(anyString(), anyString(), any())).thenReturn(null);
 
-        setEmailVerificationRequired(true);
+        setContactVerificationRequired(true);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate(testEmail, testUser.getPassword(), null);
 

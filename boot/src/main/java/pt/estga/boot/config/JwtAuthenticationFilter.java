@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         accessTokenService.findByTokenWithUser(jwt)
-                .filter(token -> !token.isIsRevoked())
+                .filter(token -> !token.isRevoked())
                 .map(token -> (UserDetails) token.getUser())
                 .filter(userDetails -> jwtService.isTokenValid(jwt, userDetails))
                 .ifPresent(userDetails -> {

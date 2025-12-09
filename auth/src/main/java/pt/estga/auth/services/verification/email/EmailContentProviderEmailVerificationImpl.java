@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.email;
 
 import org.springframework.stereotype.Component;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +28,7 @@ public class EmailContentProviderEmailVerificationImpl implements EmailContentPr
     }
 
     @Override
-    public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.EMAIL_VERIFICATION;
+    public VerificationPurpose getPurpose() {
+        return VerificationPurpose.EMAIL_VERIFICATION;
     }
 }

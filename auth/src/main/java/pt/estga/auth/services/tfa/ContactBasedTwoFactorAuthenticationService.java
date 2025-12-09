@@ -1,6 +1,6 @@
 package pt.estga.auth.services.tfa;
 
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.user.entities.User;
 
 public interface ContactBasedTwoFactorAuthenticationService {
@@ -9,7 +9,7 @@ public interface ContactBasedTwoFactorAuthenticationService {
 
     void generateAndSendEmailCode(User user);
 
-    boolean verifyCode(User user, String code, VerificationTokenPurpose purpose);
+    boolean verifyCode(User user, String code, VerificationPurpose purpose);
 
     void requestTfaContactCode(User user);
 

@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.sms;
 
 import org.springframework.stereotype.Component;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,7 @@ public class SmsContentProviderPasswordResetImpl implements SmsContentProvider {
     }
 
     @Override
-    public VerificationTokenPurpose getPurpose() {
-        return VerificationTokenPurpose.PASSWORD_RESET;
+    public VerificationPurpose getPurpose() {
+        return VerificationPurpose.PASSWORD_RESET;
     }
 }

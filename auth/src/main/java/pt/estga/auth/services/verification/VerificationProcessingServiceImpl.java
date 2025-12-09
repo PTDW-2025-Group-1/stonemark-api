@@ -6,7 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.processing.VerificationProcessor;
 import pt.estga.auth.services.verification.processing.VerificationProcessorFactory;
@@ -65,7 +65,7 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         VerificationToken vt = getValidatedVerificationToken(token, false); // Use helper for validation
         log.debug("Token {} validated for password reset. Purpose: {}", token, vt.getPurpose());
 
-        if (vt.getPurpose() != VerificationTokenPurpose.PASSWORD_RESET) {
+        if (vt.getPurpose() != VerificationPurpose.PASSWORD_RESET) {
             log.warn("Invalid purpose for password reset token {}. Expected PASSWORD_RESET, got {}", token, vt.getPurpose());
             throw new InvalidVerificationPurposeException(VerificationErrorMessages.INVALID_TOKEN_PURPOSE_PASSWORD_RESET);
         }

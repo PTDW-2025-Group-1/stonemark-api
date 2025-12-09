@@ -1,14 +1,14 @@
 package pt.estga.auth.services.token;
 
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.user.entities.User;
 
 import java.util.Optional;
 
 public interface VerificationTokenService {
 
-    VerificationToken createAndSaveToken(User user, VerificationTokenPurpose purpose);
+    VerificationToken createAndSaveToken(User user, VerificationPurpose purpose);
 
     Optional<VerificationToken> findByToken(String token);
 

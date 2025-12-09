@@ -42,9 +42,6 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
 
-    @Value("${application.security.email.verification-required:false}")
-    private boolean emailVerificationRequired;
-
     @Override
     @Transactional
     public Optional<AuthenticationResponseDto> authenticateWithGoogle(String token) {
@@ -55,10 +52,6 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
             }
             GoogleIdToken.Payload payload = idToken.getPayload();
             User user = upsertUserFromGooglePayload(payload);
-
-            if (emailVerificationRequired && !user.isEnabled()) {
-                throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-            }
 
             return getAuthenticationResponseDto(user, false, false, jwtService, refreshTokenService, accessTokenService);
         } catch (GeneralSecurityException | IOException e) {
@@ -81,7 +74,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                         .firstName((String) payload.get("given_name"))
                                         .lastName((String) payload.get("family_name"))
                                         .role(Role.USER)
-                                        .enabled(!emailVerificationRequired)
+                                        .enabled(true)
                                         .tfaMethod(TfaMethod.NONE)
                                         .build();
                                 UserContact primaryEmail = UserContact.builder()

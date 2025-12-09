@@ -5,7 +5,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.repositories.VerificationTokenRepository;
 import pt.estga.user.entities.User;
 
@@ -32,10 +32,10 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
     private long telephoneVerificationTokenExpiration;
 
     @Override
-    public VerificationToken createAndSaveToken(User user, VerificationTokenPurpose purpose) {
+    public VerificationToken createAndSaveToken(User user, VerificationPurpose purpose) {
         long expirationMillis = getExpirationMillisFor(purpose);
         String token = UUID.randomUUID().toString();
-        
+
         String code;
         do {
             code = RandomStringUtils.randomAlphanumeric(6).toUpperCase();
@@ -75,7 +75,7 @@ public class VerificationTokenServiceImpl implements VerificationTokenService {
         verificationTokenRepository.save(token);
     }
 
-    private long getExpirationMillisFor(VerificationTokenPurpose purpose) {
+    private long getExpirationMillisFor(VerificationPurpose purpose) {
         return switch (purpose) {
             case EMAIL_VERIFICATION -> emailVerificationTokenExpiration;
             case TELEPHONE_VERIFICATION -> telephoneVerificationTokenExpiration;

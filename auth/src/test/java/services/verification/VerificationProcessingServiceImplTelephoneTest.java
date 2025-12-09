@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationTokenPurpose;
+import pt.estga.auth.enums.VerificationPurpose;
 import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
 import pt.estga.auth.services.verification.processing.TelephoneVerificationProcessor;
@@ -51,7 +51,7 @@ class VerificationProcessingServiceImplTelephoneTest {
                 .token("uuid-telephone-verify")
                 .code("789012")
                 .user(testUser)
-                .purpose(VerificationTokenPurpose.TELEPHONE_VERIFICATION)
+                .purpose(VerificationPurpose.TELEPHONE_VERIFICATION)
                 .expiresAt(Instant.now().plusSeconds(3600))
                 .build();
     }
@@ -61,7 +61,7 @@ class VerificationProcessingServiceImplTelephoneTest {
     void testConfirmToken_telephoneVerification_success() {
         when(verificationTokenService.findByToken(telephoneVerificationToken.getToken()))
                 .thenReturn(Optional.of(telephoneVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.TELEPHONE_VERIFICATION))
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.TELEPHONE_VERIFICATION))
                 .thenReturn(telephoneVerificationProcessor);
         when(telephoneVerificationProcessor.process(telephoneVerificationToken)).thenReturn(Optional.empty());
 
@@ -69,7 +69,7 @@ class VerificationProcessingServiceImplTelephoneTest {
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByToken(telephoneVerificationToken.getToken());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.TELEPHONE_VERIFICATION);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.TELEPHONE_VERIFICATION);
         verify(telephoneVerificationProcessor).process(telephoneVerificationToken);
     }
 
@@ -78,7 +78,7 @@ class VerificationProcessingServiceImplTelephoneTest {
     void testConfirmCode_telephoneVerification_success() {
         when(verificationTokenService.findByCode(telephoneVerificationToken.getCode()))
                 .thenReturn(Optional.of(telephoneVerificationToken));
-        when(verificationProcessorFactory.getProcessor(VerificationTokenPurpose.TELEPHONE_VERIFICATION))
+        when(verificationProcessorFactory.getProcessor(VerificationPurpose.TELEPHONE_VERIFICATION))
                 .thenReturn(telephoneVerificationProcessor);
         when(telephoneVerificationProcessor.process(telephoneVerificationToken)).thenReturn(Optional.empty());
 
@@ -86,7 +86,7 @@ class VerificationProcessingServiceImplTelephoneTest {
 
         assertThat(result).isEmpty();
         verify(verificationTokenService).findByCode(telephoneVerificationToken.getCode());
-        verify(verificationProcessorFactory).getProcessor(VerificationTokenPurpose.TELEPHONE_VERIFICATION);
+        verify(verificationProcessorFactory).getProcessor(VerificationPurpose.TELEPHONE_VERIFICATION);
         verify(telephoneVerificationProcessor).process(telephoneVerificationToken);
     }
 
