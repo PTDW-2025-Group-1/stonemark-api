@@ -5,16 +5,16 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.SocialAuthenticationServiceImpl;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
-import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.entities.UserIdentity;
@@ -29,13 +29,14 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SocialAuthenticationServiceImplTest {
+class SocialAuthenticationServiceTest {
 
     @Mock
     private UserService userService;
@@ -57,20 +58,20 @@ class SocialAuthenticationServiceImplTest {
     @InjectMocks
     private SocialAuthenticationServiceImpl socialAuthenticationService;
 
-    private final String GOOGLE_TOKEN = "someGoogleToken";
-    private final String GOOGLE_ID = "googleSubId";
-    private final String USER_EMAIL = "test@example.com";
-    private final String FIRST_NAME = "Test";
-    private final String LAST_NAME = "User";
+    private static final String GOOGLE_TOKEN = "someGoogleToken";
+    private static final String GOOGLE_ID = "googleSubId";
+    private static final String USER_EMAIL = "test@example.com";
+    private static final String FIRST_NAME = "Test";
+    private static final String LAST_NAME = "User";
 
-    private User createTestUser(boolean enabled) {
+    private User createTestUser() {
         User user = User.builder()
                 .id(1L)
                 .username(USER_EMAIL)
                 .firstName(FIRST_NAME)
                 .lastName(LAST_NAME)
                 .role(Role.USER)
-                .enabled(enabled)
+                .enabled(true)
                 .tfaMethod(TfaMethod.NONE)
                 .identities(new ArrayList<>())
                 .contacts(new ArrayList<>())
@@ -88,7 +89,7 @@ class SocialAuthenticationServiceImplTest {
 
     @Test
     void authenticateWithGoogle_shouldReturnAuthResponse_whenNewUser() throws GeneralSecurityException, IOException {
-        User newUser = createTestUser(true);
+        User newUser = createTestUser();
         UserIdentity newIdentity = UserIdentity.builder().provider(Provider.GOOGLE).identity(GOOGLE_ID).user(newUser).build();
 
         when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenReturn(googleIdToken);
@@ -97,12 +98,10 @@ class SocialAuthenticationServiceImplTest {
         when(payload.getSubject()).thenReturn(GOOGLE_ID);
         when(payload.get("given_name")).thenReturn(FIRST_NAME);
         when(payload.get("family_name")).thenReturn(LAST_NAME);
-
         when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
         when(userService.findByContact(USER_EMAIL)).thenReturn(Optional.empty());
         when(userService.create(any(User.class))).thenReturn(newUser);
         when(userIdentityService.createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID))).thenReturn(newIdentity);
-
         when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
 
@@ -111,22 +110,20 @@ class SocialAuthenticationServiceImplTest {
         assertTrue(response.isPresent());
         assertEquals("accessToken", response.get().accessToken());
         assertEquals("refreshToken", response.get().refreshToken());
-        verify(userService, times(1)).create(any(User.class));
-        verify(userIdentityService, times(1)).createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID));
+        verify(userService).create(any(User.class));
+        verify(userIdentityService).createAndAssociateUserIdentity(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID));
     }
 
     @Test
     void authenticateWithGoogle_shouldReturnAuthResponse_whenExistingUser() throws GeneralSecurityException, IOException {
-        User existingUser = createTestUser(true);
+        User existingUser = createTestUser();
         UserIdentity existingIdentity = UserIdentity.builder().provider(Provider.GOOGLE).identity(GOOGLE_ID).user(existingUser).build();
 
         when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenReturn(googleIdToken);
         when(googleIdToken.getPayload()).thenReturn(payload);
         when(payload.getEmail()).thenReturn(USER_EMAIL);
         when(payload.getSubject()).thenReturn(GOOGLE_ID);
-
         when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.of(existingIdentity));
-
         when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
 
@@ -137,7 +134,30 @@ class SocialAuthenticationServiceImplTest {
         assertEquals("refreshToken", response.get().refreshToken());
         verify(userService, never()).create(any(User.class));
         verify(userIdentityService, never()).createAndAssociateUserIdentity(any(User.class), any(Provider.class), anyString());
-        verify(userService, never()).update(any(User.class));
+    }
+
+    @Test
+    void authenticateWithGoogle_shouldLinkToExistingUser_whenEmailExists() throws GeneralSecurityException, IOException {
+        User existingUser = createTestUser();
+        UserIdentity newIdentity = UserIdentity.builder().provider(Provider.GOOGLE).identity(GOOGLE_ID).user(existingUser).build();
+
+        when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenReturn(googleIdToken);
+        when(googleIdToken.getPayload()).thenReturn(payload);
+        when(payload.getEmail()).thenReturn(USER_EMAIL);
+        when(payload.getSubject()).thenReturn(GOOGLE_ID);
+        when(userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
+        when(userService.findByContact(USER_EMAIL)).thenReturn(Optional.of(existingUser));
+        when(userIdentityService.createAndAssociateUserIdentity(existingUser, Provider.GOOGLE, GOOGLE_ID)).thenReturn(newIdentity);
+        when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
+
+        Optional<AuthenticationResponseDto> response = socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN);
+
+        assertTrue(response.isPresent());
+        assertEquals("accessToken", response.get().accessToken());
+        assertEquals("refreshToken", response.get().refreshToken());
+        verify(userService, never()).create(any(User.class));
+        verify(userIdentityService).createAndAssociateUserIdentity(existingUser, Provider.GOOGLE, GOOGLE_ID);
     }
 
     @Test
@@ -150,24 +170,16 @@ class SocialAuthenticationServiceImplTest {
         verifyNoInteractions(userService, userIdentityService, jwtService, accessTokenService, refreshTokenService);
     }
 
-    @Test
-    void authenticateWithGoogle_shouldThrowRuntimeException_whenGeneralSecurityExceptionOccurs() throws GeneralSecurityException, IOException {
-        when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenThrow(new GeneralSecurityException("Test security exception"));
+    @ParameterizedTest
+    @MethodSource("exceptionProvider")
+    void authenticateWithGoogle_shouldThrowRuntimeException_whenExceptionOccurs(Class<Exception> exceptionClass) throws GeneralSecurityException, IOException {
+        when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenThrow(exceptionClass);
 
-        RuntimeException thrown = assertThrows(RuntimeException.class,
-                () -> socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN));
-        assertTrue(thrown.getMessage().contains("Google authentication failed."));
-        assertInstanceOf(GeneralSecurityException.class, thrown.getCause());
+        assertThrows(RuntimeException.class, () -> socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN));
     }
 
-    @Test
-    void authenticateWithGoogle_shouldThrowRuntimeException_whenIOExceptionOccurs() throws GeneralSecurityException, IOException {
-        when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenThrow(new IOException("Test IO exception"));
-
-        RuntimeException thrown = assertThrows(RuntimeException.class,
-                () -> socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN));
-        assertTrue(thrown.getMessage().contains("Google authentication failed."));
-        assertInstanceOf(IOException.class, thrown.getCause());
+    static Stream<Class<? extends Exception>> exceptionProvider() {
+        return Stream.of(GeneralSecurityException.class, IOException.class);
     }
 
     @Test

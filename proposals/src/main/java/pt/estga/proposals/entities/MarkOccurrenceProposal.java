@@ -10,7 +10,7 @@ import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.enums.SubmissionSource;
-import pt.estga.shared.converters.DoubleListConverter;
+import pt.estga.shared.utils.DoubleListConverter;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;

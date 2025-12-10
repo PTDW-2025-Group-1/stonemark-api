@@ -7,7 +7,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -19,17 +18,22 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
-    @Value("${application.security.jwt.secret-key}")
-    private String secretKey;
-    @Value("${application.security.jwt.access-token.expiration}")
-    private long accessTokenExpiration;
-    @Value("${application.security.jwt.refresh-token.expiration}")
-    private long refreshTokenExpiration;
+    private final String secretKey;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
 
     private JwtParser jwtParser;
+
+    public JwtServiceImpl(
+            @Value("${application.security.jwt.secret-key}") String secretKey,
+            @Value("${application.security.jwt.access-token.expiration}") long accessTokenExpiration,
+            @Value("${application.security.jwt.refresh-token.expiration}") long refreshTokenExpiration) {
+        this.secretKey = secretKey;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+    }
 
     @PostConstruct
     public void init() {
@@ -77,6 +81,9 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Boolean isTokenValid(String token, UserDetails userDetail) {
+        if (userDetail == null) {
+            return false;
+        }
         final String username = extractUsername(token);
         return username != null && (username.equals(userDetail.getUsername())) && !isTokenExpired(token);
     }

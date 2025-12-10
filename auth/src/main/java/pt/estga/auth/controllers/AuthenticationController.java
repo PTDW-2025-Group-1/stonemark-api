@@ -56,6 +56,13 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthenticationResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request) {
+        return authService.refreshToken(request.refreshToken())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
     @PostMapping("/google")
     public ResponseEntity<AuthenticationResponseDto> google(@RequestBody GoogleAuthenticationRequestDto request) {
         return socialAuthenticationService.authenticateWithGoogle(request.token())
@@ -66,13 +73,6 @@ public class AuthenticationController {
     @PostMapping("/telegram")
     public ResponseEntity<AuthenticationResponseDto> telegram(@RequestBody TelegramAuthenticationRequestDto request) {
         return socialAuthenticationService.authenticateWithTelegram(request.telegramData())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
-    }
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<AuthenticationResponseDto> refreshToken(@RequestBody RefreshTokenRequestDto request) {
-        return authService.refreshToken(request.refreshToken())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }

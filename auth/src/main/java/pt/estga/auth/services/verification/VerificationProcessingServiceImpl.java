@@ -36,7 +36,7 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final ActionCodeValidationService actionCodeValidationService;
-    private final List<VerificationPurposeProcessor> purposeProcessors; // Injected list of all processors
+    private final List<VerificationPurposeProcessor> purposeProcessors;
 
     private Map<ActionCodeType, VerificationPurposeProcessor> processorMap;
 

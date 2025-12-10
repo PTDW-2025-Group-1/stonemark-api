@@ -89,14 +89,17 @@ application:
         expiration: 90000000 # 15 minutes
       refresh-token:
         expiration: 2592000000 # 30 days
-      email-verification-token:
+    action-code:
+      email-verification:
         expiration: 86400000 # 24 hours
-      two-factor-authentication-token:
+      password-reset:
         expiration: 3600000 # 1 hour
-      password-reset-token:
+      two-factor:
         expiration: 3600000 # 1 hour
-      telephone-verification-token:
+      telephone-verification:
         expiration: 900000 # 15 minutes
+      device-verification:
+        expiration: 2592000000 # 30 days
     contact:
       verification-required: false
 

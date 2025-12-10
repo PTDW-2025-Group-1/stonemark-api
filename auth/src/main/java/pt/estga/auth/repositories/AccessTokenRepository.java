@@ -23,12 +23,12 @@ public interface AccessTokenRepository extends BaseTokenRepository<AccessToken> 
     @Query("UPDATE AccessToken t SET t.isRevoked = true WHERE t.refreshToken = :refreshToken")
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
-    List<AccessToken> findAllByUserIdAndRevokedFalse(Long userId);
+    List<AccessToken> findAllByUserIdAndIsRevokedFalse(Long userId);
 
-    void deleteByRevokedTrueAndExpiresAtBefore(Instant instant);
+    void deleteByIsRevokedTrueAndExpiresAtBefore(Instant instant);
 
     List<AccessToken> findAllByRefreshToken(RefreshToken refreshToken);
 
-    List<AccessToken> findAllByRefreshTokenAndRevokedFalse(RefreshToken refreshToken);
+    List<AccessToken> findAllByRefreshTokenAndIsRevokedFalse(RefreshToken refreshToken);
 
 }

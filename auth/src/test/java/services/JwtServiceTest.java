@@ -6,12 +6,9 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.util.ReflectionTestUtils;
+import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.JwtServiceImpl;
 
 import javax.crypto.SecretKey;
@@ -20,24 +17,19 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
 
-    @InjectMocks
-    private JwtServiceImpl jwtService;
-
+    private JwtService jwtService;
     private UserDetails userDetails;
-    private String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"; // Example key, should be long enough
-    private long accessTokenExpiration = 1000 * 60 * 24; // 24 hours
-    private long refreshTokenExpiration = 1000 * 60 * 24 * 7; // 7 days
+    private final String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    private final long accessTokenExpiration = 1000 * 60 * 24; // 24 hours
+    private final long refreshTokenExpiration = 1000 * 60 * 24 * 7; // 7 days
 
     @BeforeEach
     void setUp() {
         userDetails = new User("testuser", "password", Collections.emptyList());
-        ReflectionTestUtils.setField(jwtService, "secretKey", secretKey);
-        ReflectionTestUtils.setField(jwtService, "accessTokenExpiration", accessTokenExpiration);
-        ReflectionTestUtils.setField(jwtService, "refreshTokenExpiration", refreshTokenExpiration);
-        jwtService.init(); // Manually call PostConstruct
+        jwtService = new JwtServiceImpl(secretKey, accessTokenExpiration, refreshTokenExpiration);
+        ((JwtServiceImpl) jwtService).init(); // Manually call PostConstruct
     }
 
     @Test
@@ -45,6 +37,13 @@ class JwtServiceTest {
         String token = jwtService.generateAccessToken(userDetails);
         String username = jwtService.extractUsername(token);
         assertEquals("testuser", username);
+    }
+
+    @Test
+    void extractUsername_shouldReturnNullForInvalidToken() {
+        String invalidToken = "invalid.token.string";
+        String username = jwtService.extractUsername(invalidToken);
+        assertNull(username);
     }
 
     @Test
@@ -74,20 +73,15 @@ class JwtServiceTest {
     }
 
     @Test
-    void isTokenValid_shouldReturnFalseForExpiredToken() {
-        // Generate a token with a very short expiration time
+    void isTokenValid_shouldReturnFalseForExpiredToken() throws InterruptedException {
         long shortExpiration = 10; // 10 milliseconds
-        ReflectionTestUtils.setField(jwtService, "accessTokenExpiration", shortExpiration);
-        jwtService.init(); // Re-initialize with new expiration
-        String token = jwtService.generateAccessToken(userDetails);
+        JwtService shortLivedJwtService = new JwtServiceImpl(secretKey, shortExpiration, refreshTokenExpiration);
+        ((JwtServiceImpl) shortLivedJwtService).init(); // Manually call PostConstruct
+        String token = shortLivedJwtService.generateAccessToken(userDetails);
 
-        try {
-            Thread.sleep(50); // Wait for the token to expire
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        Thread.sleep(50); // Wait for the token to expire
 
-        assertFalse(jwtService.isTokenValid(token, userDetails));
+        assertFalse(shortLivedJwtService.isTokenValid(token, userDetails));
     }
 
     @Test
@@ -95,6 +89,21 @@ class JwtServiceTest {
         String token = jwtService.generateAccessToken(userDetails);
         UserDetails otherUser = new User("otheruser", "password", Collections.emptyList());
         assertFalse(jwtService.isTokenValid(token, otherUser));
+    }
+
+    @Test
+    void isTokenValid_shouldReturnFalseForTokenSignedWithDifferentKey() {
+        String otherSecretKey = "505E635266556A586E3272357538782F413F4428472B4B6250645367566B5971";
+        JwtService otherJwtService = new JwtServiceImpl(otherSecretKey, accessTokenExpiration, refreshTokenExpiration);
+        ((JwtServiceImpl) otherJwtService).init();
+        String token = otherJwtService.generateAccessToken(userDetails);
+        assertFalse(jwtService.isTokenValid(token, userDetails));
+    }
+
+    @Test
+    void isTokenValid_shouldReturnFalseForNullUserDetails() {
+        String token = jwtService.generateAccessToken(userDetails);
+        assertFalse(jwtService.isTokenValid(token, null));
     }
 
     @Test
@@ -110,21 +119,13 @@ class JwtServiceTest {
 
     @Test
     void extractAllClaims_shouldReturnAllClaims() {
-        // This test implicitly covers extractAllClaims as it's used by extractClaim
         String token = jwtService.generateAccessToken(userDetails);
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        String username = jwtService.extractClaim(token, Claims::getSubject);
+        Date issuedAt = jwtService.extractClaim(token, Claims::getIssuedAt);
+        Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
 
-        assertEquals("testuser", claims.getSubject());
-        assertNotNull(claims.getIssuedAt());
-        assertNotNull(claims.getExpiration());
-    }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        assertEquals("testuser", username);
+        assertNotNull(issuedAt);
+        assertNotNull(expiration);
     }
 }

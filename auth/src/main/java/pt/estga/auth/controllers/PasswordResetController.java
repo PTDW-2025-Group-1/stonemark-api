@@ -15,8 +15,8 @@ import pt.estga.auth.services.verification.VerificationProcessingService;
 @Tag(name = "Password Reset", description = "Endpoints for requesting and performing password resets.")
 public class PasswordResetController {
 
-    private final VerificationProcessingService verificationProcessingService;
     private final VerificationInitiationService verificationInitiationService;
+    private final VerificationProcessingService verificationProcessingService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {

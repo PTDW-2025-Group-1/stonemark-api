@@ -6,6 +6,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @Table(name = "_user")
@@ -49,9 +51,11 @@ public class User implements UserDetails {
     private Instant createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserContact> contacts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserIdentity> identities = new ArrayList<>();
 
     @Override
@@ -106,6 +110,12 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public Optional<UserContact> getPrimaryContact(ContactType type) {
+        return contacts.stream()
+                .filter(c -> c.getType() == type && c.isPrimary())
+                .findFirst();
     }
 
     @Override

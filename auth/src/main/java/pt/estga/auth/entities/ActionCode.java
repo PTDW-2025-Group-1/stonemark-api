@@ -3,6 +3,7 @@ package pt.estga.auth.entities;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 import pt.estga.auth.enums.ActionCodeType;
 import pt.estga.user.entities.User;
@@ -27,6 +28,7 @@ public class ActionCode {
 
     private ActionCodeType type;
 
+    @ManyToOne
     private User user;
 
     private boolean consumed;

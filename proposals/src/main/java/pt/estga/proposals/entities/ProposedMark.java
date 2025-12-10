@@ -3,7 +3,7 @@ package pt.estga.proposals.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.shared.converters.DoubleListConverter;
+import pt.estga.shared.utils.DoubleListConverter;
 
 import java.util.List;
 
