@@ -3,7 +3,7 @@ package pt.estga.auth.services.token;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.estga.auth.entities.token.RefreshToken;
+import pt.estga.auth.entities.RefreshToken;
 import pt.estga.auth.repositories.RefreshTokenRepository;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;

@@ -6,18 +6,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import pt.estga.auth.entities.ActionCode;
-import pt.estga.auth.enums.ActionCodeType;
-import pt.estga.auth.services.ActionCodeService;
-import pt.estga.auth.services.verification.ActionCodeValidationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
-import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
-import pt.estga.auth.services.verification.processors.VerificationPurposeProcessor;
+import pt.estga.verification.entities.ActionCode;
+import pt.estga.verification.enums.ActionCodeType;
+import pt.estga.verification.services.ActionCodeService;
+import pt.estga.verification.services.ActionCodeValidationService;
+import pt.estga.verification.services.VerificationProcessingService;
+import pt.estga.verification.services.VerificationProcessingServiceImpl;
+import pt.estga.verification.services.processors.VerificationPurposeProcessor;
 import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 

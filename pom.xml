@@ -33,6 +33,7 @@
         <module>contact</module>
         <module>bots</module>
         <module>bookmark</module>
+        <module>verification</module>
     </modules>
     <scm>
 		<connection/>

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.dtos.TfaSetupResponseDto;
-import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserService;

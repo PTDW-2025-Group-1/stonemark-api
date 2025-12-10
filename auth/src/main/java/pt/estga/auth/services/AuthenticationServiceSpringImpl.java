@@ -12,24 +12,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
-import pt.estga.auth.services.verification.VerificationDispatchService;
-import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.commands.ActionCodeCommand;
-import pt.estga.shared.exceptions.EmailAlreadyTakenException;
+import pt.estga.verification.services.VerificationDispatchService;
+import pt.estga.verification.services.VerificationInitiationService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
+import pt.estga.verification.services.ActionCodeService;
 
 import java.util.Optional;
 

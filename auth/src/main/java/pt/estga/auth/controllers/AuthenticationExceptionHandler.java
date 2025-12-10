@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pt.estga.auth.dtos.ConfirmationResponseDto;
+import pt.estga.verification.dtos.ConfirmationResponseDto;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.exceptions.TokenExpiredException;
 import pt.estga.shared.exceptions.TokenRevokedException;

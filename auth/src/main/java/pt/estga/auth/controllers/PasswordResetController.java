@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.PasswordResetRequestDto;
 import pt.estga.auth.dtos.ResetPasswordRequestDto;
-import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
+import pt.estga.verification.services.VerificationInitiationService;
+import pt.estga.verification.services.VerificationProcessingService;
 
 @RestController
 @RequiredArgsConstructor

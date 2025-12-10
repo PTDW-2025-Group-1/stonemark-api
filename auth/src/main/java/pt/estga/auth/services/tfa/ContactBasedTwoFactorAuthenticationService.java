@@ -1,6 +1,6 @@
 package pt.estga.auth.services.tfa;
 
-import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.user.entities.User;
 
 public interface ContactBasedTwoFactorAuthenticationService {

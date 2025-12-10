@@ -10,7 +10,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.auth.entities.RefreshToken;
+import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.auth.services.AuthenticationServiceSpringImpl;
 import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
@@ -282,7 +283,7 @@ class AuthenticationServiceTest {
     @Test
     void refreshToken_shouldReturnNewAccessToken_whenRefreshTokenIsValid() {
         String refreshTokenString = "validRefreshToken";
-        pt.estga.auth.entities.token.RefreshToken refreshToken = new pt.estga.auth.entities.token.RefreshToken();
+        RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setToken(refreshTokenString);
 
