@@ -14,7 +14,6 @@ import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,10 +129,14 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
      */
     @Override
     public Optional<User> validatePasswordResetToken(String code) {
-        return actionCodeService.findByCode(code)
-                .filter(ac -> ac.getType() == ActionCodeType.RESET_PASSWORD)
-                .filter(ac -> !ac.isConsumed())
-                .filter(ac -> ac.getExpiresAt().isAfter(Instant.now()))
-                .map(ActionCode::getUser);
+        try {
+            ActionCode actionCode = actionCodeValidationService.getValidatedActionCode(code);
+            if (actionCode.getType() == ActionCodeType.RESET_PASSWORD) {
+                return Optional.of(actionCode.getUser());
+            }
+        } catch (InvalidActionCodeException | ActionCodeExpiredException | ActionCodeConsumedException e) {
+            log.debug("Validation failed for password reset token: {}", code, e);
+        }
+        return Optional.empty();
     }
 }

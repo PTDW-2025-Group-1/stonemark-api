@@ -2,7 +2,6 @@ package pt.estga.user.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +24,9 @@ import java.util.Optional;
 @Setter
 @Builder
 public class User implements UserDetails {
+
+    // Todo: implement username unlock mechanism / user deletion
+    //  if no contact were verified in a span of defined time
 
     @Id
     @GeneratedValue

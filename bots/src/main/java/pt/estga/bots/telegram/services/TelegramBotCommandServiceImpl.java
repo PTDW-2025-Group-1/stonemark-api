@@ -49,7 +49,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
             return messageFactory.createGreetingMessage(chatId);
         }
 
-        Optional<User> userOptional = userIdentityRepository.findByProviderAndIdentity(Provider.TELEGRAM, String.valueOf(chatId))
+        Optional<User> userOptional = userIdentityRepository.findByProviderAndValue(Provider.TELEGRAM, String.valueOf(chatId))
                 .map(UserIdentity::getUser);
 
         if (userOptional.isPresent()) {

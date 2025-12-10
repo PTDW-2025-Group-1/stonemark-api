@@ -15,37 +15,46 @@ import java.util.Optional;
 public class UserIdentityServiceImpl implements UserIdentityService {
 
     private final UserIdentityRepository userIdentityRepository;
-    private final UserService userService; // Inject UserService to update the User
 
     @Override
-    public Optional<UserIdentity> findByProviderAndIdentity(Provider provider, String identityValue) {
-        return userIdentityRepository.findByProviderAndIdentity(provider, identityValue);
+    public Optional<UserIdentity> findByProviderAndValue(Provider provider, String value) {
+        return userIdentityRepository.findByProviderAndValue(provider, value);
+    }
+
+    @Override
+    public Optional<UserIdentity> findByUserAndProvider(User user, Provider provider) {
+        return userIdentityRepository.findByUserAndProvider(user, provider);
     }
 
     @Override
     @Transactional
-    public UserIdentity createAndAssociateUserIdentity(User user, Provider provider, String identityValue) {
+    public UserIdentity createAndAssociate(User user, Provider provider, String identityValue) {
+        // Verify that the user doesn't have an identity with the given provider yet
+        boolean identityExists = user.getIdentities().stream()
+                .anyMatch(identity -> identity.getProvider() == provider);
+
+        if (identityExists) {
+            throw new IllegalStateException("User already has an identity with provider " + provider);
+        }
+
         UserIdentity identity = UserIdentity.builder()
                 .provider(provider)
-                .identity(identityValue)
+                .value(identityValue)
                 .user(user)
                 .build();
 
-        // Add the new identity to the user's collection
-        // Ensure the list is mutable before adding
-        if (user.getIdentities() == null) {
-            user.setIdentities(new java.util.ArrayList<>());
-        }
         user.getIdentities().add(identity);
 
-        // Save the identity directly, or rely on cascade from user update.
-        // Given the UserIdentityRepository is available, explicit save is clearer.
-        userIdentityRepository.save(identity);
+        return userIdentityRepository.save(identity);
+    }
 
-        // Update the user to ensure the relationship is managed by JPA
-        // This might trigger a save on the identity due to cascade, but explicit save above is fine.
-        userService.update(user);
+    @Override
+    public void delete(UserIdentity userIdentity) {
+        userIdentityRepository.delete(userIdentity);
+    }
 
-        return identity;
+    @Override
+    public void deleteByUserAndProvider(User user, Provider provider) {
+        userIdentityRepository.deleteByUserAndProvider(user, provider);
     }
 }

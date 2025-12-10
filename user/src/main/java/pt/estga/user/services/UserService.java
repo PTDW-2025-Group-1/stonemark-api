@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
-import pt.estga.user.enums.ContactType;
 
 import java.util.Optional;
 
@@ -14,11 +13,9 @@ public interface UserService {
 
     Optional<User> findById(Long id);
 
-    Optional<User> findByContact(String contactValue);
-
     Optional<User> findByUsername(String username);
 
-    boolean existsByContactValue(String contactValue);
+    boolean existsByUsername(String username);
 
     User create(User user);
 

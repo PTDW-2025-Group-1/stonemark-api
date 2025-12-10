@@ -8,8 +8,14 @@ import java.util.Optional;
 
 public interface UserIdentityService {
 
-    Optional<UserIdentity> findByProviderAndIdentity(Provider provider, String identityValue);
+    UserIdentity createAndAssociate(User user, Provider provider, String identityValue);
 
-    UserIdentity createAndAssociateUserIdentity(User user, Provider provider, String identityValue);
+    Optional<UserIdentity> findByProviderAndValue(Provider provider, String value);
+
+    Optional<UserIdentity> findByUserAndProvider(User user, Provider provider);
+
+    void delete(UserIdentity userIdentity);
+
+    void deleteByUserAndProvider(User user, Provider provider);
 
 }

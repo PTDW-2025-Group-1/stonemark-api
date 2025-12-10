@@ -8,10 +8,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
-import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
-import pt.estga.user.services.AccountManagementService;
+import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.services.PasswordService;
 import pt.estga.user.services.UserService;
 
@@ -24,7 +23,6 @@ public class AccountController {
 
     private final UserService userService;
     private final UserMapper mapper;
-    private final AccountManagementService accountManagementService;
     private final PasswordService passwordService;
 
     @GetMapping("/profile")
@@ -55,23 +53,5 @@ public class AccountController {
             @AuthenticationPrincipal User connectedUser) {
         passwordService.setPassword(connectedUser, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
-    }
-
-    @DeleteMapping("/google")
-    public ResponseEntity<?> disconnectGoogle(@AuthenticationPrincipal User user) {
-        // Todo: get reed of old logic
-        return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
-    }
-
-    @PostMapping("/request-email-verification")
-    public ResponseEntity<?> requestEmailVerification(@AuthenticationPrincipal User user) {
-        accountManagementService.requestEmailVerification(user);
-        return ResponseEntity.ok(new MessageResponseDto("A verification email has been sent to your email address."));
-    }
-
-    @PostMapping("/request-telephone-verification")
-    public ResponseEntity<?> requestTelephoneVerification(@AuthenticationPrincipal User user) {
-        accountManagementService.requestTelephoneVerification(user);
-        return ResponseEntity.ok(new MessageResponseDto("A verification SMS has been sent to your telephone number."));
     }
 }

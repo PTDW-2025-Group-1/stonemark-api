@@ -16,6 +16,7 @@ import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
+import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
 import pt.estga.user.services.UserService;
 
@@ -34,6 +35,7 @@ import static pt.estga.auth.services.AuthenticationServiceSpringImpl.getAuthenti
 public class SocialAuthenticationServiceImpl implements SocialAuthenticationService {
 
     private final UserService userService;
+    private final UserContactService userContactService;
     private final UserIdentityService userIdentityService;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final JwtService jwtService;
@@ -62,10 +64,11 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
         String email = payload.getEmail();
         String googleId = payload.getSubject();
 
-        return userIdentityService.findByProviderAndIdentity(Provider.GOOGLE, googleId)
+        return userIdentityService.findByProviderAndValue(Provider.GOOGLE, googleId)
                 .map(UserIdentity::getUser)
                 .orElseGet(() -> {
-                    User user = userService.findByContact(email)
+                    User user = userContactService.findByValue(email)
+                            .map(UserContact::getUser)
                             .orElseGet(() -> {
                                 User newUser = User.builder()
                                         .username(email)
@@ -87,7 +90,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                 return userService.create(newUser);
                             });
 
-                    userIdentityService.createAndAssociateUserIdentity(user, Provider.GOOGLE, googleId);
+                    userIdentityService.createAndAssociate(user, Provider.GOOGLE, googleId);
                     return user;
                 });
     }

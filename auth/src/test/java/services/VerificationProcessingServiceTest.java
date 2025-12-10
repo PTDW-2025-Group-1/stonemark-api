@@ -13,8 +13,7 @@ import pt.estga.auth.services.verification.ActionCodeValidationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 import pt.estga.auth.services.verification.VerificationProcessingServiceImpl;
 import pt.estga.auth.services.verification.processors.VerificationPurposeProcessor;
-import pt.estga.shared.exceptions.InvalidVerificationPurposeException;
-import pt.estga.shared.exceptions.SamePasswordException;
+import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
@@ -162,10 +161,8 @@ class VerificationProcessingServiceTest {
         ActionCode actionCode = new ActionCode();
         actionCode.setUser(user);
         actionCode.setType(ActionCodeType.RESET_PASSWORD);
-        actionCode.setConsumed(false);
-        actionCode.setExpiresAt(Instant.now().plusSeconds(60));
 
-        when(actionCodeService.findByCode(code)).thenReturn(Optional.of(actionCode));
+        when(actionCodeValidationService.getValidatedActionCode(code)).thenReturn(actionCode);
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 
@@ -177,7 +174,7 @@ class VerificationProcessingServiceTest {
     void validatePasswordResetToken_shouldReturnEmpty_whenTokenIsInvalid() {
         String code = "invalidCode";
 
-        when(actionCodeService.findByCode(code)).thenReturn(Optional.empty());
+        when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new InvalidActionCodeException("Invalid code"));
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 
@@ -187,14 +184,8 @@ class VerificationProcessingServiceTest {
     @Test
     void validatePasswordResetToken_shouldReturnEmpty_whenTokenIsConsumed() {
         String code = "validCode";
-        User user = new User();
-        ActionCode actionCode = new ActionCode();
-        actionCode.setUser(user);
-        actionCode.setType(ActionCodeType.RESET_PASSWORD);
-        actionCode.setConsumed(true);
-        actionCode.setExpiresAt(Instant.now().plusSeconds(60));
 
-        when(actionCodeService.findByCode(code)).thenReturn(Optional.of(actionCode));
+        when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new ActionCodeConsumedException("Code consumed"));
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 
@@ -204,14 +195,8 @@ class VerificationProcessingServiceTest {
     @Test
     void validatePasswordResetToken_shouldReturnEmpty_whenTokenIsExpired() {
         String code = "validCode";
-        User user = new User();
-        ActionCode actionCode = new ActionCode();
-        actionCode.setUser(user);
-        actionCode.setType(ActionCodeType.RESET_PASSWORD);
-        actionCode.setConsumed(false);
-        actionCode.setExpiresAt(Instant.now().minusSeconds(60));
 
-        when(actionCodeService.findByCode(code)).thenReturn(Optional.of(actionCode));
+        when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new ActionCodeExpiredException("Code expired"));
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 
@@ -225,10 +210,8 @@ class VerificationProcessingServiceTest {
         ActionCode actionCode = new ActionCode();
         actionCode.setUser(user);
         actionCode.setType(ActionCodeType.EMAIL_VERIFICATION);
-        actionCode.setConsumed(false);
-        actionCode.setExpiresAt(Instant.now().plusSeconds(60));
 
-        when(actionCodeService.findByCode(code)).thenReturn(Optional.of(actionCode));
+        when(actionCodeValidationService.getValidatedActionCode(code)).thenReturn(actionCode);
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 

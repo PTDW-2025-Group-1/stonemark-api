@@ -1,9 +1,6 @@
 package services;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -11,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.auth.services.JwtService;
 import pt.estga.auth.services.JwtServiceImpl;
 
-import javax.crypto.SecretKey;
 import java.util.Collections;
 import java.util.Date;
 

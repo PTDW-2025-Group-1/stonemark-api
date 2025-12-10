@@ -19,7 +19,7 @@ public class UserIdentity {
     @Enumerated(EnumType.STRING)
     private Provider provider;
 
-    private String identity;
+    private String value;
 
     @ManyToOne
     @JoinColumn

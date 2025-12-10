@@ -22,6 +22,7 @@ import pt.estga.auth.services.verification.VerificationInitiationService;
 import pt.estga.auth.services.verification.commands.ActionCodeCommand;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
+import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
@@ -59,31 +60,22 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
-        var email = user.getContacts().stream()
-                .filter(c -> c.getType() == ContactType.EMAIL && c.isPrimary())
-                .map(UserContact::getValue)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Primary email not found"));
 
-        if (userService.existsByContactValue(email)) {
-            throw new EmailAlreadyTakenException("email already in use");
+        if (userService.existsByUsername(user.getUsername())) {
+            throw new UsernameAlreadyTakenException("Username already in use");
         }
+
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
-        // Default to NONE for 2FA method on registration
+
         user.setTfaMethod(TfaMethod.NONE);
-        user.setEnabled(!contactVerificationRequired);
+        user.setEnabled(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.getContacts().clear();
+
         User createdUser = userService.create(user);
 
-        if (contactVerificationRequired) {
-            UserContact primaryEmailContact = userContactService.findPrimary(createdUser, ContactType.EMAIL)
-                    .orElseThrow(() -> new IllegalArgumentException("Primary email contact not found for newly created user " + createdUser.getUsername()));
-            var command = new ActionCodeCommand(createdUser, primaryEmailContact, actionCodeService, verificationDispatchService, ActionCodeType.EMAIL_VERIFICATION);
-            verificationInitiationService.initiate(command);
-            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-        }
         return generateAuthenticationResponse(createdUser, false, false);
     }
 
@@ -116,7 +108,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.empty();
         }
 
-        User user = userService.findByContact(email)
+        User user = userContactService.findByValue(email)
+                .map(UserContact::getUser)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (contactVerificationRequired && !user.isEnabled()) {

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.Role;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
@@ -16,7 +15,6 @@ import java.util.Optional;
 public class UserServiceHibernateImpl implements UserService {
 
     private final UserRepository repository;
-    private final UserContactService userContactService;
 
     @Override
     public Page<User> findAll(Pageable pageable) {
@@ -29,19 +27,13 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public Optional<User> findByContact(String contactValue) {
-        return userContactService.findByValue(contactValue)
-                .map(UserContact::getUser);
-    }
-
-    @Override
     public Optional<User> findByUsername(String username) {
         return repository.findByUsername(username);
     }
 
     @Override
-    public boolean existsByContactValue(String contactValue) {
-        return userContactService.findByValue(contactValue).isPresent();
+    public boolean existsByUsername(String username) {
+        return repository.existsByUsername(username);
     }
 
     @Override

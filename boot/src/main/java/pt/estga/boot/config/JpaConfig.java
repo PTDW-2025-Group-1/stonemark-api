@@ -24,7 +24,7 @@ public class JpaConfig {
                 return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                         .filter(Authentication::isAuthenticated)
                         .map(Authentication::getName)
-                        .flatMap(auditorUserService::findByEmail);
+                        .flatMap(auditorUserService::findByUsername);
             } catch (Exception e) {
                 log.error("Error retrieving auditor user: {}", e.getMessage(), e);
                 return Optional.empty();

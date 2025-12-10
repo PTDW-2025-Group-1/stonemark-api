@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.user.entities.User;
-import pt.estga.user.services.UserService;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.services.UserContactService;
 
 import java.util.Optional;
 
@@ -16,7 +17,7 @@ import java.util.Optional;
 @Slf4j
 public class TelegramAuthServiceImpl implements TelegramAuthService {
 
-    private final UserService userService;
+    private final UserContactService userContactService;
 
     @Override
     public Optional<User> authenticateUser(String telegramChatId, String phoneNumber) {
@@ -26,7 +27,8 @@ public class TelegramAuthServiceImpl implements TelegramAuthService {
             String internationalFormat = phoneUtil.format(numberProto, PhoneNumberUtil.PhoneNumberFormat.E164);
             log.info("Attempting to authenticate user with international phone number: {}", internationalFormat);
 
-            Optional<User> userOptional = userService.findByContact(internationalFormat);
+            Optional<User> userOptional = userContactService.findByValue(internationalFormat)
+                    .map(UserContact::getUser);
 
             userOptional.ifPresent(user ->
                     log.info("User {} authenticated and Telegram chat ID updated.", user.getUsername())
