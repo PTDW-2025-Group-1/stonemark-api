@@ -8,15 +8,11 @@ import java.util.Optional;
 public interface VerificationProcessingService {
 
     @Transactional
-    Optional<String> confirmToken(String token);
-
-    @Transactional
     Optional<String> confirmCode(String code);
 
     @Transactional
-    void processPasswordReset(String token, String newPassword);
+    void processPasswordReset(String code, String newPassword);
 
-    void initiatePasswordReset(String contactValue);
+    Optional<User> validatePasswordResetToken(String code);
 
-    Optional<User> validatePasswordResetToken(String token);
 }

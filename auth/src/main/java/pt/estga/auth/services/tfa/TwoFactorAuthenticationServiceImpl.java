@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.auth.dtos.TfaSetupResponseDto;
-import pt.estga.auth.enums.VerificationPurpose;
+import pt.estga.auth.enums.ActionCodeType;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserService;
@@ -82,9 +82,9 @@ public class TwoFactorAuthenticationServiceImpl implements TwoFactorAuthenticati
                 isValid = isCodeValid(user.getTfaSecret(), code);
             }
         } else if (user.getTfaMethod() == TfaMethod.SMS) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, code, VerificationPurpose.SMS_2FA);
+            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, code, ActionCodeType.PHONE_VERIFICATION);
         } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
-            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, code, VerificationPurpose.EMAIL_2FA);
+            isValid = contactBasedTwoFactorAuthenticationService.verifyCode(user, code, ActionCodeType.PHONE_VERIFICATION);
         }
 
         if (isValid) {

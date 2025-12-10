@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.entities.TwoFactorCode;
-import pt.estga.auth.enums.VerificationPurpose;
-import pt.estga.auth.repositories.TwoFactorCodeRepository;
+import pt.estga.auth.entities.ActionCode;
+import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.auth.repositories.ActionCodeRepository;
 import pt.estga.shared.exceptions.InvalidTokenException;
 import pt.estga.shared.models.Email;
 import pt.estga.shared.services.EmailService;
@@ -15,7 +15,6 @@ import pt.estga.user.entities.User;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
-import pt.estga.user.services.UserService;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -29,7 +28,7 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
     private final SmsService smsService;
     private final EmailService emailService;
     private final UserContactService userContactService;
-    private final TwoFactorCodeRepository twoFactorCodeRepository;
+    private final ActionCodeRepository actionCodeRepository;
 
     @Value("${application.security.tfa.code-expiration-minutes:5}")
     private long codeExpirationMinutes;
@@ -41,7 +40,7 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
     @Transactional
     public void generateAndSendSmsCode(User user) {
         String code = generateRandomCode();
-        saveTwoFactorCode(user, code, VerificationPurpose.SMS_2FA);
+        saveActionCode(user, code, ActionCodeType.TWO_FACTOR);
 
         userContactService.findPrimary(user, ContactType.TELEPHONE)
                 .ifPresentOrElse(
@@ -54,7 +53,7 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
     @Transactional
     public void generateAndSendEmailCode(User user) {
         String code = generateRandomCode();
-        saveTwoFactorCode(user, code, VerificationPurpose.EMAIL_2FA);
+        saveActionCode(user, code, ActionCodeType.TWO_FACTOR);
 
         userContactService.findPrimary(user, ContactType.EMAIL)
                 .ifPresentOrElse(
@@ -74,17 +73,17 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
 
     @Override
     @Transactional
-    public boolean verifyCode(User user, String code, VerificationPurpose purpose) {
-        TwoFactorCode twoFactorCode = twoFactorCodeRepository.findByUserAndPurpose(user, purpose)
+    public boolean verifyCode(User user, String code, ActionCodeType type) {
+        ActionCode actionCode = actionCodeRepository.findByUserAndType(user, type)
                 .orElseThrow(() -> new InvalidTokenException("2FA code not found or expired."));
 
-        if (twoFactorCode.getExpiryDate().isBefore(Instant.now())) {
-            twoFactorCodeRepository.delete(twoFactorCode);
+        if (actionCode.getExpiresAt().isBefore(Instant.now())) {
+            actionCodeRepository.delete(actionCode);
             throw new InvalidTokenException("2FA code expired.");
         }
 
-        if (twoFactorCode.getCode().equals(code)) {
-            twoFactorCodeRepository.delete(twoFactorCode); // Code used, delete it
+        if (actionCode.getCode().equals(code)) {
+            actionCodeRepository.delete(actionCode); // Code used, delete it
             return true;
         }
         return false;
@@ -105,10 +104,8 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
     @Override
     @Transactional
     public boolean verifyTfaContactCode(User user, String code) {
-        if (user.getTfaMethod() == TfaMethod.SMS) {
-            return verifyCode(user, code, VerificationPurpose.SMS_2FA);
-        } else if (user.getTfaMethod() == TfaMethod.EMAIL) {
-            return verifyCode(user, code, VerificationPurpose.EMAIL_2FA);
+        if (user.getTfaMethod() == TfaMethod.SMS || user.getTfaMethod() == TfaMethod.EMAIL) {
+            return verifyCode(user, code, ActionCodeType.TWO_FACTOR);
         }
         return false; // Or throw an exception if contact-based 2FA is not enabled
     }
@@ -121,16 +118,16 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
         return code.toString();
     }
 
-    private void saveTwoFactorCode(User user, String code, VerificationPurpose purpose) {
+    private void saveActionCode(User user, String code, ActionCodeType type) {
         // Delete any existing code for this purpose
-        twoFactorCodeRepository.deleteByUserAndPurpose(user, purpose);
+        actionCodeRepository.deleteByUserAndType(user, type);
 
-        TwoFactorCode twoFactorCode = TwoFactorCode.builder()
+        ActionCode actionCode = ActionCode.builder()
                 .user(user)
                 .code(code)
-                .purpose(purpose)
-                .expiryDate(Instant.now().plusSeconds(codeExpirationMinutes * 60))
+                .type(type)
+                .expiresAt(Instant.now().plusSeconds(codeExpirationMinutes * 60))
                 .build();
-        twoFactorCodeRepository.save(twoFactorCode);
+        actionCodeRepository.save(actionCode);
     }
 }

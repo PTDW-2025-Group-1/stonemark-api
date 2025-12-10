@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.PasswordResetRequestDto;
 import pt.estga.auth.dtos.ResetPasswordRequestDto;
+import pt.estga.auth.services.verification.VerificationInitiationService;
 import pt.estga.auth.services.verification.VerificationProcessingService;
 
 @RestController
@@ -15,10 +16,11 @@ import pt.estga.auth.services.verification.VerificationProcessingService;
 public class PasswordResetController {
 
     private final VerificationProcessingService verificationProcessingService;
+    private final VerificationInitiationService verificationInitiationService;
 
     @PostMapping("/request")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDto request) {
-        verificationProcessingService.initiatePasswordReset(request.contactValue());
+        verificationInitiationService.initiatePasswordReset(request.contactValue());
         return ResponseEntity.ok().build();
     }
 

@@ -1,80 +1,113 @@
 package pt.estga.auth.services.verification;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.entities.token.VerificationToken;
-import pt.estga.auth.enums.VerificationPurpose;
-import pt.estga.auth.services.token.VerificationTokenService;
+import pt.estga.auth.entities.ActionCode;
+import pt.estga.auth.enums.ActionCodeType;
+import pt.estga.auth.services.ActionCodeService;
+import pt.estga.auth.services.verification.processors.VerificationPurposeProcessor;
 import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
-import pt.estga.user.entities.UserContact;
-import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.user.services.UserService;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+/**
+ * Service responsible for processing action codes,
+ * including confirmation and password reset operations.
+ * It uses a strategy pattern to handle different action code types.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class VerificationProcessingServiceImpl implements VerificationProcessingService {
 
-    private final VerificationTokenService verificationTokenService;
-    private final GenericVerificationProcessor genericVerificationProcessor;
+    private final ActionCodeService actionCodeService;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final UserContactRepository userContactRepository;
-    private final VerificationDispatchService verificationDispatchService;
+    private final ActionCodeValidationService actionCodeValidationService;
+    private final List<VerificationPurposeProcessor> purposeProcessors; // Injected list of all processors
 
-    @Transactional
-    @Override
-    public Optional<String> confirmToken(String token) {
-        log.info("Attempting to confirm token: {}", token);
-        VerificationToken vt = getValidatedVerificationToken(token, false);
-        log.debug("Token {} validated successfully. Purpose: {}", token, vt.getPurpose());
+    private Map<ActionCodeType, VerificationPurposeProcessor> processorMap;
 
-        if (vt.getPurpose() == VerificationPurpose.EMAIL_VERIFICATION || vt.getPurpose() == VerificationPurpose.TELEPHONE_VERIFICATION) {
-            return genericVerificationProcessor.process(vt);
-        }
+    // Define types that are valid for code confirmation
+    private static final Set<ActionCodeType> VALID_CODE_CONFIRMATION_TYPES = Set.of(
+            ActionCodeType.EMAIL_VERIFICATION,
+            ActionCodeType.PHONE_VERIFICATION,
+            ActionCodeType.RESET_PASSWORD
+    );
 
-        if (vt.getPurpose() == VerificationPurpose.PASSWORD_RESET) {
-            return Optional.of(vt.getToken());
-        }
-
-        throw new InvalidVerificationPurposeException("Invalid purpose for token confirmation");
+    /**
+     * Initializes the processor map after all dependencies are injected.
+     * This maps each {@link ActionCodeType} to its corresponding {@link VerificationPurposeProcessor}.
+     */
+    @PostConstruct
+    public void init() {
+        processorMap = purposeProcessors.stream()
+                .collect(Collectors.toMap(VerificationPurposeProcessor::getType, Function.identity()));
     }
 
+    /**
+     * Confirms an action code. The action taken depends on the code's type.
+     *
+     * @param code The action code string.
+     * @return An Optional string, which might be the code itself for password reset, or empty otherwise.
+     * @throws InvalidVerificationPurposeException if the code's type is not supported for confirmation.
+     */
     @Transactional
     @Override
     public Optional<String> confirmCode(String code) {
         log.info("Attempting to confirm code: {}", code);
-        VerificationToken vt = getValidatedVerificationToken(code, true);
-        log.debug("Code {} validated successfully. Purpose: {}", code, vt.getPurpose());
+        ActionCode actionCode = actionCodeValidationService.getValidatedActionCode(code);
+        log.debug("Code {} validated successfully. Type: {}", code, actionCode.getType());
 
-        if (vt.getPurpose() == VerificationPurpose.EMAIL_VERIFICATION || vt.getPurpose() == VerificationPurpose.TELEPHONE_VERIFICATION) {
-            return genericVerificationProcessor.process(vt);
+        if (!VALID_CODE_CONFIRMATION_TYPES.contains(actionCode.getType())) {
+            log.warn("Invalid type for code confirmation: {}", actionCode.getType());
+            throw new InvalidVerificationPurposeException("Invalid type for code confirmation: " + actionCode.getType());
         }
 
-        throw new InvalidVerificationPurposeException("Invalid purpose for code confirmation");
+        VerificationPurposeProcessor processor = processorMap.get(actionCode.getType());
+        // This check should ideally not be null due to VALID_CODE_CONFIRMATION_TYPES check,
+        // but it's good for defensive programming.
+        if (processor == null) {
+            log.error("Internal configuration error: No processor registered for action code type: {}", actionCode.getType());
+            throw new IllegalStateException("Internal configuration error: No processor registered for action code type: " + actionCode.getType());
+        }
+        return processor.process(actionCode);
     }
 
+    /**
+     * Processes a password reset request using a valid code and a new password.
+     *
+     * @param code The password reset code.
+     * @param newPassword The new password for the user.
+     * @throws InvalidVerificationPurposeException if the code's type is not PASSWORD_RESET.
+     * @throws SamePasswordException if the new password is the same as the current password.
+     */
     @Transactional
     @Override
-    public void processPasswordReset(String token, String newPassword) {
-        log.info("Attempting to process password reset for token: {}", token);
-        VerificationToken vt = getValidatedVerificationToken(token, false);
-        log.debug("Token {} validated for password reset. Purpose: {}", token, vt.getPurpose());
+    public void processPasswordReset(String code, String newPassword) {
+        log.info("Attempting to process password reset for code: {}", code);
+        ActionCode actionCode = actionCodeValidationService.getValidatedActionCode(code);
+        log.debug("Code {} validated for password reset. Type: {}", code, actionCode.getType());
 
-        if (vt.getPurpose() != VerificationPurpose.PASSWORD_RESET) {
-            log.warn("Invalid purpose for password reset token {}. Expected PASSWORD_RESET, got {}", token, vt.getPurpose());
+        if (actionCode.getType() != ActionCodeType.RESET_PASSWORD) {
+            log.warn("Invalid type for password reset code {}. Expected RESET_PASSWORD, got {}", code, actionCode.getType());
             throw new InvalidVerificationPurposeException(VerificationErrorMessages.INVALID_TOKEN_PURPOSE_PASSWORD_RESET);
         }
 
-        User user = vt.getUser();
-        log.debug("User associated with token {}: {}", token, user.getUsername());
+        User user = actionCode.getUser();
+        log.debug("User associated with code {}: {}", code, user.getUsername());
 
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             log.warn("Attempted to reset password for user {} with same password.", user.getUsername());
@@ -85,76 +118,22 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         userService.update(user);
         log.info("Password successfully reset for user {}", user.getUsername());
 
-        verificationTokenService.revokeToken(vt);
-        log.debug("Token {} revoked after successful password reset.", token);
+        actionCodeService.consumeCode(actionCode);
+        log.debug("Code {} consumed after successful password reset.", code);
     }
 
+    /**
+     * Validates a password reset code without processing the reset itself.
+     *
+     * @param code The password reset code string.
+     * @return An Optional containing the User if the code is valid and for password reset, otherwise empty.
+     */
     @Override
-    @Transactional
-    public void initiatePasswordReset(String contactValue) {
-        UserContact userContact = userContactRepository.findByValue(contactValue)
-                .orElseThrow(() -> new UserNotFoundException("User not found with contact: " + contactValue));
-
-        User user = userContact.getUser();
-        if (!user.isEnabled()) {
-            throw new UserNotFoundException("User not found with contact: " + contactValue);
-        }
-
-        if (!userContact.isVerified()) {
-            throw new ContactMethodNotAvailableException("Contact is not verified: " + contactValue);
-        }
-
-        VerificationToken verificationToken = verificationTokenService.createAndSaveToken(user, VerificationPurpose.PASSWORD_RESET);
-
-        verificationDispatchService.sendVerification(userContact, verificationToken);
-    }
-
-    @Override
-    public Optional<User> validatePasswordResetToken(String token) {
-        return verificationTokenService.findByToken(token)
-                .filter(t -> t.getPurpose() == VerificationPurpose.PASSWORD_RESET)
-                .filter(t -> !t.isRevoked())
-                .filter(t -> t.getExpiresAt().isAfter(java.time.Instant.now()))
-                .map(VerificationToken::getUser);
-    }
-
-    private VerificationToken getValidatedVerificationToken(String value, boolean isCode) {
-        log.debug("Validating {} with value: {}", isCode ? "code" : "token", value);
-        Optional<VerificationToken> optionalVt;
-        String notFoundMessage;
-        String expiredMessage;
-        String revokedMessage;
-
-        if (isCode) {
-            optionalVt = verificationTokenService.findByCode(value);
-            notFoundMessage = VerificationErrorMessages.CODE_NOT_FOUND;
-            expiredMessage = VerificationErrorMessages.CODE_EXPIRED;
-            revokedMessage = VerificationErrorMessages.CODE_REVOKED;
-        } else {
-            optionalVt = verificationTokenService.findByToken(value);
-            notFoundMessage = VerificationErrorMessages.TOKEN_NOT_FOUND;
-            expiredMessage = VerificationErrorMessages.TOKEN_EXPIRED;
-            revokedMessage = VerificationErrorMessages.TOKEN_REVOKED;
-        }
-
-        VerificationToken vt = optionalVt.orElseThrow(() -> {
-            log.warn("{} not found: {}", isCode ? "Code" : "Token", value);
-            return new InvalidTokenException(notFoundMessage);
-        });
-        log.debug("{} found. Expires at: {}, Revoked: {}", isCode ? "Code" : "Token", vt.getExpiresAt(), vt.isRevoked());
-
-
-        if (vt.getExpiresAt().isBefore(Instant.now())) {
-            verificationTokenService.revokeToken(vt);
-            log.warn("{} {} expired. Revoked token.", isCode ? "Code" : "Token", value);
-            throw new TokenExpiredException(expiredMessage);
-        }
-
-        if (vt.isRevoked()) {
-            log.warn("{} {} already revoked.", isCode ? "Code" : "Token", value);
-            throw new TokenRevokedException(revokedMessage);
-        }
-        log.debug("{} {} is valid.", isCode ? "Code" : "Token", value);
-        return vt;
+    public Optional<User> validatePasswordResetToken(String code) {
+        return actionCodeService.findByCode(code)
+                .filter(ac -> ac.getType() == ActionCodeType.RESET_PASSWORD)
+                .filter(ac -> !ac.isConsumed())
+                .filter(ac -> ac.getExpiresAt().isAfter(Instant.now()))
+                .map(ActionCode::getUser);
     }
 }

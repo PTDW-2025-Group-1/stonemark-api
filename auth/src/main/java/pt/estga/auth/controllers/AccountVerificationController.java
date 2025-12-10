@@ -21,7 +21,7 @@ public class AccountVerificationController {
 
     @GetMapping("/confirm")
     public ResponseEntity<ConfirmationResponseDto> confirmToken(@RequestParam("token") String token) {
-        Optional<String> resultToken = verificationProcessingService.confirmToken(token);
+        Optional<String> resultToken = verificationProcessingService.confirmCode(token);
         return resultToken.map(t -> ResponseEntity.ok(ConfirmationResponseDto.passwordResetRequired(t)))
                 .orElseGet(() -> ResponseEntity.ok(ConfirmationResponseDto.success(VerificationErrorMessages.CONFIRMATION_SUCCESSFUL)));
     }

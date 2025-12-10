@@ -35,6 +35,11 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByUsername(String username) {
+        return repository.findByUsername(username);
+    }
+
+    @Override
     public boolean existsByContactValue(String contactValue) {
         return userContactService.findByValue(contactValue).isPresent();
     }

@@ -20,15 +20,13 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userService.findByEmail(username)
-                //.map(UserDetails.class::cast)
+        return username -> userService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService());
         authenticationProvider.setPasswordEncoder(passwordEncoder);
         return authenticationProvider;
     }

@@ -4,6 +4,8 @@ import pt.estga.auth.services.verification.commands.VerificationCommand;
 
 public interface VerificationInitiationService {
 
-    void initiate(VerificationCommand command);
+    void initiate(VerificationCommand<Void> command);
+
+    void initiatePasswordReset(String contactValue);
 
 }

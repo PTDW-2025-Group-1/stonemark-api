@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class VerificationDispatchServiceImpl implements VerificationDispatchService {
+public class ActionCodeDispatchServiceImpl implements ActionCodeDispatchService {
 
-    private final List<ContactVerificationService> contactVerificationServices;
+    private final List<pt.estga.auth.services.verification.ContactVerificationService> contactVerificationServices;
     private Map<ContactType, ContactVerificationService> serviceMap;
 
     @PostConstruct
@@ -26,11 +26,11 @@ public class VerificationDispatchServiceImpl implements VerificationDispatchServ
     }
 
     @Override
-    public void sendVerification(UserContact userContact, ActionCode actionCode) {
+    public void sendVerification(UserContact userContact, ActionCode code) {
         ContactVerificationService service = serviceMap.get(userContact.getType());
         if (service == null) {
             throw new IllegalArgumentException("Unsupported contact type for verification: " + userContact.getType());
         }
-        service.sendVerification(userContact.getValue(), actionCode);
+        service.sendVerification(userContact.getValue(), code);
     }
 }

@@ -12,15 +12,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.auth.enums.VerificationPurpose;
+import pt.estga.auth.enums.ActionCodeType;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
-import pt.estga.auth.services.token.VerificationTokenService;
 import pt.estga.auth.services.verification.VerificationDispatchService;
 import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.commands.EmailVerificationCommand;
+import pt.estga.auth.services.verification.commands.ActionCodeCommand;
 import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.user.entities.User;
@@ -46,7 +45,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final VerificationInitiationService verificationInitiationService;
-    private final VerificationTokenService verificationTokenService;
+    private final ActionCodeService actionCodeService;
     private final VerificationDispatchService verificationDispatchService;
     private final PasswordEncoder passwordEncoder;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
@@ -81,7 +80,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         if (contactVerificationRequired) {
             UserContact primaryEmailContact = userContactService.findPrimary(createdUser, ContactType.EMAIL)
                     .orElseThrow(() -> new IllegalArgumentException("Primary email contact not found for newly created user " + createdUser.getUsername()));
-            var command = new EmailVerificationCommand(createdUser, primaryEmailContact, verificationTokenService, verificationDispatchService);
+            var command = new ActionCodeCommand(createdUser, primaryEmailContact, actionCodeService, verificationDispatchService, ActionCodeType.EMAIL_VERIFICATION);
             verificationInitiationService.initiate(command);
             throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
         }
@@ -149,9 +148,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             boolean isCodeValid = switch (user.getTfaMethod()) {
                 case TOTP -> twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
                 case SMS ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationPurpose.SMS_2FA);
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.PHONE_VERIFICATION);
                 case EMAIL ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, VerificationPurpose.EMAIL_2FA);
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.EMAIL_VERIFICATION);
                 default -> false;
             };
 

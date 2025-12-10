@@ -1,7 +1,7 @@
 package pt.estga.auth.services.verification.commands;
 
-public interface VerificationCommand {
+public interface VerificationCommand<T> {
 
-    void execute();
+    void execute(T parameter);
 
 }
