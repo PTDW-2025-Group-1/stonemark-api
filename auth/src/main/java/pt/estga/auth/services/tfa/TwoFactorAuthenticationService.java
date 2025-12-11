@@ -1,20 +1,20 @@
 package pt.estga.auth.services.tfa;
 
-import pt.estga.auth.dtos.TfaSetupResponseDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
+import pt.estga.verification.enums.ActionCodeType;
 
 public interface TwoFactorAuthenticationService {
 
-    boolean isCodeValid(String secret, String code);
+    void generateAndSendSmsCode(User user);
 
-    void enableTfa(User user, TfaMethod method);
+    void generateAndSendEmailCode(User user);
 
-    void disableTfa(User user);
+    boolean verifyCode(User user, String code, ActionCodeType type);
 
-    TfaSetupResponseDto setupTotpForUser(User user);
+    void requestTfaContactCode(User user);
 
-    boolean verifyAndDisableTfa(User user, String code);
+    boolean verifyTfaContactCode(User user, String code);
 
     void setTfaMethod(User user, TfaMethod method);
 

@@ -1,4 +1,4 @@
-package services;
+package pt.estga.auth.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,8 @@ import pt.estga.auth.entities.RefreshToken;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.auth.services.AuthenticationServiceSpringImpl;
 import pt.estga.auth.services.JwtService;
-import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
+import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
@@ -57,10 +57,10 @@ class AuthenticationServiceTest {
     private RefreshTokenService refreshTokenService;
 
     @Mock
-    private TwoFactorAuthenticationService twoFactorAuthenticationService;
+    private TotpService totpService;
 
     @Mock
-    private ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
+    private TwoFactorAuthenticationService twoFactorAuthenticationService;
 
     @InjectMocks
     private AuthenticationServiceSpringImpl authenticationService;
@@ -172,7 +172,7 @@ class AuthenticationServiceTest {
         assertTrue(response.get().tfaCodeSent());
         assertNull(response.get().accessToken());
         assertNull(response.get().refreshToken());
-        verify(contactBasedTwoFactorAuthenticationService).generateAndSendSmsCode(user);
+        verify(twoFactorAuthenticationService).generateAndSendSmsCode(user);
     }
 
     @Test
@@ -188,7 +188,7 @@ class AuthenticationServiceTest {
         assertTrue(response.get().tfaCodeSent());
         assertNull(response.get().accessToken());
         assertNull(response.get().refreshToken());
-        verify(contactBasedTwoFactorAuthenticationService).generateAndSendEmailCode(user);
+        verify(twoFactorAuthenticationService).generateAndSendEmailCode(user);
     }
 
     @Test
@@ -197,7 +197,7 @@ class AuthenticationServiceTest {
         user.setTfaSecret("secret");
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(twoFactorAuthenticationService.isCodeValid("secret", "123456")).thenReturn(true);
+        when(totpService.isCodeValid("secret", "123456")).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(user)).thenReturn("refreshToken");
 
@@ -214,7 +214,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.SMS);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
+        when(twoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(user)).thenReturn("refreshToken");
 
@@ -231,7 +231,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.EMAIL);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
+        when(twoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(user)).thenReturn("refreshToken");
 
@@ -249,7 +249,7 @@ class AuthenticationServiceTest {
         user.setTfaSecret("secret");
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(twoFactorAuthenticationService.isCodeValid("secret", "wrong-code")).thenReturn(false);
+        when(totpService.isCodeValid("secret", "wrong-code")).thenReturn(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "wrong-code");
 
@@ -261,7 +261,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.SMS);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
+        when(twoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "wrong-code");
 
@@ -273,7 +273,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.EMAIL);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
+        when(twoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "wrong-code");
 

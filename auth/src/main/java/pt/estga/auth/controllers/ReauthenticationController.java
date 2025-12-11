@@ -1,31 +1,33 @@
 package pt.estga.auth.controllers;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pt.estga.auth.dtos.ReauthenticationRequest;
 import pt.estga.auth.services.ReauthenticationService;
+import pt.estga.shared.exceptions.InvalidOtpException;
 
 @RestController
-@RequestMapping("/auth/reauth")
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/auth/reauth")
+@Tag(name = "Reauthentication", description = "Operations related to reauthentication.")
 public class ReauthenticationController {
 
     private final ReauthenticationService reauthenticationService;
 
-    public ReauthenticationController(ReauthenticationService reauthenticationService) {
-        this.reauthenticationService = reauthenticationService;
-    }
-
     @PostMapping
-    // Todo: implement reauthentication
     public ResponseEntity<Void> reauthenticate(@RequestBody ReauthenticationRequest reauthenticationRequest) {
-        // Here you would validate the user's credentials (password or OTP)
-        // For example, by calling a method in the AuthenticationService
-        // If the credentials are valid:
-        reauthenticationService.markSessionAsReauthenticated();
-        return ResponseEntity.ok().build();
-        // If the credentials are not valid, you would return a 401 Unauthorized
+        try {
+            reauthenticationService.reauthenticate(reauthenticationRequest);
+            return ResponseEntity.ok().build();
+        } catch (BadCredentialsException | InvalidOtpException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }

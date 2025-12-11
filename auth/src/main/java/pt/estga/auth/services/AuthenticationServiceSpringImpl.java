@@ -11,8 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
+import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
@@ -40,8 +40,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+    private final TotpService totpService;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
-    private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
 
     @Value("${application.security.contact.verification-required:false}")
     private boolean contactVerificationRequired;
@@ -118,11 +118,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                         // If no code is provided, we just indicate it's required.
                         break;
                     case SMS:
-                        contactBasedTwoFactorAuthenticationService.generateAndSendSmsCode(user);
+                        twoFactorAuthenticationService.generateAndSendSmsCode(user);
                         tfaCodeSent = true;
                         break;
                     case EMAIL:
-                        contactBasedTwoFactorAuthenticationService.generateAndSendEmailCode(user);
+                        twoFactorAuthenticationService.generateAndSendEmailCode(user);
                         tfaCodeSent = true;
                         break;
                 }
@@ -131,9 +131,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
             // A 2FA code was provided, verify it.
             boolean isCodeValid = switch (user.getTfaMethod()) {
-                case TOTP -> twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
+                case TOTP -> totpService.isCodeValid(user.getTfaSecret(), tfaCode);
                 case SMS, EMAIL ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.TWO_FACTOR);
+                        twoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.TWO_FACTOR);
                 default -> false;
             };
 

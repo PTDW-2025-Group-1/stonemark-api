@@ -1,4 +1,4 @@
-package services;
+package pt.estga.auth.services;
 
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;

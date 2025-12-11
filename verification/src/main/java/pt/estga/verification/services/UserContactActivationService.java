@@ -28,6 +28,7 @@ public class UserContactActivationService {
     public Optional<String> activateUserContact(ActionCode actionCode) {
         log.info("Activating user contact for action code: {}", actionCode.getCode());
 
+        // Find the contact based on type, regardless of its verification status
         UserContact contactToVerify = findContactForActionCode(actionCode);
 
         if (contactToVerify.isVerified()) {
@@ -52,11 +53,11 @@ public class UserContactActivationService {
     private UserContact findContactForActionCode(ActionCode actionCode) {
         ContactType expectedContactType = getContactTypeForAction(actionCode.getType());
         return actionCode.getUser().getContacts().stream()
-                .filter(contact -> contact.getType() == expectedContactType && !contact.isVerified())
+                .filter(contact -> contact.getType() == expectedContactType) // Removed !contact.isVerified()
                 .findFirst()
                 .orElseThrow(() -> {
-                    log.error("No unverified contact of type {} found for user {}", expectedContactType, actionCode.getUser().getId());
-                    return new IllegalStateException("No matching unverified contact found for the action code.");
+                    log.error("No contact of type {} found for user {}", expectedContactType, actionCode.getUser().getId());
+                    return new IllegalStateException("No matching contact found for the action code."); // Adjusted message
                 });
     }
 

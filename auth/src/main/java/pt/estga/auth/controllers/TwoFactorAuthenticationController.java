@@ -12,8 +12,8 @@ import pt.estga.auth.dtos.SetTfaMethodRequestDto;
 import pt.estga.auth.dtos.TfaContactVerificationRequestDto;
 import pt.estga.auth.dtos.TfaSetupResponseDto;
 import pt.estga.auth.dtos.TfaVerificationRequestDto;
-import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
+import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
@@ -25,21 +25,21 @@ import pt.estga.user.enums.TfaMethod;
 @PreAuthorize("isAuthenticated()")
 public class TwoFactorAuthenticationController {
 
+    private final TotpService totpService;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
-    private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
 
     @PostMapping("/setup/totp")
     public ResponseEntity<TfaSetupResponseDto> setupTotp(@AuthenticationPrincipal User user) {
-        TfaSetupResponseDto response = twoFactorAuthenticationService.setupTotpForUser(user);
+        TfaSetupResponseDto response = totpService.setupTotpForUser(user);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/enable/totp")
     public ResponseEntity<?> enableTotp(@AuthenticationPrincipal User user, @Valid @RequestBody TfaVerificationRequestDto request) {
-        if (user.getTfaSecret() == null || !twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), request.code())) {
+        if (user.getTfaSecret() == null || !totpService.isCodeValid(user.getTfaSecret(), request.code())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
         }
-        twoFactorAuthenticationService.enableTfa(user, TfaMethod.TOTP);
+        totpService.enableTfa(user, TfaMethod.TOTP);
         return ResponseEntity.ok(new MessageResponseDto("Two-Factor Authentication enabled successfully."));
     }
 
@@ -49,7 +49,7 @@ public class TwoFactorAuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Two-Factor Authentication is not enabled."));
         }
 
-        if (!twoFactorAuthenticationService.verifyAndDisableTfa(user, request.code())) {
+        if (!totpService.verifyAndDisableTfa(user, request.code())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
         }
 
@@ -68,7 +68,7 @@ public class TwoFactorAuthenticationController {
     @PostMapping("/contact/request-code")
     public ResponseEntity<?> requestContactTfaCode(@AuthenticationPrincipal User user) {
         try {
-            contactBasedTwoFactorAuthenticationService.requestTfaContactCode(user);
+            twoFactorAuthenticationService.requestTfaContactCode(user);
             return ResponseEntity.ok(new MessageResponseDto("2FA code sent to your primary contact method."));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
@@ -78,7 +78,7 @@ public class TwoFactorAuthenticationController {
     @PostMapping("/contact/verify-code")
     public ResponseEntity<?> verifyContactTfaCode(@AuthenticationPrincipal User user, @Valid @RequestBody TfaContactVerificationRequestDto request) {
         try {
-            if (contactBasedTwoFactorAuthenticationService.verifyTfaContactCode(user, request.code())) {
+            if (twoFactorAuthenticationService.verifyTfaContactCode(user, request.code())) {
                 return ResponseEntity.ok(new MessageResponseDto("2FA code verified successfully."));
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));

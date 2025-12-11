@@ -1,4 +1,4 @@
-package services;
+package pt.estga.auth.services;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
