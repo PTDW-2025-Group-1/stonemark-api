@@ -1,0 +1,60 @@
+package pt.estga.user.services;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserIdentity;
+import pt.estga.user.enums.Provider;
+import pt.estga.user.repositories.UserIdentityRepository;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class UserIdentityServiceImpl implements UserIdentityService {
+
+    private final UserIdentityRepository userIdentityRepository;
+
+    @Override
+    public Optional<UserIdentity> findByProviderAndValue(Provider provider, String value) {
+        return userIdentityRepository.findByProviderAndValue(provider, value);
+    }
+
+    @Override
+    public Optional<UserIdentity> findByUserAndProvider(User user, Provider provider) {
+        return userIdentityRepository.findByUserAndProvider(user, provider);
+    }
+
+    @Override
+    @Transactional
+    public UserIdentity createAndAssociate(User user, Provider provider, String identityValue) {
+        // Verify that the user doesn't have an identity with the given provider yet
+        boolean identityExists = user.getIdentities().stream()
+                .anyMatch(identity -> identity.getProvider() == provider);
+
+        if (identityExists) {
+            throw new IllegalStateException("User already has an identity with provider " + provider);
+        }
+
+        UserIdentity identity = UserIdentity.builder()
+                .provider(provider)
+                .value(identityValue)
+                .user(user)
+                .build();
+
+        user.getIdentities().add(identity);
+
+        return userIdentityRepository.save(identity);
+    }
+
+    @Override
+    public void delete(UserIdentity userIdentity) {
+        userIdentityRepository.delete(userIdentity);
+    }
+
+    @Override
+    public void deleteByUserAndProvider(User user, Provider provider) {
+        userIdentityRepository.deleteByUserAndProvider(user, provider);
+    }
+}

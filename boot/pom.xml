@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>boot</artifactId>
-    <version>${stonemark.version}</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -36,7 +35,7 @@
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
-            <artifactId>contact</artifactId>
+            <artifactId>support</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

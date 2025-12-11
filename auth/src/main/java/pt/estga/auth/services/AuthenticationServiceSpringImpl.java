@@ -1,7 +1,5 @@
 package pt.estga.auth.services;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,106 +7,143 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.entities.token.RefreshToken;
+import pt.estga.auth.dtos.AuthenticationResponseDto;
+import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
+import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
-import pt.estga.auth.services.verification.VerificationInitiationService;
-import pt.estga.auth.services.verification.VerificationProcessingService;
-import pt.estga.auth.services.verification.commands.VerificationCommandFactory;
-import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.shared.exceptions.EmailAlreadyTakenException;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
-import pt.estga.user.Role;
+import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
-import pt.estga.user.service.UserService;
+import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.Role;
+import pt.estga.user.enums.TfaMethod;
+import pt.estga.user.services.UserContactService;
+import pt.estga.user.services.UserService;
+import pt.estga.verification.enums.ActionCodeType;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(noRollbackFor = {EmailVerificationRequiredException.class})
 public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
     private final UserService userService;
+    private final UserContactService userContactService;
     private final AccessTokenService accessTokenService;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final VerificationInitiationService verificationInitiationService;
-    private final VerificationCommandFactory verificationCommandFactory;
-    private final GoogleIdTokenVerifier googleIdTokenVerifier;
-    private final VerificationProcessingService verificationProcessingService;
     private final PasswordEncoder passwordEncoder;
+    private final TotpService totpService;
+    private final TwoFactorAuthenticationService twoFactorAuthenticationService;
 
-    @Value("${application.security.email.verification-required:false}")
-    private boolean emailVerificationRequired;
+    @Value("${application.security.contact.verification-required:false}")
+    private boolean contactVerificationRequired;
 
     @Override
-    @Transactional(noRollbackFor = EmailVerificationRequiredException.class)
     public Optional<AuthenticationResponseDto> register(User user) {
         if (user == null) {
             throw new IllegalArgumentException("user must not be null");
         }
-        var email = user.getEmail();
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("email must not be null or blank");
+
+        if (userService.existsByUsername(user.getUsername())) {
+            throw new UsernameAlreadyTakenException("Username already in use");
         }
-        if (userService.existsByEmail(email)) {
-            throw new EmailAlreadyTakenException("email already in use");
-        }
+
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
 
-        user.setEnabled(!emailVerificationRequired);
+        user.setTfaMethod(TfaMethod.NONE);
+        user.setEnabled(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.getContacts().clear();
+
         User createdUser = userService.create(user);
 
-        if (emailVerificationRequired) {
-            var command = verificationCommandFactory.createEmailVerificationCommand(createdUser);
-            verificationInitiationService.initiate(command);
-            throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-        }
-        return generateAuthenticationResponse(createdUser);
+        return generateAuthenticationResponse(createdUser, false, false);
     }
 
     @NotNull
-    private Optional<AuthenticationResponseDto> generateAuthenticationResponse(User user) {
+    private Optional<AuthenticationResponseDto> generateAuthenticationResponse(User user, boolean tfaRequired, boolean tfaCodeSent) {
+        return getAuthenticationResponseDto(user, tfaRequired, tfaCodeSent, jwtService, refreshTokenService, accessTokenService);
+    }
+
+    @NotNull
+    public static Optional<AuthenticationResponseDto> getAuthenticationResponseDto(User user, boolean tfaRequired, boolean tfaCodeSent, JwtService jwtService, RefreshTokenService refreshTokenService, AccessTokenService accessTokenService) {
+        if (tfaRequired) {
+            return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
+        }
+
         var refreshTokenString = jwtService.generateRefreshToken(user);
         var accessTokenString = jwtService.generateAccessToken(user);
 
         var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
         accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
 
-        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name()));
+        return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, tfaCodeSent));
     }
 
     @Override
-    @Transactional
-    public Optional<AuthenticationResponseDto> authenticate(String email, String password) {
+    public Optional<AuthenticationResponseDto> authenticate(String usernameOrContact, String password, String tfaCode) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usernameOrContact, password));
         } catch (AuthenticationException e) {
-            log.warn("Authentication failed for user: {}", email, e);
+            log.warn("Authentication failed for user: {}", usernameOrContact, e);
             return Optional.empty();
         }
 
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userService.findByUsername(usernameOrContact)
+                .orElseGet(() -> userContactService.findByValue(usernameOrContact)
+                        .map(UserContact::getUser)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found")));
 
-        if (emailVerificationRequired && !user.isEnabled()) {
+        if (contactVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required.");
         }
 
-        return generateAuthenticationResponse(user);
+        boolean tfaCodeSent = false;
+        if (user.getTfaMethod() != TfaMethod.NONE) {
+            if (tfaCode == null || tfaCode.isBlank()) {
+                // 2FA is enabled, but no code provided. Initiate sending a code based on method.
+                switch (user.getTfaMethod()) {
+                    case TOTP:
+                        // For TOTP, the user is expected to provide the code from their app.
+                        // If no code is provided, we just indicate it's required.
+                        break;
+                    case SMS:
+                        twoFactorAuthenticationService.generateAndSendSmsCode(user);
+                        tfaCodeSent = true;
+                        break;
+                    case EMAIL:
+                        twoFactorAuthenticationService.generateAndSendEmailCode(user);
+                        tfaCodeSent = true;
+                        break;
+                }
+                return generateAuthenticationResponse(user, true, tfaCodeSent); // Indicate that 2FA is required
+            }
+
+            // A 2FA code was provided, verify it.
+            boolean isCodeValid = switch (user.getTfaMethod()) {
+                case TOTP -> totpService.isCodeValid(user.getTfaSecret(), tfaCode);
+                case SMS, EMAIL ->
+                        twoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.TWO_FACTOR);
+                default -> false;
+            };
+
+            if (!isCodeValid) {
+                log.warn("Invalid 2FA code for user: {}", usernameOrContact);
+                return Optional.empty(); // Invalid 2FA code
+            }
+        }
+
+        return generateAuthenticationResponse(user, false, false);
     }
 
 
@@ -119,72 +154,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                 .filter(token -> !token.isRevoked())
                 .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUser()))
                 .map(refreshToken -> {
-                    UserDetails userDetails = refreshToken.getUser();
+                    User user = refreshToken.getUser();
 
                     accessTokenService.revokeAllByRefreshToken(refreshToken);
 
-                    String newAccessToken = jwtService.generateAccessToken(userDetails);
-                    accessTokenService.createToken(userDetails.getUsername(), newAccessToken, refreshToken);
+                    String newAccessToken = jwtService.generateAccessToken(user);
+                    accessTokenService.createToken(user.getUsername(), newAccessToken, refreshToken);
 
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority());
-                });
-    }
-
-    @Override
-    public void requestPasswordReset(String email) {
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        var command = verificationCommandFactory.createPasswordResetCommand(user);
-        verificationInitiationService.initiate(command);
-    }
-
-    @Override
-    public void resetPassword(String token, String newPassword) {
-        verificationProcessingService.processPasswordReset(token, newPassword);
-    }
-
-
-    @Override
-    @Transactional
-    public Optional<AuthenticationResponseDto> authenticateWithGoogle(String token) {
-        try {
-            GoogleIdToken idToken = googleIdTokenVerifier.verify(token);
-            if (idToken == null) {
-                return Optional.empty();
-            }
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            User user = upsertUserFromGooglePayload(payload);
-
-            if (emailVerificationRequired && !user.isEnabled()) {
-                throw new EmailVerificationRequiredException("Email verification required. Please check your inbox.");
-            }
-
-            return generateAuthenticationResponse(user);
-        } catch (GeneralSecurityException | IOException e) {
-            log.error("Error while authenticating with Google", e);
-            throw new RuntimeException("Google authentication failed.", e);
-        }
-    }
-
-    private User upsertUserFromGooglePayload(GoogleIdToken.Payload payload) {
-        String email = payload.getEmail();
-        String googleId = payload.getSubject();
-
-        return userService.findByEmail(email)
-                .map(existingUser -> {
-                    existingUser.setGoogleId(googleId);
-                    return userService.update(existingUser);
-                })
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(email)
-                            .firstName((String) payload.get("given_name"))
-                            .lastName((String) payload.get("family_name"))
-                            .role(Role.USER)
-                            .enabled(!emailVerificationRequired)
-                            .googleId(googleId)
-                            .build();
-                    return userService.create(newUser);
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getAuthorities().iterator().next().getAuthority(), user.getTfaMethod() != TfaMethod.NONE, false, false);
                 });
     }
 
@@ -192,14 +169,5 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public void logoutFromAllDevices(User user) {
         refreshTokenService.revokeAllByUser(user);
         accessTokenService.revokeAllByUser(user);
-    }
-
-    @Override
-    public void logoutFromAllOtherDevices(User user, String currentToken) {
-        List<RefreshToken> otherRefreshTokens = refreshTokenService.findAllValidByUser(user);
-        otherRefreshTokens.removeIf(token -> token.getToken().equals(currentToken));
-
-        otherRefreshTokens.forEach(accessTokenService::revokeAllByRefreshToken);
-        refreshTokenService.revokeAll(otherRefreshTokens);
     }
 }

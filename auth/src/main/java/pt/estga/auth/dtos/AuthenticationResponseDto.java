@@ -6,5 +6,8 @@ import lombok.*;
 public record AuthenticationResponseDto(
         String accessToken,
         String refreshToken,
-        String role
+        String role,
+        boolean tfaEnabled,
+        boolean tfaRequired,
+        boolean tfaCodeSent
 ) { }

@@ -4,15 +4,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pt.estga.user.entities.User;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
 
-    Optional<User> findByTelephone(String telephone);
+    boolean existsByUsername(String username);
 
-    Optional<User> findByTelegramChatId(String telegramChatId);
+    void deleteAllByEnabledFalseAndCreatedAtBefore(Instant minus);
 
 }

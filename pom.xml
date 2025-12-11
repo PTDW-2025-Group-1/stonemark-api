@@ -30,9 +30,10 @@
         <module>auth</module>
         <module>shared</module>
         <module>proposals</module>
-        <module>contact</module>
+        <module>support</module>
         <module>bots</module>
         <module>bookmark</module>
+        <module>verification</module>
     </modules>
     <scm>
 		<connection/>
@@ -58,19 +59,16 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.20.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.20.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.27.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -172,6 +170,12 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.6.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/dev.samstevens.totp/totp -->
+        <dependency>
+            <groupId>dev.samstevens.totp</groupId>
+            <artifactId>totp</artifactId>
+            <version>1.7.1</version>
         </dependency>
 
         <dependency>

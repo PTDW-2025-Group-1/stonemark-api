@@ -6,8 +6,6 @@ import lombok.*;
 public record RegisterRequestDto(
         String firstName,
         String lastName,
-        String email,
-        String telephone,
-        String password,
-        String role
+        String username,
+        String password
 ) { }

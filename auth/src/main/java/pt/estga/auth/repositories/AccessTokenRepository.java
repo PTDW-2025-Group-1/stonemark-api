@@ -1,17 +1,21 @@
 package pt.estga.auth.repositories;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import pt.estga.auth.entities.token.AccessToken;
-import pt.estga.auth.entities.token.RefreshToken;
+import pt.estga.auth.entities.AccessToken;
+import pt.estga.auth.entities.RefreshToken;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AccessTokenRepository extends BaseTokenRepository<AccessToken> {
+public interface AccessTokenRepository extends JpaRepository<AccessToken, Long> {
+
+    Optional<AccessToken> findByToken(String token);
 
     @Query("SELECT t FROM AccessToken t JOIN FETCH t.user WHERE t.token = :token")
     Optional<AccessToken> findByTokenWithUser(String token);
@@ -20,15 +24,17 @@ public interface AccessTokenRepository extends BaseTokenRepository<AccessToken> 
     Optional<AccessToken> findByTokenWithRefreshToken(String token);
 
     @Modifying
-    @Query("UPDATE AccessToken t SET t.revoked = true WHERE t.refreshToken = :refreshToken")
+    @Query("UPDATE AccessToken t SET t.isRevoked = true WHERE t.refreshToken = :refreshToken")
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
-    List<AccessToken> findAllByUserIdAndRevokedFalse(Long userId);
+    List<AccessToken> findAllByUser(User user);
 
-    void deleteByRevokedTrueAndExpiresAtBefore(Instant instant);
+    List<AccessToken> findAllByUserIdAndIsRevokedFalse(Long userId);
+
+    void deleteByIsRevokedTrueAndExpiresAtBefore(Instant instant);
 
     List<AccessToken> findAllByRefreshToken(RefreshToken refreshToken);
 
-    List<AccessToken> findAllByRefreshTokenAndRevokedFalse(RefreshToken refreshToken);
+    List<AccessToken> findAllByRefreshTokenAndIsRevokedFalse(RefreshToken refreshToken);
 
 }

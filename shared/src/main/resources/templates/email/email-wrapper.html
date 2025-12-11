@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{subject}}</title>
+    <title th:text="${subject}">Title</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,15 +40,15 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">{{subject}}</div>
-        <div class="content">
-            {{body}}
-        </div>
-        <div class="footer">
-            <p>This is an automated message. Please do not reply.</p>
-            <p>&copy; 2024 Stonemark. All rights reserved.</p>
-        </div>
+<div class="container">
+    <div class="header" th:text="${subject}">Subject</div>
+    <div class="content" layout:fragment="content">
+        <!-- Content from other templates will be inserted here -->
     </div>
+    <div class="footer">
+        <p>This is an automated message. Please do not reply.</p>
+        <p>&copy; 2026 Stonemark. All rights reserved.</p>
+    </div>
+</div>
 </body>
 </html>

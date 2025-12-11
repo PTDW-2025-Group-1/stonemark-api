@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{email/email-wrapper}">
+<head>
+    <title>Email Verification</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <p>Congratulations, <span th:text="${name}"></span>!</p>
+    <p>Your email was successfully verified!</p>
+    <br>
+    <p>Stonemark team</p>
+</div>
+</body>
+</html>

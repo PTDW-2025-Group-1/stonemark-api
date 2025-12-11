@@ -5,9 +5,10 @@
     <title>Email Verification</title>
 </head>
 <body>
-    <p>Thank you for registering. Please click the link below to verify your account.</p>
-    <p>Verification Link: <a th:href="${link}">Click here to verify your account</a></p>
-    <p>If the link doesn't work, you can use the following 6-character code on the verification page:<br><strong th:text="${code}"></strong></p>
-    <p>This link and code will expire in <span th:text="${expiration}"></span> hours.</p>
+    <p>Verification was requested for this email on Stonemark.</p>
+    <p>Use the following code:<br><strong th:text="${code}"></strong></p>
+    <p>This code will expire in <span th:text="${expiration}"></span> hours.</p>
+    <br>
+    <p>Stonemark team</p>
 </body>
 </html>

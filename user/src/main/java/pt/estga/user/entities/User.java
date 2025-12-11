@@ -5,12 +5,16 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import pt.estga.user.Role;
+import pt.estga.user.enums.ContactType;
+import pt.estga.user.enums.Role;
+import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @Table(name = "_user")
@@ -27,21 +31,32 @@ public class User implements UserDetails {
 
     private String firstName;
     private String lastName;
-    private String email;
-    private String telephone;
+    private String username;
     private String password;
-
-    private String googleId;
-    private String telegramChatId;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
     private boolean accountLocked;
-    private boolean enabled;
+    @Builder.Default
+    private boolean enabled = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TfaMethod tfaMethod = TfaMethod.NONE;
+    private String tfaSecret;
 
     @CreationTimestamp
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<UserContact> contacts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<UserIdentity> identities = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -74,7 +89,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override
@@ -101,11 +116,11 @@ public class User implements UserDetails {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(telephone, user.telephone) && Objects.equals(password, user.password) && Objects.equals(googleId, user.googleId) && Objects.equals(telegramChatId, user.telegramChatId) && role == user.role && Objects.equals(createdAt, user.createdAt);
+        return accountLocked == user.accountLocked && enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && role == user.role && tfaMethod == user.tfaMethod && Objects.equals(tfaSecret, user.tfaSecret) && Objects.equals(createdAt, user.createdAt) && Objects.equals(contacts, user.contacts) && Objects.equals(identities, user.identities);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, lastName, email, telephone, password, googleId, telegramChatId, role, accountLocked, enabled, createdAt);
+        return Objects.hash(id, firstName, lastName, username, password, role, accountLocked, enabled, tfaMethod, tfaSecret, createdAt, contacts, identities);
     }
 }
