@@ -1,4 +1,4 @@
-package pt.estga.boot.config;
+package pt.estga.bots.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

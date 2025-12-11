@@ -1,6 +1,7 @@
 package pt.estga.auth.services.tfa;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TwoFactorAuthenticationServiceImpl implements TwoFactorAuthenticationService {
 
     private final SmsService smsService;
@@ -124,6 +126,37 @@ public class TwoFactorAuthenticationServiceImpl implements TwoFactorAuthenticati
             totpService.disableTfa(user);
         }
         userService.update(user);
+    }
+
+    @Override
+    @Transactional
+    public boolean verifyAndDisableCurrentTfa(User user, String code) {
+        log.info("Attempting to verify and disable TFA for user: {}", user.getUsername());
+        boolean isValid = false;
+        TfaMethod tfaMethod = user.getTfaMethod();
+        log.debug("User {} current TFA method is: {}", user.getUsername(), tfaMethod);
+
+        if (tfaMethod == TfaMethod.TOTP) {
+            if (user.getTfaSecret() != null) {
+                isValid = totpService.isCodeValid(user.getTfaSecret(), code);
+                log.debug("TOTP code verification result for user {}: {}", user.getUsername(), isValid);
+            } else {
+                log.warn("User {} has TOTP method set but no secret is stored.", user.getUsername());
+            }
+        } else if (tfaMethod == TfaMethod.SMS || tfaMethod == TfaMethod.EMAIL) {
+            isValid = verifyTfaContactCode(user, code);
+            log.debug("Contact-based TFA code verification result for user {}: {}", user.getUsername(), isValid);
+        } else {
+            log.warn("User {} has an unsupported TFA method for verification: {}", user.getUsername(), tfaMethod);
+        }
+
+        if (isValid) {
+            log.info("TFA code verified successfully for user: {}. Disabling TFA.", user.getUsername());
+            totpService.disableTfa(user); // This method now handles setting TfaMethod.NONE and clearing secret
+        } else {
+            log.warn("TFA code verification failed for user: {}", user.getUsername());
+        }
+        return isValid;
     }
 
     private void saveActionCode(User user, String code) {

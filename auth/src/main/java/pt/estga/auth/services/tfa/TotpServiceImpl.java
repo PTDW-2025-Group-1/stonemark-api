@@ -25,7 +25,6 @@ public class TotpServiceImpl implements TotpService {
     private final QrGenerator qrGenerator;
     private final CodeVerifier codeVerifier;
     private final UserService userService;
-    private final TwoFactorAuthenticationService twoFactorAuthenticationService;
 
     @Override
     @Transactional
@@ -82,36 +81,5 @@ public class TotpServiceImpl implements TotpService {
         user.setTfaSecret(null);
         userService.update(user);
         log.info("TFA disabled successfully for user: {}", user.getUsername());
-    }
-
-    @Override
-    @Transactional
-    public boolean verifyAndDisableTfa(User user, String code) {
-        log.info("Attempting to verify and disable TFA for user: {}", user.getUsername());
-        boolean isValid = false;
-        TfaMethod tfaMethod = user.getTfaMethod();
-        log.debug("User {} current TFA method is: {}", user.getUsername(), tfaMethod);
-
-        if (tfaMethod == TfaMethod.TOTP) {
-            if (user.getTfaSecret() != null) {
-                isValid = isCodeValid(user.getTfaSecret(), code);
-                log.debug("TOTP code verification result for user {}: {}", user.getUsername(), isValid);
-            } else {
-                log.warn("User {} has TOTP method set but no secret is stored.", user.getUsername());
-            }
-        } else if (tfaMethod == TfaMethod.SMS || tfaMethod == TfaMethod.EMAIL) {
-            isValid = twoFactorAuthenticationService.verifyTfaContactCode(user, code);
-            log.debug("Contact-based TFA code verification result for user {}: {}", user.getUsername(), isValid);
-        } else {
-            log.warn("User {} has an unsupported TFA method for verification: {}", user.getUsername(), tfaMethod);
-        }
-
-        if (isValid) {
-            log.info("TFA code verified successfully for user: {}. Disabling TFA.", user.getUsername());
-            disableTfa(user);
-        } else {
-            log.warn("TFA code verification failed for user: {}", user.getUsername());
-        }
-        return isValid;
     }
 }

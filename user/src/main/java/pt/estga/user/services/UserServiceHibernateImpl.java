@@ -8,6 +8,7 @@ import pt.estga.user.enums.Role;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -55,5 +56,10 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public void deleteUnverifiedUsers(Instant minus) {
+        repository.deleteAllByEnabledFalseAndCreatedAtBefore(minus);
     }
 }

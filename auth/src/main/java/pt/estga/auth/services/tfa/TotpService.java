@@ -13,7 +13,4 @@ public interface TotpService {
     void disableTfa(User user);
 
     TfaSetupResponseDto setupTotpForUser(User user);
-
-    boolean verifyAndDisableTfa(User user, String code);
-
 }

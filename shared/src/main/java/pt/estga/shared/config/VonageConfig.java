@@ -1,4 +1,4 @@
-package pt.estga.boot.config;
+package pt.estga.shared.config;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.vonage.client.VonageClient;

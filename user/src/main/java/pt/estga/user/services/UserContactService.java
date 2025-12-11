@@ -21,7 +21,7 @@ public interface UserContactService {
 
     Optional<UserContact> findByUserAndValue(User user, String value);
 
-    boolean existByValue(String value);
+    boolean existsByValue(String value);
 
     UserContact update(UserContact userContact);
 

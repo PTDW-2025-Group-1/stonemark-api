@@ -25,9 +25,6 @@ import java.util.Optional;
 @Builder
 public class User implements UserDetails {
 
-    // Todo: implement username unlock mechanism / user deletion
-    //  if no contact were verified in a span of defined time
-
     @Id
     @GeneratedValue
     private Long id;
@@ -41,7 +38,8 @@ public class User implements UserDetails {
     private Role role;
 
     private boolean accountLocked;
-    private boolean enabled;
+    @Builder.Default
+    private boolean enabled = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -112,12 +110,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public Optional<UserContact> getPrimaryContact(ContactType type) {
-        return contacts.stream()
-                .filter(c -> c.getType() == type && c.isPrimary())
-                .findFirst();
     }
 
     @Override

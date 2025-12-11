@@ -1,4 +1,4 @@
-package pt.estga.boot.config;
+package pt.estga.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.mail.MailProperties;

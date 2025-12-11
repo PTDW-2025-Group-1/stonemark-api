@@ -104,7 +104,7 @@ public class AccountServiceImpl implements AccountService {
     @SensitiveOperation(reason = "delete_contact")
     public void deleteContact(User user, Long contactId) {
         UserContact contact = userContactService.findById(contactId)
-                .filter(c -> c.getUser().equals(user))
+                .filter(c -> c.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new IllegalArgumentException("Contact not found for user."));
         userContactService.delete(contact);
     }

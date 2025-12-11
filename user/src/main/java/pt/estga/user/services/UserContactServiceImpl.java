@@ -55,9 +55,9 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
-    public boolean existByValue(String value) {
+    public boolean existsByValue(String value) {
         log.info("Checking if user contact exists by value: {}", value);
-        return repository.findByValue(value).isPresent();
+        return repository.existsByValue(value);
     }
 
     @Override

@@ -1,5 +1,11 @@
 package pt.estga.user.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,29 +29,78 @@ public class UserController {
     private final UserService service;
     private final UserMapper mapper;
 
+    @Operation(summary = "Get all users", description = "Retrieves a paginated list of all users.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of users",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class)))
+    })
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAll(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
+    @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved user",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getById(@PathVariable Long id) {
+    public ResponseEntity<UserDto> getById(
+            @Parameter(description = "ID of the user to be retrieved", required = true)
+            @PathVariable Long id) {
         return service.findById(id)
                 .map(mapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Check if a user exists by username", description = "Checks if a user exists with the given username.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns true if the user exists, false otherwise")
+    })
+    @GetMapping("/exists/by-username")
+    public ResponseEntity<Boolean> existsByUsername(
+            @Parameter(description = "Username to check for existence", required = true)
+            @RequestParam String username) {
+        return ResponseEntity.ok(service.existsByUsername(username));
+    }
+
+    @Operation(summary = "Update a user", description = "Updates the details of an existing user.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PatchMapping("/{id}")
-    public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto userDto) {
+    public ResponseEntity<UserDto> update(
+            @Parameter(description = "ID of the user to be updated", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "Updated user details", required = true)
+            @RequestBody UserDto userDto) {
         User user = mapper.toEntity(userDto);
         user.setId(id);
         return ResponseEntity.ok(mapper.toDto(service.update(user)));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update user role", description = "Updates the role of a specific user. Requires ADMIN privileges.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User role updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid role provided"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PatchMapping("/{id}/role")
-    public ResponseEntity<UserDto> updateRole(@PathVariable Long id, @RequestParam Role role) {
+    public ResponseEntity<UserDto> updateRole(
+            @Parameter(description = "ID of the user to update the role for", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "The new role to assign to the user", required = true)
+            @RequestParam Role role) {
         return service.findById(id)
                 .map(user -> service.updateRole(user, role)
                         .map(mapper::toDto)
@@ -55,8 +110,15 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete a user", description = "Deletes a user by their ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteById(@PathVariable Long id) {
+    public ResponseEntity<?> deleteById(
+            @Parameter(description = "ID of the user to be deleted", required = true)
+            @PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();
     }

@@ -18,4 +18,6 @@ public interface TwoFactorAuthenticationService {
 
     void setTfaMethod(User user, TfaMethod method);
 
+    boolean verifyAndDisableCurrentTfa(User user, String code);
+
 }

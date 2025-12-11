@@ -1,4 +1,4 @@
-package pt.estga.boot.config;
+package pt.estga.file.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;

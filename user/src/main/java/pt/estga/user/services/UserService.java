@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import pt.estga.user.enums.Role;
 import pt.estga.user.entities.User;
 
+import java.time.Instant;
 import java.util.Optional;
 
 public interface UserService {
@@ -24,5 +25,7 @@ public interface UserService {
     Optional<User> updateRole(User user, Role role);
 
     void deleteById(Long id);
+
+    void deleteUnverifiedUsers(Instant minus);
 
 }

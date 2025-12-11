@@ -45,6 +45,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
     @Override
     @Transactional
     public Optional<AuthenticationResponseDto> authenticateWithGoogle(String token) {
+        // Todo: make sure that it is impossible to link if gmail is already taken by another user
         try {
             GoogleIdToken idToken = googleIdTokenVerifier.verify(token);
             if (idToken == null) {
@@ -70,10 +71,14 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                     User user = userContactService.findByValue(email)
                             .map(UserContact::getUser)
                             .orElseGet(() -> {
+                                String firstName = (String) payload.get("given_name");
+                                String lastName = (String) payload.get("family_name");
+                                String username = generateUniqueUsername(firstName, lastName);
+
                                 User newUser = User.builder()
-                                        .username(email)
-                                        .firstName((String) payload.get("given_name"))
-                                        .lastName((String) payload.get("family_name"))
+                                        .username(username)
+                                        .firstName(firstName)
+                                        .lastName(lastName)
                                         .role(Role.USER)
                                         .enabled(true)
                                         .tfaMethod(TfaMethod.NONE)
@@ -93,6 +98,17 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                     userIdentityService.createAndAssociate(user, Provider.GOOGLE, googleId);
                     return user;
                 });
+    }
+
+    private String generateUniqueUsername(String firstName, String lastName) {
+        String baseUsername = (firstName + lastName).toLowerCase().replaceAll("\\s+", "");
+        String username = baseUsername;
+        int counter = 1;
+        while (userService.existsByUsername(username)) {
+            username = baseUsername + counter;
+            counter++;
+        }
+        return username;
     }
 
     @Override

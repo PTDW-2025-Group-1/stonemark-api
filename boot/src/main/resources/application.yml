@@ -119,3 +119,6 @@ vonage:
   api-key: ${VONAGE_API_KEY}
   api-secret: ${VONAGE_API_SECRET}
   from-number: ${VONAGE_FROM_NUMBER}
+
+user:
+  delete-after-days: 30
