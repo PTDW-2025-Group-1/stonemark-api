@@ -3,8 +3,10 @@ package pt.estga.user.services;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pt.estga.shared.aop.SensitiveOperation;
 import pt.estga.shared.exceptions.ContactMethodNotAvailableException;
 import pt.estga.shared.exceptions.InvalidGoogleTokenException;
 import pt.estga.user.entities.User;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
@@ -40,16 +43,28 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void requestContactVerification(User user, String value, ContactType type) {
-        UserContact contact = userContactService.findByValue(value)
-                .filter(c -> c.getUser().equals(user) && c.getType() == type)
-                .orElseThrow(() -> new ContactMethodNotAvailableException("Contact not found for user."));
-
+    public void requestContactVerification(User user, Long contactId) {
+        UserContact contact = userContactService.findById(contactId)
+                .orElseThrow(() -> new ContactMethodNotAvailableException("Contact not found."));
+        if (!contact.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Contact does not belong to user.");
+        }
+        if (contact.isVerified()) {
+            throw new IllegalArgumentException("Contact already verified.");
+        }
+        ContactType type = contact.getType();
         switch (type) {
-            case EMAIL -> eventPublisher.publishEvent(new EmailVerificationRequestedEvent(this, user, contact));
-            case TELEPHONE ->
-                    eventPublisher.publishEvent(new TelephoneVerificationRequestedEvent(this, user, contact));
-            default -> throw new IllegalArgumentException("Unsupported contact type: " + type);
+            case EMAIL:
+                log.info("Requesting verification for email: {}", contact.getValue());
+                eventPublisher.publishEvent(new EmailVerificationRequestedEvent(this, user, contact));
+                break;
+            case TELEPHONE:
+                log.info("Requesting verification for telephone: {}", contact.getValue());
+                eventPublisher.publishEvent(new TelephoneVerificationRequestedEvent(this, user, contact));
+                break;
+            default:
+                log.error("Unsupported contact type for verification: {}", type);
+                throw new IllegalArgumentException("Unsupported contact type for verification: " + type);
         }
     }
 
@@ -86,7 +101,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void deleteContact(User user, Long contactId, String passwordOrTfaCode) {
+    @SensitiveOperation(reason = "delete_contact")
+    public void deleteContact(User user, Long contactId) {
         UserContact contact = userContactService.findById(contactId)
                 .filter(c -> c.getUser().equals(user))
                 .orElseThrow(() -> new IllegalArgumentException("Contact not found for user."));

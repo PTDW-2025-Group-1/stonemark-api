@@ -18,8 +18,8 @@ public class ActionCodeCommand implements VerificationCommand<Void> {
     private final ActionCodeType actionCodeType;
 
     @Override
-    public void execute(Void parameter) {
+    public Runnable execute(Void parameter) {
         ActionCode actionCode = actionCodeService.createAndSave(user, actionCodeType);
-        verificationDispatchService.sendVerification(userContact, actionCode);
+        return () -> verificationDispatchService.sendVerification(userContact, actionCode);
     }
 }

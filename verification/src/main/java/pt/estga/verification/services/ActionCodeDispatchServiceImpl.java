@@ -2,10 +2,12 @@ package pt.estga.verification.services;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.ContactType;
 import pt.estga.verification.entities.ActionCode;
+import pt.estga.verification.enums.ActionCodeType;
+import pt.estga.verification.services.processors.VerificationProcessor;
 
 import java.util.List;
 import java.util.Map;
@@ -14,23 +16,35 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ActionCodeDispatchServiceImpl implements ActionCodeDispatchService {
 
-    private final List<ContactVerificationService> contactVerificationServices;
-    private Map<ContactType, ContactVerificationService> serviceMap;
+    private final List<VerificationProcessor> processors;
+    private Map<ActionCodeType, VerificationProcessor> processorsMap;
 
     @PostConstruct
     public void init() {
-        serviceMap = contactVerificationServices.stream()
-                .collect(Collectors.toMap(ContactVerificationService::getContactType, Function.identity()));
+        log.info("Initializing ActionCodeDispatchServiceImpl with {} processors.", processors.size());
+        processorsMap = processors.stream()
+                .collect(Collectors.toMap(VerificationProcessor::getType, Function.identity()));
+        log.info("Processors map initialized with keys: {}", processorsMap.keySet());
     }
 
     @Override
     public void sendVerification(UserContact userContact, ActionCode code) {
-        ContactVerificationService service = serviceMap.get(userContact.getType());
-        if (service == null) {
-            throw new IllegalArgumentException("Unsupported contact type for verification: " + userContact.getType());
+        log.info("ActionCodeDispatchService: Sending verification for contact {} with code type {}", userContact.getValue(), code.getType());
+        try {
+            VerificationProcessor processor = processorsMap.get(code.getType());
+            if (processor == null) {
+                log.error("No verification processor found for action code type: {}", code.getType());
+                return;
+            }
+            log.info("Found processor {} for type {}", processor.getClass().getSimpleName(), code.getType());
+            processor.process(userContact, code);
+            log.info("ActionCodeDispatchService: Successfully processed verification for contact {}", userContact.getValue());
+        } catch (Exception e) {
+            log.error("Error during action code dispatch for contact {}", userContact.getValue(), e);
+            throw e;
         }
-        service.sendVerification(userContact.getValue(), code);
     }
 }

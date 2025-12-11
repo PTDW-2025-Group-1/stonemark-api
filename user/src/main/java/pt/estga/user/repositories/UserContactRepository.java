@@ -14,6 +14,8 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long> 
 
     Optional<UserContact> findByValue(String value);
 
+    Optional<UserContact> findByUserAndValue(User user, String value);
+
     List<UserContact> findByUser(User user);
 
     List<UserContact> findByUserAndTypeAndIsPrimaryAndIsVerified(User user, ContactType type, boolean isPrimary, boolean isVerified);

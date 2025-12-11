@@ -22,6 +22,7 @@ public class UserContact {
     @Enumerated(EnumType.STRING)
     private ContactType type;
 
+    @Column(unique = true)
     private String value;
 
     private boolean isVerified;

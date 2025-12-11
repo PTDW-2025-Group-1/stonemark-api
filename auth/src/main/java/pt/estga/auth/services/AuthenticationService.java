@@ -6,6 +6,7 @@ import pt.estga.user.entities.User;
 import java.util.Optional;
 
 public interface AuthenticationService {
+
     Optional<AuthenticationResponseDto> register(User user);
 
     Optional<AuthenticationResponseDto> authenticate(String username, String password, String tfaCode);

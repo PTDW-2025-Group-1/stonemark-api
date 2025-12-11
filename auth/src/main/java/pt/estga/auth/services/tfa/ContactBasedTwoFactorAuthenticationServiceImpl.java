@@ -63,11 +63,11 @@ public class ContactBasedTwoFactorAuthenticationServiceImpl implements ContactBa
                             emailService.sendEmail(Email.builder()
                                     .to(email.getValue())
                                     .subject("Two-Factor Authentication Code")
-                                    .template("email/tfa-code.html")
+                                    .template("username/tfa-code.html")
                                     .properties(properties)
                                     .build());
                         },
-                        () -> { throw new IllegalStateException("User has no primary email for Email 2FA."); }
+                        () -> { throw new IllegalStateException("User has no primary username for Email 2FA."); }
                 );
     }
 

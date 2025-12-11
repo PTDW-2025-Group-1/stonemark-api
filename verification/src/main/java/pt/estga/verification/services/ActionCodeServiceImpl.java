@@ -1,6 +1,7 @@
 package pt.estga.verification.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ActionCodeServiceImpl implements ActionCodeService {
 
     private final ActionCodeRepository actionCodeRepository;
@@ -35,22 +37,30 @@ public class ActionCodeServiceImpl implements ActionCodeService {
 
     @Override
     public ActionCode createAndSave(User user, ActionCodeType type) {
-        long expirationMillis = getExpirationMillisFor(type);
+        log.info("Creating and saving action code of type {} for user {}", type, user.getId());
+        try {
+            // Invalidate existing codes of the same type for this user
+            actionCodeRepository.findByUserAndType(user, type).ifPresent(actionCodeRepository::delete);
 
-        String code;
-        do {
-            code = RandomStringUtils.randomAlphanumeric(6).toUpperCase();
-        } while (actionCodeRepository.findByUserAndType(user, type).isPresent());
+            long expirationMillis = getExpirationMillisFor(type);
 
-        ActionCode actionCode = ActionCode.builder()
-                .code(code)
-                .user(user)
-                .type(type)
-                .expiresAt(Instant.now().plusMillis(expirationMillis))
-                .consumed(false)
-                .build();
+            String code = RandomStringUtils.randomAlphanumeric(6).toUpperCase();
 
-        return actionCodeRepository.save(actionCode);
+            ActionCode actionCode = ActionCode.builder()
+                    .code(code)
+                    .user(user)
+                    .type(type)
+                    .expiresAt(Instant.now().plusMillis(expirationMillis))
+                    .consumed(false)
+                    .build();
+
+            ActionCode savedActionCode = actionCodeRepository.save(actionCode);
+            log.info("Successfully created and saved action code with id {}", savedActionCode.getId());
+            return savedActionCode;
+        } catch (Exception e) {
+            log.error("Error creating and saving action code for user {}", user.getId(), e);
+            throw e;
+        }
     }
 
     @Override

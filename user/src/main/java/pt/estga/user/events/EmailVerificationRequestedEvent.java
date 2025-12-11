@@ -9,11 +9,11 @@ import pt.estga.user.entities.UserContact;
 public class EmailVerificationRequestedEvent extends ApplicationEvent {
 
     private final User user;
-    private final UserContact userContact; // Added userContact field
+    private final UserContact userContact;
 
-    public EmailVerificationRequestedEvent(Object source, User user, UserContact userContact) { // Updated constructor
+    public EmailVerificationRequestedEvent(Object source, User user, UserContact userContact) {
         super(source);
         this.user = user;
-        this.userContact = userContact; // Initialize userContact
+        this.userContact = userContact;
     }
 }

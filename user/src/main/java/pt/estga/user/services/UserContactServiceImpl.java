@@ -49,22 +49,34 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
+    public Optional<UserContact> findByUserAndValue(User user, String value) {
+        log.info("Finding user contact by user: {} and value: {}", user, value);
+        return repository.findByUserAndValue(user, value);
+    }
+
+    @Override
+    public boolean existByValue(String value) {
+        log.info("Checking if user contact exists by value: {}", value);
+        return repository.findByValue(value).isPresent();
+    }
+
+    @Override
     public UserContact update(UserContact userContact) {
         log.info("Updating user contact: {}", userContact);
         return repository.save(userContact);
     }
 
     @Override
-    public Optional<UserContact> setPrimary(UserContact userContact) {
+    public UserContact setPrimary(UserContact userContact) {
         log.info("Setting primary user contact: {}", userContact);
         if (!userContact.isVerified()) {
             log.warn("User contact is not verified, cannot set as primary: {}", userContact);
-            return Optional.empty();
+            return null;
         }
         List<UserContact> contacts = repository.findByUser(userContact.getUser());
         contacts.forEach(contact -> contact.setPrimary(false));
         userContact.setPrimary(true);
-        return Optional.of(repository.save(userContact));
+        return repository.save(userContact);
     }
 
     @Override

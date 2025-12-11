@@ -29,9 +29,6 @@ public class UserActivationService {
     public Optional<String> activateUserAndConsumeCode(ActionCode code) {
         User user = code.getUser();
 
-        // Only enable the user if they are not already enabled.
-        // This decouples the user's overall activation from individual contact verifications,
-        // ensuring the user is activated once, while still allowing contact codes to be consumed.
         if (!user.isEnabled()) {
             user.setEnabled(true);
             userService.update(user);

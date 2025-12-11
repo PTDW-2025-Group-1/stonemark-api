@@ -43,7 +43,7 @@ public class AuthenticationController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequestDto request) {
-        Optional<AuthenticationResponseDto> response = authService.authenticate(request.email(), request.password(), request.tfaCode());
+        Optional<AuthenticationResponseDto> response = authService.authenticate(request.username(), request.password(), request.tfaCode());
 
         if (response.isPresent()) {
             AuthenticationResponseDto authResponse = response.get();

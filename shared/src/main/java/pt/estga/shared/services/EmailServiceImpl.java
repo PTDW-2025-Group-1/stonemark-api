@@ -29,6 +29,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(email.getSubject());
             helper.setText(templateService.generateBody(email), true);
 
+            log.info("Sending email to {}", email.getTo());
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
             log.error("Failed to send email to {} with template {}", email.getTo(), email.getTemplate(), e);

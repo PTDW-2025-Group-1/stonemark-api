@@ -19,9 +19,13 @@ public interface UserContactService {
 
     Optional<UserContact> findByValue(String value);
 
+    Optional<UserContact> findByUserAndValue(User user, String value);
+
+    boolean existByValue(String value);
+
     UserContact update(UserContact userContact);
 
-    Optional<UserContact> setPrimary(UserContact userContact);
+    UserContact setPrimary(UserContact userContact);
 
     void delete(UserContact userContact);
 

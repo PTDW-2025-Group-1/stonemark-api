@@ -1,7 +1,8 @@
 package pt.estga.verification.services.commands;
 
+@FunctionalInterface
 public interface VerificationCommand<T> {
 
-    void execute(T parameter);
+    Runnable execute(T parameter);
 
 }

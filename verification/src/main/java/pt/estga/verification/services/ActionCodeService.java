@@ -15,4 +15,5 @@ public interface ActionCodeService {
     boolean isCodeValid(String code);
 
     void consumeCode(ActionCode code);
+
 }

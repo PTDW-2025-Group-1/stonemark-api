@@ -6,13 +6,12 @@ import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface AccountService {
 
     void addContact(User user, String value, ContactType type);
 
-    void requestContactVerification(User user, String value, ContactType type);
+    void requestContactVerification(User user, Long contactId);
 
     void linkGoogleAccount(User user, String token);
 
@@ -22,6 +21,6 @@ public interface AccountService {
 
     List<UserContact> getContacts(User user);
 
-    void deleteContact(User user, Long contactId, String passwordOrTfaCode);
+    void deleteContact(User user, Long contactId);
 
 }

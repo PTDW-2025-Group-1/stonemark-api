@@ -1,36 +1,27 @@
 package pt.estga.verification.services;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pt.estga.verification.entities.ActionCode;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.ContactType;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import pt.estga.verification.entities.ActionCode;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VerificationDispatchServiceImpl implements VerificationDispatchService {
 
-    private final List<ContactVerificationService> contactVerificationServices;
-    private Map<ContactType, ContactVerificationService> serviceMap;
-
-    @PostConstruct
-    public void init() {
-        serviceMap = contactVerificationServices.stream()
-                .collect(Collectors.toMap(ContactVerificationService::getContactType, Function.identity()));
-    }
+    private final ActionCodeDispatchService actionCodeDispatchService;
 
     @Override
     public void sendVerification(UserContact userContact, ActionCode actionCode) {
-        ContactVerificationService service = serviceMap.get(userContact.getType());
-        if (service == null) {
-            throw new IllegalArgumentException("Unsupported contact type for verification: " + userContact.getType());
+        log.info("Dispatching verification for contact {} with action code id {}", userContact.getValue(), actionCode.getId());
+        try {
+            actionCodeDispatchService.sendVerification(userContact, actionCode);
+            log.info("Successfully dispatched verification for contact {}", userContact.getValue());
+        } catch (Exception e) {
+            log.error("Error dispatching verification for contact {}", userContact.getValue(), e);
+            throw e;
         }
-        service.sendVerification(userContact.getValue(), actionCode);
     }
 }

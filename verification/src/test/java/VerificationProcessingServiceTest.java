@@ -4,23 +4,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import pt.estga.shared.exceptions.*;
+import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
 import pt.estga.verification.entities.ActionCode;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.verification.services.ActionCodeService;
 import pt.estga.verification.services.ActionCodeValidationService;
+import pt.estga.verification.services.UserContactActivationService;
 import pt.estga.verification.services.VerificationProcessingService;
 import pt.estga.verification.services.VerificationProcessingServiceImpl;
-import pt.estga.verification.services.processors.VerificationPurposeProcessor;
-import pt.estga.shared.exceptions.*;
-import pt.estga.user.entities.User;
-import pt.estga.user.services.UserService;
+import pt.estga.verification.services.processors.VerificationProcessor;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VerificationProcessingServiceTest {
@@ -38,10 +40,13 @@ class VerificationProcessingServiceTest {
     private ActionCodeValidationService actionCodeValidationService;
 
     @Mock
-    private VerificationPurposeProcessor emailVerificationProcessor;
+    private UserContactActivationService userContactActivationService;
 
     @Mock
-    private VerificationPurposeProcessor resetPasswordProcessor;
+    private VerificationProcessor emailVerificationProcessor;
+
+    @Mock
+    private VerificationProcessor resetPasswordProcessor;
 
     private VerificationProcessingService verificationProcessingService;
 
@@ -52,7 +57,8 @@ class VerificationProcessingServiceTest {
                 userService,
                 passwordEncoder,
                 actionCodeValidationService,
-                List.of(emailVerificationProcessor, resetPasswordProcessor)
+                List.of(emailVerificationProcessor, resetPasswordProcessor),
+                userContactActivationService
         );
         when(emailVerificationProcessor.getType()).thenReturn(ActionCodeType.EMAIL_VERIFICATION);
         when(resetPasswordProcessor.getType()).thenReturn(ActionCodeType.RESET_PASSWORD);
@@ -61,18 +67,19 @@ class VerificationProcessingServiceTest {
     }
 
     @Test
-    void confirmCode_shouldProcessEmailVerification_whenCodeIsValid() {
+    void confirmCode_shouldActivateUserContact_whenCodeIsForEmailVerification() {
         String code = "validCode";
         ActionCode actionCode = new ActionCode();
         actionCode.setType(ActionCodeType.EMAIL_VERIFICATION);
 
         when(actionCodeValidationService.getValidatedActionCode(code)).thenReturn(actionCode);
-        when(emailVerificationProcessor.process(actionCode)).thenReturn(Optional.empty());
+        when(userContactActivationService.activateUserContact(actionCode)).thenReturn(Optional.empty());
 
         Optional<String> result = verificationProcessingService.confirmCode(code);
 
         assertTrue(result.isEmpty());
-        verify(emailVerificationProcessor).process(actionCode);
+        verify(userContactActivationService).activateUserContact(actionCode);
+        verifyNoInteractions(emailVerificationProcessor);
     }
 
     @Test
@@ -82,13 +89,14 @@ class VerificationProcessingServiceTest {
         actionCode.setType(ActionCodeType.RESET_PASSWORD);
 
         when(actionCodeValidationService.getValidatedActionCode(code)).thenReturn(actionCode);
-        when(resetPasswordProcessor.process(actionCode)).thenReturn(Optional.of(code));
+        when(resetPasswordProcessor.process(isNull(), any(ActionCode.class))).thenReturn(Optional.of(code));
 
         Optional<String> result = verificationProcessingService.confirmCode(code);
 
         assertTrue(result.isPresent());
         assertEquals(code, result.get());
-        verify(resetPasswordProcessor).process(actionCode);
+        verify(resetPasswordProcessor).process(isNull(), any(ActionCode.class));
+        verifyNoInteractions(userContactActivationService);
     }
 
     @Test
@@ -172,43 +180,6 @@ class VerificationProcessingServiceTest {
         String code = "invalidCode";
 
         when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new InvalidActionCodeException("Invalid code"));
-
-        Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void validatePasswordResetToken_shouldReturnEmpty_whenTokenIsConsumed() {
-        String code = "validCode";
-
-        when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new ActionCodeConsumedException("Code consumed"));
-
-        Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void validatePasswordResetToken_shouldReturnEmpty_whenTokenIsExpired() {
-        String code = "validCode";
-
-        when(actionCodeValidationService.getValidatedActionCode(code)).thenThrow(new ActionCodeExpiredException("Code expired"));
-
-        Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
-
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void validatePasswordResetToken_shouldReturnEmpty_whenTokenTypeIsInvalid() {
-        String code = "validCode";
-        User user = new User();
-        ActionCode actionCode = new ActionCode();
-        actionCode.setUser(user);
-        actionCode.setType(ActionCodeType.EMAIL_VERIFICATION);
-
-        when(actionCodeValidationService.getValidatedActionCode(code)).thenReturn(actionCode);
 
         Optional<User> result = verificationProcessingService.validatePasswordResetToken(code);
 

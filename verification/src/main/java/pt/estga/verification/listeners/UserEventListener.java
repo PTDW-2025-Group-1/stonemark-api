@@ -22,8 +22,10 @@ public class UserEventListener {
     private final ActionCodeService actionCodeService;
     private final VerificationDispatchService verificationDispatchService;
 
+    @Async
     @EventListener
     public void handleEmailVerificationRequested(EmailVerificationRequestedEvent event) {
+        log.info("Handling email - {} - verification event", event.getUserContact().getValue());
         var command = new ActionCodeCommand(event.getUser(), event.getUserContact(), actionCodeService, verificationDispatchService, ActionCodeType.EMAIL_VERIFICATION);
         verificationInitiationService.initiate(command);
     }
@@ -31,6 +33,7 @@ public class UserEventListener {
     @Async
     @EventListener
     public void handleTelephoneVerificationRequested(TelephoneVerificationRequestedEvent event) {
+        log.info("Handling telephone - {} - verification event", event.getUserContact().getValue());
         var command = new ActionCodeCommand(event.getUser(), event.getUserContact(), actionCodeService, verificationDispatchService, ActionCodeType.PHONE_VERIFICATION);
         verificationInitiationService.initiate(command);
     }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.verification.entities.ActionCode;
 import pt.estga.verification.enums.ActionCodeType;
-import pt.estga.verification.services.processors.VerificationPurposeProcessor;
+import pt.estga.verification.services.processors.VerificationProcessor;
 import pt.estga.shared.exceptions.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
@@ -34,9 +34,10 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final ActionCodeValidationService actionCodeValidationService;
-    private final List<VerificationPurposeProcessor> purposeProcessors;
+    private final List<VerificationProcessor> purposeProcessors;
+    private final UserContactActivationService userContactActivationService;
 
-    private Map<ActionCodeType, VerificationPurposeProcessor> processorMap;
+    private Map<ActionCodeType, VerificationProcessor> processorMap;
 
     // Define types that are valid for code confirmation
     private static final Set<ActionCodeType> VALID_CODE_CONFIRMATION_TYPES = Set.of(
@@ -47,12 +48,12 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
 
     /**
      * Initializes the processor map after all dependencies are injected.
-     * This maps each {@link ActionCodeType} to its corresponding {@link VerificationPurposeProcessor}.
+     * This maps each {@link ActionCodeType} to its corresponding {@link VerificationProcessor}.
      */
     @PostConstruct
     public void init() {
         processorMap = purposeProcessors.stream()
-                .collect(Collectors.toMap(VerificationPurposeProcessor::getType, Function.identity()));
+                .collect(Collectors.toMap(VerificationProcessor::getType, Function.identity()));
     }
 
     /**
@@ -69,19 +70,28 @@ public class VerificationProcessingServiceImpl implements VerificationProcessing
         ActionCode actionCode = actionCodeValidationService.getValidatedActionCode(code);
         log.debug("Code {} validated successfully. Type: {}", code, actionCode.getType());
 
-        if (!VALID_CODE_CONFIRMATION_TYPES.contains(actionCode.getType())) {
-            log.warn("Invalid type for code confirmation: {}", actionCode.getType());
-            throw new InvalidVerificationPurposeException("Invalid type for code confirmation: " + actionCode.getType());
+        ActionCodeType type = actionCode.getType();
+
+        if (!VALID_CODE_CONFIRMATION_TYPES.contains(type)) {
+            log.warn("Invalid type for code confirmation: {}", type);
+            throw new InvalidVerificationPurposeException("Invalid type for code confirmation: " + type);
         }
 
-        VerificationPurposeProcessor processor = processorMap.get(actionCode.getType());
-        // This check should ideally not be null due to VALID_CODE_CONFIRMATION_TYPES check,
-        // but it's good for defensive programming.
-        if (processor == null) {
-            log.error("Internal configuration error: No processor registered for action code type: {}", actionCode.getType());
-            throw new IllegalStateException("Internal configuration error: No processor registered for action code type: " + actionCode.getType());
+        // For email and phone verification, the action is to activate the user contact.
+        if (type == ActionCodeType.EMAIL_VERIFICATION || type == ActionCodeType.PHONE_VERIFICATION) {
+            log.debug("Processing user contact activation for code type: {}", type);
+            return userContactActivationService.activateUserContact(actionCode);
         }
-        return processor.process(actionCode);
+
+        // For other types (like password reset), use the specific processor.
+        VerificationProcessor processor = processorMap.get(type);
+        if (processor == null) {
+            log.error("Internal configuration error: No processor registered for action code type: {}", type);
+            throw new IllegalStateException("Internal configuration error: No processor registered for action code type: " + type);
+        }
+        log.debug("Using processor {} for code type: {}", processor.getClass().getSimpleName(), type);
+        // We pass null for UserContact as it's not available or needed in this confirmation context.
+        return processor.process(null, actionCode);
     }
 
     /**

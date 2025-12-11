@@ -21,7 +21,7 @@ public class PasswordResetInitiationCommand implements VerificationCommand<Strin
     private final VerificationDispatchService verificationDispatchService;
 
     @Override
-    public void execute(String contactValue) {
+    public Runnable execute(String contactValue) {
         UserContact userContact = userContactRepository.findByValue(contactValue)
                 .orElseThrow(() -> new UserNotFoundException("User not found with contact: " + contactValue));
 
@@ -36,6 +36,6 @@ public class PasswordResetInitiationCommand implements VerificationCommand<Strin
 
         ActionCode actionCode = actionCodeService.createAndSave(user, ActionCodeType.RESET_PASSWORD);
 
-        verificationDispatchService.sendVerification(userContact, actionCode);
+        return () -> verificationDispatchService.sendVerification(userContact, actionCode);
     }
 }
