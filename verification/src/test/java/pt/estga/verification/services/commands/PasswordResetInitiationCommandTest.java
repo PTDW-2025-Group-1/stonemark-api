@@ -20,7 +20,6 @@ import pt.estga.verification.services.VerificationDispatchService;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +69,7 @@ class PasswordResetInitiationCommandTest {
     @Test
     void execute_shouldReturnRunnableThatDispatchesVerification_whenContactIsValid() {
         when(userContactRepository.findByValue(CONTACT_VALUE)).thenReturn(Optional.of(testUserContact));
-        when(actionCodeService.createAndSave(testUser, ActionCodeType.RESET_PASSWORD)).thenReturn(testActionCode);
+        when(actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD)).thenReturn(testActionCode);
 
         Runnable runnable = passwordResetInitiationCommand.execute(CONTACT_VALUE);
         assertNotNull(runnable);
@@ -79,7 +78,7 @@ class PasswordResetInitiationCommandTest {
         runnable.run();
 
         verify(userContactRepository, times(1)).findByValue(CONTACT_VALUE);
-        verify(actionCodeService, times(1)).createAndSave(testUser, ActionCodeType.RESET_PASSWORD);
+        verify(actionCodeService, times(1)).createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD);
         verify(verificationDispatchService, times(1)).sendVerification(testUserContact, testActionCode);
     }
 
@@ -124,7 +123,7 @@ class PasswordResetInitiationCommandTest {
     @Test
     void execute_shouldPropagateException_whenActionCodeServiceFails() {
         when(userContactRepository.findByValue(CONTACT_VALUE)).thenReturn(Optional.of(testUserContact));
-        when(actionCodeService.createAndSave(testUser, ActionCodeType.RESET_PASSWORD))
+        when(actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD))
                 .thenThrow(new RuntimeException("ActionCodeService error"));
 
         RuntimeException thrown = assertThrows(RuntimeException.class,
@@ -132,14 +131,14 @@ class PasswordResetInitiationCommandTest {
 
         assertEquals("ActionCodeService error", thrown.getMessage());
         verify(userContactRepository, times(1)).findByValue(CONTACT_VALUE);
-        verify(actionCodeService, times(1)).createAndSave(testUser, ActionCodeType.RESET_PASSWORD);
+        verify(actionCodeService, times(1)).createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD);
         verifyNoInteractions(verificationDispatchService);
     }
 
     @Test
     void execute_shouldPropagateException_whenDispatchServiceFailsDuringRunnableExecution() {
         when(userContactRepository.findByValue(CONTACT_VALUE)).thenReturn(Optional.of(testUserContact));
-        when(actionCodeService.createAndSave(testUser, ActionCodeType.RESET_PASSWORD)).thenReturn(testActionCode);
+        when(actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD)).thenReturn(testActionCode);
         doThrow(new RuntimeException("Dispatch error")).when(verificationDispatchService)
                 .sendVerification(testUserContact, testActionCode);
 
@@ -150,7 +149,7 @@ class PasswordResetInitiationCommandTest {
 
         assertEquals("Dispatch error", thrown.getMessage());
         verify(userContactRepository, times(1)).findByValue(CONTACT_VALUE);
-        verify(actionCodeService, times(1)).createAndSave(testUser, ActionCodeType.RESET_PASSWORD);
+        verify(actionCodeService, times(1)).createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD);
         verify(verificationDispatchService, times(1)).sendVerification(testUserContact, testActionCode);
     }
 }

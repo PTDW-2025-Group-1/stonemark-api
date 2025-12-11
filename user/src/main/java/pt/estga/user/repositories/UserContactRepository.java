@@ -22,4 +22,8 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long> 
 
     boolean existsByValue(String value);
 
+    boolean existsByValueAndIsVerified(String value, boolean isVerified);
+
+    List<UserContact> findByValueAndIsVerified(String value, boolean isVerified);
+
 }

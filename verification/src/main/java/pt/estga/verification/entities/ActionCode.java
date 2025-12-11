@@ -2,6 +2,7 @@ package pt.estga.verification.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pt.estga.user.entities.UserContact;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.user.entities.User;
 
@@ -28,6 +29,9 @@ public class ActionCode {
 
     @ManyToOne
     private User user;
+
+    @ManyToOne
+    private UserContact userContact;
 
     private boolean consumed;
 

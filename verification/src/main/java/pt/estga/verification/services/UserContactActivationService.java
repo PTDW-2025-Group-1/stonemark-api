@@ -12,6 +12,7 @@ import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.verification.entities.ActionCode;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,6 +42,11 @@ public class UserContactActivationService {
         contactToVerify.setVerifiedAt(Instant.now());
         userContactRepository.save(contactToVerify);
         log.info("Successfully verified contact: {}", contactToVerify.getValue());
+
+        // Delete all other unverified contacts with the same value
+        List<UserContact> unverifiedContacts = userContactRepository.findByValueAndIsVerified(contactToVerify.getValue(), false);
+        userContactRepository.deleteAll(unverifiedContacts);
+        log.info("Deleted {} unverified contacts with the same value.", unverifiedContacts.size());
 
         actionCodeService.consumeCode(actionCode);
         log.debug("Consumed action code: {}", actionCode.getCode());

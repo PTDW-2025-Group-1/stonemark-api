@@ -32,6 +32,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void addContact(User user, String value, ContactType type) {
+        if (userContactService.existsByValueAndIsVerified(value, true)) {
+            throw new IllegalArgumentException("Contact already exists and is verified.");
+        }
+
         UserContact userContact = UserContact.builder()
                 .user(user)
                 .value(value)

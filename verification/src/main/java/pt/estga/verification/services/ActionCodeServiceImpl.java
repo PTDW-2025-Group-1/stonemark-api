@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import pt.estga.user.entities.UserContact;
 import pt.estga.verification.entities.ActionCode;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.verification.repositories.ActionCodeRepository;
@@ -36,7 +37,7 @@ public class ActionCodeServiceImpl implements ActionCodeService {
     private long deviceVerificationExpiration;
 
     @Override
-    public ActionCode createAndSave(User user, ActionCodeType type) {
+    public ActionCode createAndSave(User user, UserContact userContact, ActionCodeType type) {
         log.info("Creating and saving action code of type {} for user {}", type, user.getId());
         try {
             // Invalidate existing codes of the same type for this user

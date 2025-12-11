@@ -34,7 +34,7 @@ public class PasswordResetInitiationCommand implements VerificationCommand<Strin
             throw new ContactMethodNotAvailableException("Contact is not verified: " + contactValue);
         }
 
-        ActionCode actionCode = actionCodeService.createAndSave(user, ActionCodeType.RESET_PASSWORD);
+        ActionCode actionCode = actionCodeService.createAndSave(user, userContact, ActionCodeType.RESET_PASSWORD);
 
         return () -> verificationDispatchService.sendVerification(userContact, actionCode);
     }

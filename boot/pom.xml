@@ -35,7 +35,7 @@
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
-            <artifactId>contact</artifactId>
+            <artifactId>support</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

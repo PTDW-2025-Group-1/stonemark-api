@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserContact;
 import pt.estga.verification.entities.ActionCode;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.verification.repositories.ActionCodeRepository;
@@ -31,6 +32,7 @@ class ActionCodeServiceTest {
     private ActionCodeServiceImpl actionCodeService;
 
     private User testUser;
+    private UserContact testUserContact;
 
     @BeforeEach
     void setUp() {
@@ -38,6 +40,12 @@ class ActionCodeServiceTest {
                 .id(1L)
                 .username("testuser")
                 .password("encodedPassword")
+                .build();
+
+        testUserContact = UserContact.builder()
+                .id(1L)
+                .user(testUser)
+                .value("test@example.com")
                 .build();
 
         // Inject @Value properties using ReflectionTestUtils
@@ -59,7 +67,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.EMAIL_VERIFICATION);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.EMAIL_VERIFICATION);
 
         assertNotNull(createdCode);
         assertEquals(testUser, createdCode.getUser());
@@ -93,7 +101,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.EMAIL_VERIFICATION);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.EMAIL_VERIFICATION);
 
         assertNotNull(createdCode);
         assertNotEquals(existingCode.getCode(), createdCode.getCode()); // New code should be different
@@ -112,7 +120,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.RESET_PASSWORD);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.RESET_PASSWORD);
 
         assertNotNull(createdCode);
         assertEquals(ActionCodeType.RESET_PASSWORD, createdCode.getType());
@@ -131,7 +139,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.TWO_FACTOR);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.TWO_FACTOR);
 
         assertNotNull(createdCode);
         assertEquals(ActionCodeType.TWO_FACTOR, createdCode.getType());
@@ -150,7 +158,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.PHONE_VERIFICATION);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.PHONE_VERIFICATION);
 
         assertNotNull(createdCode);
         assertEquals(ActionCodeType.PHONE_VERIFICATION, createdCode.getType());
@@ -169,7 +177,7 @@ class ActionCodeServiceTest {
                     return ac;
                 });
 
-        ActionCode createdCode = actionCodeService.createAndSave(testUser, ActionCodeType.DEVICE_VERIFICATION);
+        ActionCode createdCode = actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.DEVICE_VERIFICATION);
 
         assertNotNull(createdCode);
         assertEquals(ActionCodeType.DEVICE_VERIFICATION, createdCode.getType());
@@ -185,7 +193,7 @@ class ActionCodeServiceTest {
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException thrown = assertThrows(RuntimeException.class,
-                () -> actionCodeService.createAndSave(testUser, ActionCodeType.EMAIL_VERIFICATION));
+                () -> actionCodeService.createAndSave(testUser, testUserContact, ActionCodeType.EMAIL_VERIFICATION));
 
         assertEquals("DB error", thrown.getMessage());
         verify(actionCodeRepository, times(1)).save(any(ActionCode.class));

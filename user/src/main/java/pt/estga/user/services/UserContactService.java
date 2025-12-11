@@ -23,9 +23,11 @@ public interface UserContactService {
 
     boolean existsByValue(String value);
 
+    boolean existsByValueAndIsVerified(String value, boolean isVerified);
+
     UserContact update(UserContact userContact);
 
-    UserContact setPrimary(UserContact userContact);
+    UserContact setAsPrimary(UserContact userContact);
 
     void delete(UserContact userContact);
 

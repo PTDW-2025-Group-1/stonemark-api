@@ -19,7 +19,7 @@ import pt.estga.user.services.AccountService;
 @RequiredArgsConstructor
 @Tag(name = "Social Accounts", description = "Management of social accounts linked to the user.")
 @PreAuthorize("isAuthenticated()")
-public class SocialAccountController {
+public class AccountSocialController {
 
     private final AccountService accountService;
 

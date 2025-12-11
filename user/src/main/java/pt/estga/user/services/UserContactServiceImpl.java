@@ -61,13 +61,19 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
+    public boolean existsByValueAndIsVerified(String value, boolean isVerified) {
+        log.info("Checking if user contact exists by value: {} and isVerified: {}", value, isVerified);
+        return repository.existsByValueAndIsVerified(value, isVerified);
+    }
+
+    @Override
     public UserContact update(UserContact userContact) {
         log.info("Updating user contact: {}", userContact);
         return repository.save(userContact);
     }
 
     @Override
-    public UserContact setPrimary(UserContact userContact) {
+    public UserContact setAsPrimary(UserContact userContact) {
         log.info("Setting primary user contact: {}", userContact);
         if (!userContact.isVerified()) {
             log.warn("User contact is not verified, cannot set as primary: {}", userContact);
