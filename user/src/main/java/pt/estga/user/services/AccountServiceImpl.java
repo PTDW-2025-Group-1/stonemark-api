@@ -16,6 +16,7 @@ import pt.estga.user.events.TelephoneVerificationRequestedEvent;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +78,18 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void unlinkSocialAccount(User user, Provider provider) {
         userIdentityService.deleteByUserAndProvider(user, Provider.GOOGLE);
+    }
+
+    @Override
+    public List<UserContact> getContacts(User user) {
+        return userContactService.findAllByUser(user);
+    }
+
+    @Override
+    public void deleteContact(User user, Long contactId, String passwordOrTfaCode) {
+        UserContact contact = userContactService.findById(contactId)
+                .filter(c -> c.getUser().equals(user))
+                .orElseThrow(() -> new IllegalArgumentException("Contact not found for user."));
+        userContactService.delete(contact);
     }
 }

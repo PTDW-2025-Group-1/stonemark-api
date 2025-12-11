@@ -29,7 +29,9 @@ public class TwoFactorAuthConfiguration {
     @Bean
     public CodeVerifier codeVerifier() {
         TimeProvider timeProvider = new SystemTimeProvider();
-        DefaultCodeGenerator codeGenerator = new DefaultCodeGenerator(HashingAlgorithm.SHA256);
-        return new DefaultCodeVerifier(codeGenerator, timeProvider);
+        DefaultCodeGenerator codeGenerator = new DefaultCodeGenerator(HashingAlgorithm.SHA1);
+        DefaultCodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
+        verifier.setAllowedTimePeriodDiscrepancy(1);
+        return verifier;
     }
 }

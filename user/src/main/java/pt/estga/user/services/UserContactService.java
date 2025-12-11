@@ -11,7 +11,7 @@ public interface UserContactService {
 
     UserContact create(UserContact userContact);
 
-    List<UserContact> findByUser(User user);
+    List<UserContact> findAllByUser(User user);
 
     Optional<UserContact> findPrimary(User user, ContactType contactType);
 
@@ -22,6 +22,8 @@ public interface UserContactService {
     UserContact update(UserContact userContact);
 
     Optional<UserContact> setPrimary(UserContact userContact);
+
+    void delete(UserContact userContact);
 
     void deleteById(Long id);
 

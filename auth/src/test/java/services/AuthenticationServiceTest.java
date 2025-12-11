@@ -214,7 +214,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.SMS);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.PHONE_VERIFICATION)).thenReturn(true);
+        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(user)).thenReturn("refreshToken");
 
@@ -231,7 +231,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.EMAIL);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.EMAIL_VERIFICATION)).thenReturn(true);
+        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("accessToken");
         when(jwtService.generateRefreshToken(user)).thenReturn("refreshToken");
 
@@ -261,7 +261,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.SMS);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.PHONE_VERIFICATION)).thenReturn(false);
+        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "wrong-code");
 
@@ -273,7 +273,7 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.EMAIL);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.EMAIL_VERIFICATION)).thenReturn(false);
+        when(contactBasedTwoFactorAuthenticationService.verifyCode(user, "wrong-code", ActionCodeType.TWO_FACTOR)).thenReturn(false);
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "wrong-code");
 

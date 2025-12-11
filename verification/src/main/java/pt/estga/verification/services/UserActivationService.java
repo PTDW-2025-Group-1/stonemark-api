@@ -3,7 +3,6 @@ package pt.estga.verification.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.verification.entities.ActionCode;
-import pt.estga.verification.services.ActionCodeService;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 

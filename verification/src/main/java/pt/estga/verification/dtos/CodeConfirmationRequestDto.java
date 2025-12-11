@@ -1,4 +1,4 @@
-package pt.estga.auth.dtos;
+package pt.estga.verification.dtos;
 
 public record CodeConfirmationRequestDto(String code) {
 }

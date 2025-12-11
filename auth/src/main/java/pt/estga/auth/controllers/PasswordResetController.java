@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.auth.dtos.PasswordResetRequestDto;
-import pt.estga.auth.dtos.ResetPasswordRequestDto;
+import pt.estga.verification.dtos.ResetPasswordRequestDto;
 import pt.estga.verification.services.VerificationInitiationService;
 import pt.estga.verification.services.VerificationProcessingService;
 

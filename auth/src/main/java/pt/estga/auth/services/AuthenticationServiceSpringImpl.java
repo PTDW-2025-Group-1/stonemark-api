@@ -7,18 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
-import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.auth.services.tfa.ContactBasedTwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.token.AccessTokenService;
 import pt.estga.auth.services.token.RefreshTokenService;
-import pt.estga.verification.services.VerificationDispatchService;
-import pt.estga.verification.services.VerificationInitiationService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
@@ -27,7 +23,7 @@ import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
-import pt.estga.verification.services.ActionCodeService;
+import pt.estga.verification.enums.ActionCodeType;
 
 import java.util.Optional;
 
@@ -43,9 +39,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final VerificationInitiationService verificationInitiationService;
-    private final ActionCodeService actionCodeService;
-    private final VerificationDispatchService verificationDispatchService;
     private final PasswordEncoder passwordEncoder;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
     private final ContactBasedTwoFactorAuthenticationService contactBasedTwoFactorAuthenticationService;
@@ -98,17 +91,18 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     }
 
     @Override
-    public Optional<AuthenticationResponseDto> authenticate(String email, String password, String tfaCode) {
+    public Optional<AuthenticationResponseDto> authenticate(String usernameOrContact, String password, String tfaCode) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usernameOrContact, password));
         } catch (AuthenticationException e) {
-            log.warn("Authentication failed for user: {}", email, e);
+            log.warn("Authentication failed for user: {}", usernameOrContact, e);
             return Optional.empty();
         }
 
-        User user = userContactService.findByValue(email)
-                .map(UserContact::getUser)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userService.findByUsername(usernameOrContact)
+                .orElseGet(() -> userContactService.findByValue(usernameOrContact)
+                        .map(UserContact::getUser)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found")));
 
         if (contactVerificationRequired && !user.isEnabled()) {
             throw new EmailVerificationRequiredException("Email verification required.");
@@ -138,15 +132,13 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             // A 2FA code was provided, verify it.
             boolean isCodeValid = switch (user.getTfaMethod()) {
                 case TOTP -> twoFactorAuthenticationService.isCodeValid(user.getTfaSecret(), tfaCode);
-                case SMS ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.PHONE_VERIFICATION);
-                case EMAIL ->
-                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.EMAIL_VERIFICATION);
+                case SMS, EMAIL ->
+                        contactBasedTwoFactorAuthenticationService.verifyCode(user, tfaCode, ActionCodeType.TWO_FACTOR);
                 default -> false;
             };
 
             if (!isCodeValid) {
-                log.warn("Invalid 2FA code for user: {}", email);
+                log.warn("Invalid 2FA code for user: {}", usernameOrContact);
                 return Optional.empty(); // Invalid 2FA code
             }
         }
@@ -162,14 +154,14 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
                 .filter(token -> !token.isRevoked())
                 .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUser()))
                 .map(refreshToken -> {
-                    UserDetails userDetails = refreshToken.getUser();
+                    User user = refreshToken.getUser();
 
                     accessTokenService.revokeAllByRefreshToken(refreshToken);
 
-                    String newAccessToken = jwtService.generateAccessToken(userDetails);
-                    accessTokenService.createToken(userDetails.getUsername(), newAccessToken, refreshToken);
+                    String newAccessToken = jwtService.generateAccessToken(user);
+                    accessTokenService.createToken(user.getUsername(), newAccessToken, refreshToken);
 
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, userDetails.getAuthorities().iterator().next().getAuthority(), ((User)userDetails).getTfaMethod() != TfaMethod.NONE, false, false);
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getAuthorities().iterator().next().getAuthority(), user.getTfaMethod() != TfaMethod.NONE, false, false);
                 });
     }
 

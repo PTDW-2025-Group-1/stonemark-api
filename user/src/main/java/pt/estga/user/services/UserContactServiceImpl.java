@@ -25,7 +25,7 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
-    public List<UserContact> findByUser(User user) {
+    public List<UserContact> findAllByUser(User user) {
         log.info("Finding user contacts by user: {}", user);
         return repository.findByUser(user);
     }
@@ -65,6 +65,12 @@ public class UserContactServiceImpl implements UserContactService {
         contacts.forEach(contact -> contact.setPrimary(false));
         userContact.setPrimary(true);
         return Optional.of(repository.save(userContact));
+    }
+
+    @Override
+    public void delete(UserContact userContact) {
+        log.info("Deleting user contact: {}", userContact);
+        repository.delete(userContact);
     }
 
     @Override
