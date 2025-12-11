@@ -7,6 +7,8 @@ import pt.estga.bookmark.dtos.BookmarkDto;
 import pt.estga.bookmark.entities.Bookmark;
 import pt.estga.bookmark.mappers.BookmarkMapper;
 import pt.estga.bookmark.repositories.BookmarkRepository;
+import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.file.enums.TargetType;
@@ -21,6 +23,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final MonumentRepository monumentRepository;
     private final MarkRepository markRepository;
+    private final MonumentMapper monumentMapper;
+    private final MarkMapper markMapper;
     private final BookmarkMapper mapper;
 
     @Override
@@ -34,10 +38,14 @@ public class BookmarkServiceImpl implements BookmarkService {
 
         Object content = switch (type) {
             case MONUMENT -> monumentRepository.findById(targetId)
+                    .map(monumentMapper::toDto)
                     .orElseThrow(() -> new IllegalArgumentException("Monument not found"));
+
             case MARK -> markRepository.findById(targetId)
+                    .map(markMapper::markToMarkDto)
                     .orElseThrow(() -> new IllegalArgumentException("Mark not found"));
-            default ->  null;
+
+            default -> null;
         };
 
         Bookmark bookmark = Bookmark.builder()
@@ -58,9 +66,14 @@ public class BookmarkServiceImpl implements BookmarkService {
                 .stream()
                 .map(b -> {
                     Object content = switch (b.getTargetType()) {
-                        case MONUMENT -> monumentRepository.findById(b.getTargetId()).orElse(null);
-                        case MARK -> markRepository.findById(b.getTargetId()).orElse(null);
-                        case MARK_OCCURRENCE -> null;
+                        case MONUMENT -> monumentRepository.findById(b.getTargetId())
+                                .map(monumentMapper::toDto)
+                                .orElse(null);
+
+                        case MARK -> markRepository.findById(b.getTargetId())
+                                .map(markMapper::markToMarkDto)
+                                .orElse(null);
+
                         default -> null;
                     };
                     BookmarkDto dto = mapper.toDto(b);
