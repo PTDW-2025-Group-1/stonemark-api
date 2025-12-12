@@ -10,5 +10,5 @@ public interface UserContactMapper {
     UserContactDto toDto(UserContact userContact);
 
     UserContact toEntity(UserContactDto userContactDto);
-
 }
+

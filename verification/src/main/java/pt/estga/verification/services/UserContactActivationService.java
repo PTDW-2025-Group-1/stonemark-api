@@ -29,8 +29,17 @@ public class UserContactActivationService {
     public Optional<String> activateUserContact(ActionCode actionCode) {
         log.info("Activating user contact for action code: {}", actionCode.getCode());
 
-        // Find the contact based on type, regardless of its verification status
-        UserContact contactToVerify = findContactForActionCode(actionCode);
+        UserContact contactToVerify = actionCode.getUserContact();
+
+        if (contactToVerify == null) {
+            throw new IllegalStateException("ActionCode has no associated UserContact.");
+        }
+
+        log.info(
+                "Verifying contact id={} value={}",
+                contactToVerify.getId(),
+                contactToVerify.getValue()
+        );
 
         if (contactToVerify.isVerified()) {
             log.warn("Contact {} is already verified.", contactToVerify.getValue());
@@ -41,15 +50,8 @@ public class UserContactActivationService {
         contactToVerify.setVerified(true);
         contactToVerify.setVerifiedAt(Instant.now());
         userContactRepository.save(contactToVerify);
-        log.info("Successfully verified contact: {}", contactToVerify.getValue());
-
-        // Delete all other unverified contacts with the same value
-        List<UserContact> unverifiedContacts = userContactRepository.findByValueAndIsVerified(contactToVerify.getValue(), false);
-        userContactRepository.deleteAll(unverifiedContacts);
-        log.info("Deleted {} unverified contacts with the same value.", unverifiedContacts.size());
 
         actionCodeService.consumeCode(actionCode);
-        log.debug("Consumed action code: {}", actionCode.getCode());
 
         sendConfirmationEmail(contactToVerify);
 

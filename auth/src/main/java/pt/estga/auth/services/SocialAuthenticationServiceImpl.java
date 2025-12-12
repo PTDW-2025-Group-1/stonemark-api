@@ -86,8 +86,8 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                 UserContact primaryEmail = UserContact.builder()
                                         .type(ContactType.EMAIL)
                                         .value(email)
-                                        .isPrimary(true)
-                                        .isVerified(true)
+                                        .primaryAccount(true)
+                                        .verified(true)
                                         .user(newUser)
                                         .build();
 
