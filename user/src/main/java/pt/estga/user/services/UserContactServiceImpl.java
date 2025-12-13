@@ -34,7 +34,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Override
     public Optional<UserContact> findPrimary(User user, ContactType contactType) {
         log.info("Finding primary user contact by user: {} and contact type: {}", user, contactType);
-        return repository.findByUserAndTypeAndPrimaryAccountAndVerified(user, contactType, true, true).stream().findFirst();
+        return repository.findByUserAndTypeAndPrimaryContactAndVerified(user, contactType, true, true).stream().findFirst();
     }
 
     @Override
@@ -85,7 +85,7 @@ public class UserContactServiceImpl implements UserContactService {
         List<UserContact> contacts = repository.findByUser(userContact.getUser());
 
         for (UserContact contact : contacts) {
-            contact.setPrimaryAccount(contact.getId().equals(userContact.getId()));
+            contact.setPrimaryContact(contact.getId().equals(userContact.getId()));
         }
 
         repository.saveAll(contacts);

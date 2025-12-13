@@ -28,7 +28,7 @@ public class UserContact {
     private boolean verified;
 
     @Column(name = "is_primary", nullable = false)
-    private boolean primaryAccount;
+    private boolean primaryContact;
 
     private Instant verifiedAt;
 

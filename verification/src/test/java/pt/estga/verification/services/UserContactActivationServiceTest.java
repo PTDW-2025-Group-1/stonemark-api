@@ -55,7 +55,7 @@ class UserContactActivationServiceTest {
                 .user(testUser)
                 .type(ContactType.EMAIL)
                 .value("john.doe@example.com")
-                .isVerified(false)
+                .verified(false)
                 .build();
 
         phoneContact = UserContact.builder()
@@ -63,7 +63,7 @@ class UserContactActivationServiceTest {
                 .user(testUser)
                 .type(ContactType.TELEPHONE)
                 .value("123456789")
-                .isVerified(false)
+                .verified(false)
                 .build();
 
         List<UserContact> contacts = new ArrayList<>();

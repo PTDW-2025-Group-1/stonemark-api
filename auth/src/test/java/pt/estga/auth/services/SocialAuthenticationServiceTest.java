@@ -81,8 +81,8 @@ class SocialAuthenticationServiceTest {
         UserContact primaryEmail = UserContact.builder()
                 .type(ContactType.EMAIL)
                 .value(USER_EMAIL)
-                .isPrimary(true)
-                .isVerified(true)
+                .primaryContact(true)
+                .verified(true)
                 .user(user)
                 .build();
         user.getContacts().add(primaryEmail);

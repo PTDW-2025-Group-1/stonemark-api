@@ -55,7 +55,7 @@ class PasswordResetInitiationCommandTest {
                 .user(testUser)
                 .type(ContactType.EMAIL)
                 .value(CONTACT_VALUE)
-                .isVerified(true)
+                .verified(true)
                 .build();
 
         testActionCode = ActionCode.builder()

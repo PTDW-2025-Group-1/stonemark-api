@@ -41,7 +41,7 @@ public class AccountServiceImpl implements AccountService {
                 .user(user)
                 .value(value)
                 .type(type)
-                .primaryAccount(false)
+                .primaryContact(false)
                 .verified(false)
                 .build();
         userContactService.create(userContact);

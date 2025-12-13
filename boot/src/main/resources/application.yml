@@ -80,7 +80,8 @@ logging:
 application:
   base-url: http://localhost:8080
 #  base-url: https://api.stonemark.pt
-  frontend-url: http://localhost:4201
+  frontend-url: http://localhost:4200
+  frontend-auth-url: http://localhost:4201
 #  frontend-url: https://stonemark.pt
   security:
     jwt:
