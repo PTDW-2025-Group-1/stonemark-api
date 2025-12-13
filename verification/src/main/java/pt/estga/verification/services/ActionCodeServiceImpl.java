@@ -50,6 +50,7 @@ public class ActionCodeServiceImpl implements ActionCodeService {
             ActionCode actionCode = ActionCode.builder()
                     .code(code)
                     .user(user)
+                    .userContact(userContact)
                     .type(type)
                     .expiresAt(Instant.now().plusMillis(expirationMillis))
                     .consumed(false)

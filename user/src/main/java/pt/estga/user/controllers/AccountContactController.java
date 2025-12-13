@@ -81,6 +81,25 @@ public class AccountContactController {
         return ResponseEntity.ok(new MessageResponseDto("A verification message has been sent."));
     }
 
+    @Operation(
+            summary = "Set primary contact",
+            description = "Sets a verified contact as the primary contact for its type (EMAIL or TELEPHONE)."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contact set as primary",
+                    content = @Content(schema = @Schema(implementation = MessageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Contact not verified or invalid"),
+            @ApiResponse(responseCode = "404", description = "Contact not found")
+    })
+    @PatchMapping("/{contactId}/primary")
+    public ResponseEntity<?> setPrimaryContact(
+            @PathVariable Long contactId,
+            @AuthenticationPrincipal User user
+    ) {
+        accountService.setPrimaryContact(user, contactId);
+        return ResponseEntity.ok(new MessageResponseDto("Contact set as primary."));
+    }
+
     @SensitiveOperation
     @Operation(summary = "Delete a contact", description = "Deletes a contact from the authenticated user's account.")
     @ApiResponses(value = {

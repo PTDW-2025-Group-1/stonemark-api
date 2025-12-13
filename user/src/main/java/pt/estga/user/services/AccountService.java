@@ -21,6 +21,8 @@ public interface AccountService {
 
     List<UserContact> getContacts(User user);
 
+    void setPrimaryContact(User user, Long contactId);
+
     void deleteContact(User user, Long contactId);
 
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.shared.aop.SensitiveOperation;
 import pt.estga.shared.exceptions.ContactMethodNotAvailableException;
 import pt.estga.shared.exceptions.InvalidGoogleTokenException;
@@ -40,8 +41,8 @@ public class AccountServiceImpl implements AccountService {
                 .user(user)
                 .value(value)
                 .type(type)
-                .isPrimary(false)
-                .isVerified(false)
+                .primaryContact(false)
+                .verified(false)
                 .build();
         userContactService.create(userContact);
     }
@@ -102,6 +103,24 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<UserContact> getContacts(User user) {
         return userContactService.findAllByUser(user);
+    }
+
+    @Override
+    @Transactional
+    public void setPrimaryContact(User user, Long contactId) {
+
+        UserContact contact = userContactService.findById(contactId)
+                .orElseThrow(() -> new IllegalArgumentException("Contact not found."));
+
+        if (!contact.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Contact does not belong to user.");
+        }
+
+        if (!contact.isVerified()) {
+            throw new IllegalStateException("Contact must be verified before being set as primary.");
+        }
+
+        userContactService.setAsPrimary(contact);
     }
 
     @Override

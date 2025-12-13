@@ -65,7 +65,7 @@ public class TwoFactorAuthenticationServiceImpl implements TwoFactorAuthenticati
                             emailService.sendEmail(Email.builder()
                                     .to(email.getValue())
                                     .subject("Two-Factor Authentication Code")
-                                    .template("username/tfa-code.html")
+                                    .template("email/tfa-code.html")
                                     .properties(properties)
                                     .build());
                         },

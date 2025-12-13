@@ -1,5 +1,6 @@
 package pt.estga.user.services;
 
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Override
     public Optional<UserContact> findPrimary(User user, ContactType contactType) {
         log.info("Finding primary user contact by user: {} and contact type: {}", user, contactType);
-        return repository.findByUserAndTypeAndIsPrimaryAndIsVerified(user, contactType, true, true).stream().findFirst();
+        return repository.findByUserAndTypeAndPrimaryContactAndVerified(user, contactType, true, true).stream().findFirst();
     }
 
     @Override
@@ -63,7 +64,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Override
     public boolean existsByValueAndIsVerified(String value, boolean isVerified) {
         log.info("Checking if user contact exists by value: {} and isVerified: {}", value, isVerified);
-        return repository.existsByValueAndIsVerified(value, isVerified);
+        return repository.existsByValueAndVerified(value, isVerified);
     }
 
     @Override
@@ -73,17 +74,25 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
+    @Transactional
     public UserContact setAsPrimary(UserContact userContact) {
         log.info("Setting primary user contact: {}", userContact);
+
         if (!userContact.isVerified()) {
-            log.warn("User contact is not verified, cannot set as primary: {}", userContact);
-            return null;
+            throw new IllegalStateException("Contact must be verified before being set as primary.");
         }
+
         List<UserContact> contacts = repository.findByUser(userContact.getUser());
-        contacts.forEach(contact -> contact.setPrimary(false));
-        userContact.setPrimary(true);
-        return repository.save(userContact);
+
+        for (UserContact contact : contacts) {
+            contact.setPrimaryContact(contact.getId().equals(userContact.getId()));
+        }
+
+        repository.saveAll(contacts);
+
+        return userContact;
     }
+
 
     @Override
     public void delete(UserContact userContact) {

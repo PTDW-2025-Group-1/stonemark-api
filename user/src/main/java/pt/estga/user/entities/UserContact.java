@@ -24,9 +24,11 @@ public class UserContact {
 
     private String value;
 
-    private boolean isVerified;
+    @Column(name = "is_verified", nullable = false)
+    private boolean verified;
 
-    private boolean isPrimary;
+    @Column(name = "is_primary", nullable = false)
+    private boolean primaryContact;
 
     private Instant verifiedAt;
 

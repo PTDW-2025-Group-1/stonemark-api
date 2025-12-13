@@ -24,6 +24,8 @@ import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth/tfa")
 @RequiredArgsConstructor
@@ -133,6 +135,16 @@ public class TwoFactorAuthenticationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto(e.getMessage()));
         }
     }
+
+    @Operation(summary = "Get 2FA status")
+    @GetMapping("/status")
+    public ResponseEntity<?> getTfaStatus(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(Map.of(
+                "enabled", user.getTfaMethod() != TfaMethod.NONE,
+                "method", user.getTfaMethod()
+        ));
+    }
+
 
     @Operation(summary = "Verify 2FA code from contact",
                description = "Verifies the Two-Factor Authentication code received via the user's primary contact method.")
