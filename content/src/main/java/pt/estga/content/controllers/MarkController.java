@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.content.dtos.MarkUpdateDto;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
@@ -49,15 +50,9 @@ public class MarkController {
         return service.searchByTitle(query, pageable).map(mapper::markToMarkDto);
     }
 
-    @PostMapping
-    public MarkDto createMark(@RequestBody MarkDto markDto) {
-        Mark mark = mapper.markDtoToMark(markDto);
-        return mapper.markToMarkDto(service.create(mark));
-    }
-
     @PutMapping("/{id}")
-    public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkDto markDto) {
-        Mark mark = mapper.markDtoToMark(markDto);
+    public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
+        Mark mark = mapper.markUpdateDtoToMark(markDto);
         mark.setId(id);
         return mapper.markToMarkDto(service.update(mark));
     }

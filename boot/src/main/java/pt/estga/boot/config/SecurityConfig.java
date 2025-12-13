@@ -41,7 +41,8 @@ public class SecurityConfig {
             "/api/v1/monuments/**",
             "/api/v1/marks/**",
             "/api/v1/mark-occurrences/**",
-            "/api/v1/contact-requests/**"
+            "/api/v1/contact-requests/**",
+            "/api/v1/media/**"
     };
     private static final String[] ALLOWED_ORIGINS = {
             "http://localhost:*",

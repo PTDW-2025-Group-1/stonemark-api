@@ -31,6 +31,7 @@ public class TelegramAuthServiceImpl implements TelegramAuthService {
                     .map(UserContact::getUser);
 
             userOptional.ifPresent(user ->
+                    // Todo: add Telegram chat ID to user identities
                     log.info("User {} authenticated and Telegram chat ID updated.", user.getUsername())
             );
 

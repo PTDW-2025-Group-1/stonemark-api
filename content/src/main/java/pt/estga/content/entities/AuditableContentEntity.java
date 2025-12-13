@@ -16,6 +16,7 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class AuditableContentEntity {
 
+    // Todo: set joins to Lazy fetch
     @CreatedBy
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(updatable = false)

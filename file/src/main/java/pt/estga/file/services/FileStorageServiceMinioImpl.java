@@ -2,6 +2,7 @@ package pt.estga.file.services;
 
 import io.minio.*;
 import io.minio.errors.MinioException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "storage.provider", havingValue = "minio")
+@Slf4j
 public class FileStorageServiceMinioImpl implements FileStorageService {
 
     private final MinioClient minioClient;
@@ -28,23 +30,13 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
     ) {
         this.minioClient = minioClient;
         this.bucketName = bucketName;
-        createBucketIfNotExists();
-    }
-
-    private void createBucketIfNotExists() {
-        try {
-            boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-            if (!found) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-            }
-        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
-            throw new RuntimeException("Could not initialize MinIO bucket", e);
-        }
     }
 
     @Override
     public String storeFile(byte[] fileData, String filename, String directory) {
+        log.info("Storing file with filename: {} in directory: {}", filename, directory);
         if (fileData == null || fileData.length == 0) {
+            log.error("Cannot store empty file");
             throw new RuntimeException("Cannot store empty file");
         }
 
@@ -57,6 +49,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
             String newFileName = UUID.randomUUID() + extension;
             String objectName = (directory != null && !directory.isBlank() ? directory + "/" : "") + newFileName;
 
+            log.debug("Putting object with name: {}", objectName);
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
@@ -65,14 +58,17 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
                             .build()
             );
 
+            log.info("File stored successfully with object name: {}", objectName);
             return objectName;
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+            log.error("Failed to store file in MinIO", e);
             throw new RuntimeException("Failed to store file in MinIO", e);
         }
     }
 
     @Override
     public Resource loadFile(String path) {
+        log.info("Loading file from path: {}", path);
         try {
             InputStream stream = minioClient.getObject(
                     GetObjectArgs.builder()
@@ -80,14 +76,17 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
                             .object(path)
                             .build()
             );
+            log.info("File loaded successfully from path: {}", path);
             return new InputStreamResource(stream);
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+            log.error("Failed to load file from MinIO with path: {}", path, e);
             throw new RuntimeException("Failed to load file from MinIO", e);
         }
     }
 
     @Override
     public void deleteFile(String path) {
+        log.info("Deleting file from path: {}", path);
         try {
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
@@ -95,7 +94,9 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
                             .object(path)
                             .build()
             );
+            log.info("File deleted successfully from path: {}", path);
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+            log.error("Could not delete file from MinIO with path: {}", path, e);
             throw new RuntimeException("Could not delete file from MinIO", e);
         }
     }
