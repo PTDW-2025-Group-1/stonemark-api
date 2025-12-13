@@ -5,44 +5,43 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.repositories.MarkRepository;
-import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.enums.StorageProvider;
 import pt.estga.file.enums.TargetType;
+import pt.estga.file.services.MediaService;
 
 import java.io.File;
-import java.time.Instant;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class MarkSeeder implements CommandLineRunner {
 
+    private static final boolean ENABLED = false;
+
     private final MarkRepository markRepository;
-    private final MediaFileRepository mediaFileRepository;
+    private final MediaService mediaService;
 
     @Override
-    public void run(String... args) {
-        File marksDir = new File("src/main/resources/seed/marks");
+    public void run(String... args) throws IOException {
+        if (!ENABLED) {
+            return;
+        }
+
+        File marksDir = new File("seed/marks");
         if (marksDir.exists() && marksDir.isDirectory()) {
             List<Mark> existingMarks = markRepository.findAll();
             File[] files = marksDir.listFiles();
             if (files != null) {
                 for (File file : files) {
                     if (existingMarks.stream().noneMatch(mark -> mark.getTitle().equals(file.getName()))) {
-                        MediaFile mediaFile = new MediaFile();
-                        mediaFile.setFileName(file.getName());
-                        mediaFile.setOriginalFileName(file.getName());
-                        mediaFile.setSize(file.length());
-                        mediaFile.setStorageProvider(StorageProvider.LOCAL);
-                        mediaFile.setStoragePath(file.getAbsolutePath());
-                        mediaFile.setTargetType(TargetType.MARK);
-                        mediaFile.setUploadedAt(Instant.now());
-                        mediaFileRepository.save(mediaFile);
+                        byte[] fileData = Files.readAllBytes(file.toPath());
+                        MediaFile mediaFile = mediaService.save(fileData, file.getName(), TargetType.MARK);
 
                         Mark mark = new Mark();
                         mark.setTitle(file.getName());
-                        mark.setPhoto(mediaFile);
+                        mark.setCover(mediaFile);
                         markRepository.save(mark);
                     }
                 }

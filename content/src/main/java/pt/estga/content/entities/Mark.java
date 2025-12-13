@@ -7,6 +7,10 @@ import pt.estga.shared.utils.DoubleListConverter;
 
 import java.util.List;
 
+@NamedEntityGraph(
+        name = "MyEntity.withMedia",
+        attributeNodes = @NamedAttributeNode("cover")
+)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +27,7 @@ public class Mark extends AuditableContentEntity {
     private String description;
 
     @OneToOne
-    private MediaFile photo;
+    private MediaFile cover;
 
     @Convert(converter = DoubleListConverter.class)
     @Column(columnDefinition = "TEXT")

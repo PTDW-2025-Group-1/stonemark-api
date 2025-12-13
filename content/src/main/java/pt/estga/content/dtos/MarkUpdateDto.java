@@ -1,13 +1,10 @@
 package pt.estga.content.dtos;
 
-import pt.estga.file.dtos.MediaFileDto;
-
 import java.util.List;
 
-public record MarkDto(
-        Long id,
+public record MarkUpdateDto(
         String title,
         String description,
         List<Double> embedding,
-        MediaFileDto cover
+        Long coverId
 ) { }

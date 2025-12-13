@@ -2,14 +2,17 @@ package pt.estga.content.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import pt.estga.content.dtos.MarkUpdateDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.dtos.MarkDto;
+import pt.estga.file.mappers.MediaFileMapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {MediaFileMapper.class})
 public interface MarkMapper {
-    @Mapping(source = "photo.id", target = "photoId")
+
     MarkDto markToMarkDto(Mark mark);
 
-    @Mapping(source = "photoId", target = "photo.id")
-    Mark markDtoToMark(MarkDto markDto);
+    @Mapping(source = "coverId", target = "cover.id")
+    Mark markUpdateDtoToMark(MarkUpdateDto markDto);
+
 }

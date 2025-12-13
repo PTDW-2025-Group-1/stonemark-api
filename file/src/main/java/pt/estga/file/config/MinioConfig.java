@@ -1,10 +1,18 @@
 package pt.estga.file.config;
 
+import io.minio.BucketExistsArgs;
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.SetBucketPolicyArgs;
+import io.minio.errors.MinioException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Configuration
 @ConditionalOnProperty(name = "storage.provider", havingValue = "minio")
@@ -19,11 +27,27 @@ public class MinioConfig {
     @Value("${minio.secret-key}")
     private String secretKey;
 
+    @Value("${minio.bucket-name}")
+    private String bucketName;
+
     @Bean
     public MinioClient minioClient() {
-        return MinioClient.builder()
+        MinioClient minioClient = MinioClient.builder()
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
+        createBucketIfNotExists(minioClient);
+        return minioClient;
+    }
+
+    private void createBucketIfNotExists(MinioClient minioClient) {
+        try {
+            if (minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
+                return;
+            }
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+            throw new RuntimeException("Could not initialize MinIO bucket", e);
+        }
     }
 }
