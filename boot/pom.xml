@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
-            <artifactId>bots</artifactId>
+            <artifactId>chatbots</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
