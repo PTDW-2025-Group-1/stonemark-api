@@ -39,7 +39,10 @@ public class AccountController {
     })
     @GetMapping("/profile")
     public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal User connectedUser) {
-        return ResponseEntity.ok(mapper.toDto(connectedUser));
+        User user = userService
+                .findByIdWithContacts(connectedUser.getId())
+                .orElseThrow();
+        return ResponseEntity.ok(mapper.toDto(user));
     }
 
     @Operation(summary = "Update user profile", description = "Updates the profile information of the authenticated user.")
