@@ -6,7 +6,7 @@ import pt.estga.user.dtos.ProfileUpdateRequestDto;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = UserContactMapper.class)
 public interface UserMapper {
 
     UserDto toDto(User user);

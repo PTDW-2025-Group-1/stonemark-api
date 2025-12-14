@@ -16,6 +16,8 @@ public interface UserService {
 
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByIdWithContacts(Long id);
+
     boolean existsByUsername(String username);
 
     User create(User user);
