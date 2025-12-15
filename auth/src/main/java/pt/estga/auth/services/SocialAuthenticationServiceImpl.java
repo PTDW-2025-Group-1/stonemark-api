@@ -82,6 +82,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                         .role(Role.USER)
                                         .enabled(true)
                                         .tfaMethod(TfaMethod.NONE)
+                                        .password(null)
                                         .build();
                                 UserContact primaryEmail = UserContact.builder()
                                         .type(ContactType.EMAIL)

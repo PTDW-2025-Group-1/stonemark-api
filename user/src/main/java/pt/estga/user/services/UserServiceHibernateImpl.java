@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import pt.estga.user.dtos.UserDto;
 import pt.estga.user.enums.Role;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
@@ -23,6 +24,11 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
+    public Page<User> findAllWithContacts(Pageable pageable) {
+        return repository.findAllWithContacts(pageable);
+    }
+
+    @Override
     public Optional<User> findById(Long id) {
         return repository.findById(id);
     }
@@ -35,6 +41,11 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public Optional<User> findByIdWithContacts(Long id) {
         return repository.findByIdWithContacts(id);
+    }
+
+    @Override
+    public Optional<User> findByIdWithIdentities(Long id) {
+        return repository.findByIdWithIdentities(id);
     }
 
     @Override
