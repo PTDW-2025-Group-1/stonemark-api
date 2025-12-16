@@ -23,7 +23,7 @@ public interface MarkOccurrenceService {
 
     Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable);
 
-    List<Mark> findAvailableMarks();
+    List<Mark> findAvailableMarksByMonumentId(Long monumentId);
 
     List<Monument> findAvailableMonumentsByMarkId(Long markId);
 

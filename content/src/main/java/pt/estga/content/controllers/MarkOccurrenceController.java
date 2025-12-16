@@ -87,9 +87,9 @@ public class MarkOccurrenceController {
                 .map(mapper::toDto);
     }
 
-    @GetMapping("/filters/marks")
-    public List<MarkDto> getAvailableMarks() {
-        return service.findAvailableMarks()
+    @GetMapping("/filters/marks-by-monument")
+    public List<MarkDto> getAvailableMarksByMonument(@RequestParam Long monumentId) {
+        return service.findAvailableMarksByMonumentId(monumentId)
                 .stream()
                 .map(markMapper::markToMarkDto)
                 .toList();
@@ -114,18 +114,6 @@ public class MarkOccurrenceController {
         return service.findByMarkIdAndMonumentId(markId, monumentId, pageable)
                 .map(mapper::toDto);
     }
-
-    @GetMapping("/filter-by-mark")
-    public Page<MarkOccurrenceDto> filterByMark(
-            @RequestParam Long markId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findByMarkId(markId, pageable)
-                .map(mapper::toDto);
-    }
-
 
     @PostMapping
     @PreAuthorize("hasRole('MODERATOR')")

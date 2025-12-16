@@ -51,8 +51,8 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     }
 
     @Override
-    public List<Mark> findAvailableMarks() {
-        return repository.findDistinctMarksWithOccurrences();
+    public List<Mark> findAvailableMarksByMonumentId(Long monumentId) {
+        return repository.findDistinctMarksByMonumentId(monumentId);
     }
 
     public List<Monument> findAvailableMonumentsByMarkId(Long markId) {

@@ -19,8 +19,8 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
 
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
 
-    @Query("SELECT DISTINCT m FROM MarkOccurrence mo JOIN mo.mark m ORDER BY m.title")
-    List<Mark> findDistinctMarksWithOccurrences();
+    @Query("SELECT DISTINCT mo.mark FROM MarkOccurrence mo WHERE mo.monument.id = :monumentId")
+    List<Mark> findDistinctMarksByMonumentId(@Param("monumentId") Long monumentId);
 
     @Query("SELECT DISTINCT mo.monument FROM MarkOccurrence mo WHERE mo.mark.id = :markId")
     List<Monument> findDistinctMonumentsByMarkId(@Param("markId") Long markId);
