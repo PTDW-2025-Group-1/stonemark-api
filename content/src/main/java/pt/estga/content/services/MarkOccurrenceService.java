@@ -2,7 +2,9 @@ package pt.estga.content.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
+import pt.estga.content.entities.Monument;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,11 +15,17 @@ public interface MarkOccurrenceService {
 
     Optional<MarkOccurrence> findById(Long id);
 
-    List<MarkOccurrence> findByMarkId(Long markId);
+    Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable);
 
     List<MarkOccurrence> findLatest(int limit);
 
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
+
+    Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable);
+
+    List<Mark> findAvailableMarks();
+
+    List<Monument> findAvailableMonumentsByMarkId(Long markId);
 
     long countByMonumentId(Long monumentId);
 

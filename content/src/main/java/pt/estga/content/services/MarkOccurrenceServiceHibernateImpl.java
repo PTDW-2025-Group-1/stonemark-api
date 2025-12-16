@@ -6,7 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
+import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MarkOccurrenceRepository;
 
 import java.util.List;
@@ -29,8 +31,8 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     }
 
     @Override
-    public List<MarkOccurrence> findByMarkId(Long markId) {
-        return repository.findAllByMarkId(markId);
+    public Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable) {
+        return repository.findAllByMarkId(markId, pageable);
     }
 
     @Override
@@ -43,6 +45,20 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     public Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable) {
         return repository.findByMonumentId(monumentId, pageable);
     }
+
+    public Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable) {
+        return repository.findAllByMarkIdAndMonumentId(markId, monumentId, pageable);
+    }
+
+    @Override
+    public List<Mark> findAvailableMarks() {
+        return repository.findDistinctMarksWithOccurrences();
+    }
+
+    public List<Monument> findAvailableMonumentsByMarkId(Long markId) {
+        return repository.findDistinctMonumentsByMarkId(markId);
+    }
+
 
     @Override
     public long countByMonumentId(Long monumentId) {
