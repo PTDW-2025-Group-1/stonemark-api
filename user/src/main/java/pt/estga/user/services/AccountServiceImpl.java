@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.shared.aop.SensitiveOperation;
 import pt.estga.shared.exceptions.ContactMethodNotAvailableException;
 import pt.estga.shared.exceptions.InvalidGoogleTokenException;
+import pt.estga.user.dtos.AccountSecurityStatusDto;
+import pt.estga.user.dtos.LinkedProviderDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
@@ -27,6 +29,7 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final UserContactService userContactService;
+    private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final UserIdentityService userIdentityService;
@@ -96,13 +99,63 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional
     public void unlinkSocialAccount(User user, Provider provider) {
-        userIdentityService.deleteByUserAndProvider(user, Provider.GOOGLE);
+
+        User managedUser = userService
+                .findByIdWithIdentities(user.getId())
+                .orElseThrow();
+
+        boolean hasPassword =
+                managedUser.getPassword() != null &&
+                        !managedUser.getPassword().isBlank();
+
+        boolean isLastProvider = managedUser.getIdentities().size() <= 1;
+
+        if (!hasPassword && isLastProvider) {
+            throw new IllegalStateException(
+                    "You must set a password before disconnecting the last authentication provider."
+            );
+        }
+
+        boolean removed = managedUser.getIdentities()
+                .removeIf(identity -> identity.getProvider() == provider);
+
+        if (!removed) {
+            throw new IllegalStateException("Provider not linked to user.");
+        }
+
+    }
+
+    @Override
+    public List<LinkedProviderDto> getLinkedProviders(User user) {
+        User managedUser = userService
+                .findByIdWithIdentities(user.getId())
+                .orElseThrow();
+
+        return managedUser.getIdentities().stream()
+                .map(identity -> new LinkedProviderDto(identity.getProvider()))
+                .toList();
     }
 
     @Override
     public List<UserContact> getContacts(User user) {
         return userContactService.findAllByUser(user);
+    }
+
+    @Override
+    @Transactional
+    public AccountSecurityStatusDto getSecurityStatus(User user) {
+
+        User managedUser = userService
+                .findById(user.getId())
+                .orElseThrow();
+
+        boolean hasPassword =
+                managedUser.getPassword() != null &&
+                !managedUser.getPassword().isBlank();
+
+        return new AccountSecurityStatusDto(hasPassword);
     }
 
     @Override

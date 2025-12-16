@@ -37,7 +37,7 @@ public class UserController {
     })
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAll(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
+        return ResponseEntity.ok(service.findAllWithContacts(pageable).map(mapper::toDto));
     }
 
     @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their ID.")

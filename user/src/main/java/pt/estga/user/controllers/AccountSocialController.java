@@ -10,9 +10,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.dtos.LinkGoogleRequestDto;
+import pt.estga.user.dtos.LinkedProviderDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.services.AccountService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/account/socials")
@@ -22,6 +25,24 @@ import pt.estga.user.services.AccountService;
 public class AccountSocialController {
 
     private final AccountService accountService;
+
+    @GetMapping("/providers")
+    @Operation(
+            summary = "Get linked social providers",
+            description = "Returns the list of social providers linked to the authenticated user."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Linked providers retrieved successfully"
+    )
+    public ResponseEntity<List<LinkedProviderDto>> getLinkedProviders(
+            @AuthenticationPrincipal User connectedUser
+    ) {
+        List<LinkedProviderDto> providers =
+                accountService.getLinkedProviders(connectedUser);
+
+        return ResponseEntity.ok(providers);
+    }
 
     @PostMapping("/google")
     @Operation(

@@ -17,6 +17,7 @@ import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.mappers.UserMapper;
+import pt.estga.user.services.AccountService;
 import pt.estga.user.services.PasswordService;
 import pt.estga.user.services.UserService;
 
@@ -28,6 +29,7 @@ import pt.estga.user.services.UserService;
 public class AccountController {
 
     private final UserService userService;
+    private final AccountService accountService;
     private final UserMapper mapper;
     private final PasswordService passwordService;
 
@@ -44,6 +46,18 @@ public class AccountController {
                 .orElseThrow();
         return ResponseEntity.ok(mapper.toDto(user));
     }
+
+    @GetMapping("/security/status")
+    @Operation(
+            summary = "Get account security status",
+            description = "Returns information about available authentication methods."
+    )
+    public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus(
+            @AuthenticationPrincipal User user
+    ) {
+        return ResponseEntity.ok(accountService.getSecurityStatus(user));
+    }
+
 
     @Operation(summary = "Update user profile", description = "Updates the profile information of the authenticated user.")
     @ApiResponses(value = {
