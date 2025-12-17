@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.file.services.MediaService;
 
 import java.io.File;

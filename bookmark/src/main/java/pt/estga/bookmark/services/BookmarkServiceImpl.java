@@ -11,7 +11,7 @@ import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.util.List;

@@ -2,8 +2,10 @@ package pt.estga.report.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import pt.estga.file.enums.TargetType;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.report.enums.ReportReason;
 import pt.estga.report.enums.ReportStatus;
 import pt.estga.user.entities.User;
@@ -11,6 +13,13 @@ import pt.estga.user.entities.User;
 import java.time.Instant;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@Table(
+        name = "report",
+        indexes = {
+                @Index(name = "idx_user_target_type", columnList = "user_id,target_id,target_type")
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -22,7 +31,9 @@ public class Report {
     @GeneratedValue
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false, updatable = false)
+    @CreatedBy
     private User user;
 
     @Column(nullable = false)
@@ -43,6 +54,6 @@ public class Report {
     @Column(nullable = false)
     private ReportStatus status;
 
-    @CreationTimestamp
+    @CreatedDate
     private Instant createdAt;
 }

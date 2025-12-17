@@ -2,7 +2,7 @@ package pt.estga.file.services;
 
 import org.springframework.core.io.Resource;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 
 import java.io.IOException;
 
