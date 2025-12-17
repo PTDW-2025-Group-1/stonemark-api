@@ -13,7 +13,7 @@ import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;

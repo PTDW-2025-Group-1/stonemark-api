@@ -34,6 +34,7 @@
         <module>chatbots</module>
         <module>bookmark</module>
         <module>verification</module>
+        <module>report</module>
     </modules>
     <scm>
 		<connection/>

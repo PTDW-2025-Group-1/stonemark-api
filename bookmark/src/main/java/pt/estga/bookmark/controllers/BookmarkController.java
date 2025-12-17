@@ -7,7 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.bookmark.dtos.BookmarkDto;
 import pt.estga.bookmark.services.BookmarkService;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.util.List;

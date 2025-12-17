@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.contact.ContactStatus;
 import pt.estga.contact.dtos.ContactRequestDto;
@@ -39,6 +40,7 @@ public class ContactRequestController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<ContactRequest> updateStatus(
             @PathVariable Long id,
             @RequestParam ContactStatus status
@@ -47,6 +49,7 @@ public class ContactRequestController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

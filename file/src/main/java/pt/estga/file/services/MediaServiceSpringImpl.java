@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.StorageProvider;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 
 import java.io.IOException;
 import java.nio.file.Paths;

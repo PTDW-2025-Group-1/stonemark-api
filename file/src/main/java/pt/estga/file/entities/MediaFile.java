@@ -5,7 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import pt.estga.file.enums.StorageProvider;
-import pt.estga.file.enums.TargetType;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
