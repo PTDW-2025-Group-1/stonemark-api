@@ -33,6 +33,20 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
     private final MarkService markService;
 
     @Override
+    public BotApiMethod<?> createStartMessage(long chatId) {
+        SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.GREETING);
+        message.setReplyMarkup(createMainMenuKeyboard());
+        return message;
+    }
+
+    @Override
+    public BotApiMethod<?> createMainMenuMessage(long chatId) {
+        SendMessage message = new SendMessage(String.valueOf(chatId), BotResponses.MAIN_MENU);
+        message.setReplyMarkup(createMainMenuKeyboard());
+        return message;
+    }
+
+    @Override
     public BotApiMethod<?> createGreetingMessage(long chatId) {
         return new SendMessage(String.valueOf(chatId), BotResponses.GREETING);
     }
@@ -253,5 +267,32 @@ public class TelegramBotMessageFactoryImpl implements TelegramBotMessageFactory 
         markupInline.setKeyboard(rowsInline);
         message.setReplyMarkup(markupInline);
         return message;
+    }
+
+    private InlineKeyboardMarkup createMainMenuKeyboard() {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+
+        InlineKeyboardButton newSubmissionButton = new InlineKeyboardButton();
+        newSubmissionButton.setText("New Submission");
+        newSubmissionButton.setCallbackData("NEW_SUBMISSION");
+        row1.add(newSubmissionButton);
+
+        InlineKeyboardButton verifyAccountButton = new InlineKeyboardButton();
+        verifyAccountButton.setText("Verify Account");
+        verifyAccountButton.setCallbackData("VERIFY_ACCOUNT");
+        row1.add(verifyAccountButton);
+
+        InlineKeyboardButton helpButton = new InlineKeyboardButton();
+        helpButton.setText("Help");
+        helpButton.setCallbackData("HELP");
+        row2.add(helpButton);
+
+        rowsInline.add(row1);
+        rowsInline.add(row2);
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
     }
 }

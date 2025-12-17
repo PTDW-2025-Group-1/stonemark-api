@@ -9,6 +9,10 @@ import java.util.List;
 
 public interface TelegramBotMessageFactory {
 
+    BotApiMethod<?> createStartMessage(long chatId);
+
+    BotApiMethod<?> createMainMenuMessage(long chatId);
+
     BotApiMethod<?> createGreetingMessage(long chatId);
 
     BotApiMethod<?> createHelpMessage(long chatId);

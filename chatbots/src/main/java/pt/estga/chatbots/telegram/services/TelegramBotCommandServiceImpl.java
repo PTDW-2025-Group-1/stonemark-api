@@ -42,26 +42,7 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     public BotApiMethod<?> handleStartCommand(long chatId) {
         ConversationContext context = new ConversationContext(chatId);
         conversationContexts.put(chatId, context);
-
-        if (!telegramBotProperties.getAuth().isEnabled()) {
-            log.info("Authentication is disabled. Proceeding with anonymous user.");
-            context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
-            return messageFactory.createGreetingMessage(chatId);
-        }
-
-        Optional<User> userOptional = userIdentityRepository.findByProviderAndValue(Provider.TELEGRAM, String.valueOf(chatId))
-                .map(UserIdentity::getUser);
-
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            log.info("User already authenticated: {}", user.getUsername());
-            context.setUserId(user.getId());
-            context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
-            return messageFactory.createWelcomeBackMessage(chatId, user.getFirstName());
-        } else {
-            context.setState(stateFactory.createState(ProposalStatus.AWAITING_AUTHENTICATION));
-            return messageFactory.createAuthenticationRequestMessage(chatId);
-        }
+        return messageFactory.createStartMessage(chatId);
     }
 
     @Override
@@ -105,7 +86,13 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
     @Override
     public BotApiMethod<?> handleCallbackQuery(long chatId, String callbackQueryId, String callbackData) {
         ConversationContext context = conversationContexts.getIfPresent(chatId);
-        return callbackQueryHandler.handle(context, callbackQueryId, callbackData);
+        if (context != null) {
+            if (callbackData.equals("NEW_SUBMISSION") || callbackData.equals("VERIFY_ACCOUNT") || callbackData.equals("HELP")) {
+                return handleMainMenuCallback(context, callbackData);
+            }
+            return callbackQueryHandler.handle(context, callbackQueryId, callbackData);
+        }
+        return messageFactory.createInvalidInputForStateMessage(chatId);
     }
 
     @Override
@@ -135,5 +122,38 @@ public class TelegramBotCommandServiceImpl implements TelegramBotCommandService 
             return context.getState().handleContact(context, contact);
         }
         return messageFactory.createInvalidInputForStateMessage(chatId);
+    }
+
+    private BotApiMethod<?> handleMainMenuCallback(ConversationContext context, String callbackData) {
+        long chatId = context.getChatId();
+        switch (callbackData) {
+            case "NEW_SUBMISSION":
+                if (!telegramBotProperties.getAuth().isEnabled()) {
+                    log.info("Authentication is disabled. Proceeding with anonymous user.");
+                    context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
+                    return messageFactory.createGreetingMessage(chatId);
+                }
+
+                Optional<User> userOptional = userIdentityRepository.findByProviderAndValue(Provider.TELEGRAM, String.valueOf(chatId))
+                        .map(UserIdentity::getUser);
+
+                if (userOptional.isPresent()) {
+                    User user = userOptional.get();
+                    log.info("User already authenticated: {}", user.getUsername());
+                    context.setUserId(user.getId());
+                    context.setState(stateFactory.createState(ProposalStatus.IN_PROGRESS));
+                    return messageFactory.createWelcomeBackMessage(chatId, user.getFirstName());
+                } else {
+                    context.setState(stateFactory.createState(ProposalStatus.AWAITING_AUTHENTICATION));
+                    return messageFactory.createAuthenticationRequestMessage(chatId);
+                }
+            case "VERIFY_ACCOUNT":
+                context.setState(stateFactory.createState(ProposalStatus.AWAITING_AUTHENTICATION));
+                return messageFactory.createAuthenticationRequestMessage(chatId);
+            case "HELP":
+                return messageFactory.createHelpMessage(chatId);
+            default:
+                return messageFactory.createUnknownCommandHelpMessage(chatId);
+        }
     }
 }

@@ -7,7 +7,6 @@ public class BotResponses {
     public static final String CANCEL_MESSAGE = "Operation cancelled.";
     public static final String PHOTO_RECEIVED = "Got the photo! Now send me the location.";
     public static final String PHOTO_ERROR = "Sorry, there was an error processing your photo.";
-    public static final String UNEXPECTED_PHOTO = "I wasn't expecting a photo right now.";
     public static final String LOCATION_RECEIVED = "Location received. Your proposal is ready. Use /submit to finalize.";
     public static final String UNEXPECTED_LOCATION = "I wasn't expecting a location right now.";
     public static final String SUBMISSION_SUCCESS = "Proposal submitted successfully!";
@@ -31,7 +30,6 @@ public class BotResponses {
     public static final String INVALID_MARK_DETAILS_FORMAT = "Invalid format. Please send the description for the new mark.";
     public static final String AWAITING_MONUMENT_VERIFICATION = "I've found a location from the photo's metadata. Is this correct?";
     public static final String SUGGESTED_MONUMENTS_FOUND = "I found some monuments that might match. Please select one or propose a new one:";
-    public static final String ERROR_DESERIALIZING_MONUMENT_IDS = "An error occurred while processing suggested monuments.";
     public static final String READY_TO_SUBMIT_MESSAGE = "Your proposal is ready for submission. Use /submit to finalize.";
     public static final String AWAITING_NOTES_MESSAGE = "Please add any notes for your proposal, or use /skip to skip.";
     public static final String NOTHING_TO_SKIP_MESSAGE = "There is nothing to skip at this moment.";
@@ -46,4 +44,5 @@ public class BotResponses {
     public static final String AWAITING_COORDINATES_CONFIRMATION = "Do you want to use the coordinates from the photo?";
     public static final String INVALID_INPUT = "Invalid input. Please try again.";
     public static final String AWAITING_MONUMENT_SELECTION = "Please select a monument from the list or propose a new one.";
+    public static final String MAIN_MENU = "What would you like to do?";
 }

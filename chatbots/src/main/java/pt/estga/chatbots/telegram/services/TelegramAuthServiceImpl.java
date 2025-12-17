@@ -8,7 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
+import pt.estga.user.enums.Provider;
 import pt.estga.user.services.UserContactService;
+import pt.estga.user.services.UserIdentityService;
 
 import java.util.Optional;
 
@@ -18,6 +20,7 @@ import java.util.Optional;
 public class TelegramAuthServiceImpl implements TelegramAuthService {
 
     private final UserContactService userContactService;
+    private final UserIdentityService userIdentityService;
 
     @Override
     public Optional<User> authenticateUser(String telegramChatId, String phoneNumber) {
@@ -30,10 +33,10 @@ public class TelegramAuthServiceImpl implements TelegramAuthService {
             Optional<User> userOptional = userContactService.findByValue(internationalFormat)
                     .map(UserContact::getUser);
 
-            userOptional.ifPresent(user ->
-                    // Todo: add Telegram chat ID to user identities
-                    log.info("User {} authenticated and Telegram chat ID updated.", user.getUsername())
-            );
+            userOptional.ifPresent(user -> {
+                userIdentityService.createAndAssociate(user, Provider.TELEGRAM, telegramChatId);
+                log.info("User {} authenticated and Telegram chat ID updated.", user.getUsername());
+            });
 
             return userOptional;
 
