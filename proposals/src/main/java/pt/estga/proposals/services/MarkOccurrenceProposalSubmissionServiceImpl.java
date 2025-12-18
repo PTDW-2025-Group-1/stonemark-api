@@ -1,6 +1,5 @@
 package pt.estga.proposals.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final DetectionService detectionService;
     private final FileStorageService fileStorageService;
-    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional

@@ -7,8 +7,9 @@ import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pt.estga.chatbots.telegram.handlers.UpdateHandlerFactory;
-import pt.estga.chatbots.telegram.services.TelegramBotCommandService;
+import pt.estga.chatbots.core.BotConversationService;
+import pt.estga.chatbots.core.models.BotInput;
+import pt.estga.chatbots.core.models.BotResponse;
 
 import java.util.List;
 
@@ -17,13 +18,15 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private final String botUsername;
     private final String botPath;
-    private final UpdateHandlerFactory updateHandlerFactory;
+    private final BotConversationService conversationService;
+    private final TelegramAdapter telegramAdapter;
 
-    public StonemarkTelegramBot(String botUsername, String botToken, String botPath, TelegramBotCommandService commandService) {
+    public StonemarkTelegramBot(String botUsername, String botToken, String botPath, BotConversationService conversationService, TelegramAdapter telegramAdapter) {
         super(botToken);
         this.botUsername = botUsername;
         this.botPath = botPath;
-        this.updateHandlerFactory = new UpdateHandlerFactory(this, commandService);
+        this.conversationService = conversationService;
+        this.telegramAdapter = telegramAdapter;
         setBotCommands();
     }
 
@@ -41,12 +44,14 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        return updateHandlerFactory.getHandler(update)
-                .map(handler -> handler.handle(update))
-                .orElseGet(() -> {
-                    log.warn("Received an unhandled update type: {}", update);
-                    return null;
-                });
+        BotInput botInput = telegramAdapter.toBotInput(update);
+        if (botInput != null) {
+            BotResponse botResponse = conversationService.handleInput(botInput);
+            if (botResponse != null) {
+                return telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
+            }
+        }
+        return null;
     }
 
     @Override
