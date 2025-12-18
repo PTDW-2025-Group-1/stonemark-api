@@ -1,11 +1,11 @@
 package pt.estga.chatbots.core.features.proposal.handlers;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.infrastructure.CommandHandler;
-import pt.estga.chatbots.core.features.proposal.commands.ConfirmMarkMatchCommand;
 import pt.estga.chatbots.core.context.ConversationContext;
+import pt.estga.chatbots.core.context.ConversationState;
+import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -16,20 +16,19 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ConfirmMarkMatchCommandHandler implements CommandHandler<ConfirmMarkMatchCommand> {
+public class ConfirmMarkMatchCommandHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final Cache<String, ConversationContext> conversationContexts;
 
     @Override
-    public BotResponse handle(ConfirmMarkMatchCommand command) {
-        ConversationContext context = conversationContexts.get(command.getInput().getUserId(), k -> new ConversationContext());
+    public BotResponse handle(ConversationContext context, BotInput input) {
         MarkOccurrenceProposal proposal = context.getProposal();
+        boolean matches = "yes".equalsIgnoreCase(input.getCallbackData().split(":")[1]);
 
-        if (command.isMatches()) {
+        if (matches) {
             // For now, we'll assume the best match is already linked in the proposal entity.
             // A more robust implementation would pass the matched mark ID in the command.
-            context.setCurrentStateName("WAITING_FOR_COORDINATES_HANDLING");
+            context.setCurrentState(ConversationState.WAITING_FOR_COORDINATES_HANDLING);
 
             if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
                 // Coordinates are found
@@ -45,16 +44,21 @@ public class ConfirmMarkMatchCommandHandler implements CommandHandler<ConfirmMar
                 return BotResponse.builder().uiComponent(coordinatesMenu).build();
             } else {
                 // Coordinates are not found
-                context.setCurrentStateName("AWAITING_LOCATION");
+                context.setCurrentState(ConversationState.AWAITING_LOCATION);
                 return BotResponse.builder()
                         .uiComponent(Menu.builder().title("Please provide the location.").build())
                         .build();
             }
         } else {
-            context.setCurrentStateName("AWAITING_NEW_MARK_NAME");
+            context.setCurrentState(ConversationState.AWAITING_NEW_MARK_NAME);
             return BotResponse.builder()
                     .uiComponent(Menu.builder().title("Understood. Please enter the name for this new mark.").build())
                     .build();
         }
+    }
+
+    @Override
+    public ConversationState canHandle() {
+        return ConversationState.WAITING_FOR_MARK_CONFIRMATION;
     }
 }

@@ -3,12 +3,12 @@ package pt.estga.chatbots.core.features.proposal.handlers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.infrastructure.CommandHandler;
-import pt.estga.chatbots.core.features.proposal.commands.SubmitLocationCommand;
 import pt.estga.chatbots.core.context.ConversationContext;
+import pt.estga.chatbots.core.context.ConversationState;
+import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -22,26 +22,24 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class SubmitLocationCommandHandler implements CommandHandler<SubmitLocationCommand> {
+public class SubmitLocationCommandHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final Cache<String, ConversationContext> conversationContexts;
     private final ObjectMapper objectMapper;
     private final MonumentService monumentService;
 
     @Override
-    public BotResponse handle(SubmitLocationCommand command) {
-        ConversationContext context = conversationContexts.get(command.getInput().getUserId(), k -> new ConversationContext());
+    public BotResponse handle(ConversationContext context, BotInput input) {
         var proposal = context.getProposal();
-        MarkOccurrenceProposal updatedProposal = proposalFlowService.addLocationToProposal(proposal.getId(), command.getInput().getLocation().getLatitude(), command.getInput().getLocation().getLongitude());
+        MarkOccurrenceProposal updatedProposal = proposalFlowService.addLocationToProposal(proposal.getId(), input.getLocation().getLatitude(), input.getLocation().getLongitude());
         context.setProposal(updatedProposal);
-        context.setCurrentStateName("WAITING_FOR_MONUMENT_CONFIRMATION");
+        context.setCurrentState(ConversationState.WAITING_FOR_MONUMENT_CONFIRMATION);
 
         try {
             List<String> suggestedMonumentIds = objectMapper.readValue(updatedProposal.getSuggestedMonumentIds(), new TypeReference<>() {});
             if (suggestedMonumentIds.isEmpty()) {
                 // No monuments found, proceed to new monument proposal
-                context.setCurrentStateName("AWAITING_NEW_MONUMENT_NAME");
+                context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
                 return BotResponse.builder()
                         .uiComponent(Menu.builder().title("No nearby monuments found. Please enter the monument name.").build())
                         .build();
@@ -73,5 +71,10 @@ public class SubmitLocationCommandHandler implements CommandHandler<SubmitLocati
                     .uiComponent(Menu.builder().title("Error processing monument suggestions.").build())
                     .build();
         }
+    }
+
+    @Override
+    public ConversationState canHandle() {
+        return ConversationState.AWAITING_LOCATION;
     }
 }
