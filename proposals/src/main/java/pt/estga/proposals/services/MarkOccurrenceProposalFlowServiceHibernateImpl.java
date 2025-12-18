@@ -162,14 +162,13 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal proposeMark(Long proposalId, String title, String description) {
-        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, title);
+    public MarkOccurrenceProposal proposeMark(Long proposalId, String description) {
+        log.info("User proposed a new mark for proposal ID: {}.", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
         clearMarkSelections(proposal);
 
         ProposedMark proposedMark = new ProposedMark();
-        proposedMark.setTitle(title);
         proposedMark.setDescription(Optional.ofNullable(description).orElse(""));
         proposedMark.setMediaFile(proposal.getOriginalMediaFile());
 
@@ -228,8 +227,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     public MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
-        proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
-        return proposalRepository.save(proposal);
+        return updateProposalStatus(proposal);
     }
 
     @Override
@@ -237,7 +235,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
-        proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_NAME);
+        handleGpsData(proposal, new Location(latitude, longitude));
         return proposalRepository.save(proposal);
     }
 

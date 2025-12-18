@@ -11,21 +11,25 @@ import pt.estga.chatbots.core.models.ui.Menu;
 
 @Component
 @RequiredArgsConstructor
-public class ProposeNewMarkCommandHandler implements ConversationStateHandler {
+public class ProposeNewMonumentHandler implements ConversationStateHandler {
+
+    private static final String PROPOSE_NEW_MONUMENT = "propose_new_monument";
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        if (input.getCallbackData() != null && input.getCallbackData().equals("propose_new_mark")) {
-            context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
-            return BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please provide the details for the new mark.").build())
-                    .build();
-        }
-        return null; // Not handled
+
+        if (input.getCallbackData() == null || !input.getCallbackData().equals(PROPOSE_NEW_MONUMENT))
+            return null;
+
+        context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
+
+        return BotResponse.builder()
+                .uiComponent(Menu.builder().title("Please provide the name for the new monument.").build())
+                .build();
     }
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_MARK_SELECTION;
+        return ConversationState.WAITING_FOR_MONUMENT_CONFIRMATION;
     }
 }

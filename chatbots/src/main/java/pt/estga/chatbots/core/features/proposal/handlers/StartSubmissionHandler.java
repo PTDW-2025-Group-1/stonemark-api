@@ -1,4 +1,4 @@
-package pt.estga.chatbots.core.features.auth.handlers;
+package pt.estga.chatbots.core.features.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -7,23 +7,18 @@ import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
-import pt.estga.chatbots.core.models.ui.ContactRequest;
+import pt.estga.chatbots.core.models.ui.Menu;
 
 @Component
 @RequiredArgsConstructor
-public class StartAuthenticationCommandHandler implements ConversationStateHandler {
+public class StartSubmissionHandler implements ConversationStateHandler {
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        if (input.getCallbackData() != null && input.getCallbackData().equals("start_verification")) {
-            context.setCurrentState(ConversationState.AWAITING_CONTACT);
-
-            ContactRequest contactRequest = ContactRequest.builder()
-                    .message("To get started, please share your phone number so I can authenticate you.")
-                    .build();
-
+        if (input.getCallbackData() != null && input.getCallbackData().equals("start_submission")) {
+            context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return BotResponse.builder()
-                    .uiComponent(contactRequest)
+                    .uiComponent(Menu.builder().title("Please send a clear photo of the mark.").build())
                     .build();
         }
         return null; // Not handled

@@ -1,21 +1,19 @@
-package pt.estga.chatbots.core.features.proposal.handlers;
+package pt.estga.chatbots.core.features.proposal.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
-import pt.estga.chatbots.core.context.ConversationStateHandler;
-import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,26 +21,45 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class SubmitNewMonumentNameCommandHandler implements ConversationStateHandler {
+@Slf4j
+public class MonumentProcessorService {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final ObjectMapper objectMapper;
     private final MarkService markService;
 
-    @Override
-    public BotResponse handle(ConversationContext context, BotInput input) {
-        var proposal = context.getProposal();
-        MarkOccurrenceProposal updatedProposal = proposalFlowService.proposeMonument(
-                proposal.getId(),
-                input.getText(),
-                proposal.getLatitude(),
-                proposal.getLongitude()
-        );
+    public BotResponse processMonumentStep(ConversationContext context, MarkOccurrenceProposal updatedProposal) {
+        log.info("Processing monument step for proposal ID: {}", updatedProposal.getId());
         context.setProposal(updatedProposal);
+
+        if (updatedProposal.getExistingMark() != null || updatedProposal.getProposedMark() != null) {
+            log.info("Mark already selected or proposed for proposal ID: {}", updatedProposal.getId());
+            context.setCurrentState(ConversationState.AWAITING_NOTES);
+            return BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please add any notes for this proposal.").build())
+                    .build();
+        }
+
         context.setCurrentState(ConversationState.AWAITING_MARK_SELECTION);
 
         try {
+            if (updatedProposal.getSuggestedMarkIds() == null) {
+                log.info("No suggested mark IDs found for proposal ID: {}", updatedProposal.getId());
+                context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
+                return BotResponse.builder()
+                        .uiComponent(Menu.builder().title("No existing marks found. Please enter the details for this new mark.").build())
+                        .build();
+            }
+
             List<String> suggestedMarkIds = objectMapper.readValue(updatedProposal.getSuggestedMarkIds(), new TypeReference<>() {});
+            if (suggestedMarkIds.isEmpty()) {
+                log.info("Suggested mark IDs list is empty for proposal ID: {}", updatedProposal.getId());
+                context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
+                return BotResponse.builder()
+                        .uiComponent(Menu.builder().title("No existing marks found. Please enter the details for this new mark.").build())
+                        .build();
+            }
+
+            log.info("Found {} suggested marks for proposal ID: {}", suggestedMarkIds.size(), updatedProposal.getId());
             List<List<Button>> markButtons = new ArrayList<>();
             for (String markId : suggestedMarkIds) {
                 Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
@@ -66,15 +83,10 @@ public class SubmitNewMonumentNameCommandHandler implements ConversationStateHan
                     .uiComponent(markSelectionMenu)
                     .build();
         } catch (JsonProcessingException e) {
-            // Handle exception
+            log.error("Error processing mark suggestions for proposal ID: {}: {}", updatedProposal.getId(), e.getMessage());
             return BotResponse.builder()
                     .uiComponent(Menu.builder().title("Error processing mark suggestions.").build())
                     .build();
         }
-    }
-
-    @Override
-    public ConversationState canHandle() {
-        return ConversationState.AWAITING_NEW_MONUMENT_NAME;
     }
 }

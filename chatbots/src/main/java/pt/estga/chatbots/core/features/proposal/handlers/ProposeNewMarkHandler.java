@@ -8,23 +8,20 @@ import pt.estga.chatbots.core.context.ConversationStateHandler;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
 @RequiredArgsConstructor
-public class SelectMarkCommandHandler implements ConversationStateHandler {
-
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+public class ProposeNewMarkHandler implements ConversationStateHandler {
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        Long proposalId = context.getProposal().getId();
-        Long markId = Long.valueOf(input.getCallbackData().split(":")[1]);
-        proposalFlowService.selectMark(proposalId, markId);
-        context.setCurrentState(ConversationState.READY_TO_SUBMIT);
-        return BotResponse.builder()
-                .uiComponent(Menu.builder().title("Your proposal is ready to submit.").build())
-                .build();
+        if (input.getCallbackData() != null && input.getCallbackData().equals("propose_new_mark")) {
+            context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
+            return BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please provide the details for the new mark.").build())
+                    .build();
+        }
+        return null; // Not handled
     }
 
     @Override

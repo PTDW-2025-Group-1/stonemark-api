@@ -5,27 +5,26 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.features.proposal.service.CoordinatesProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
-import pt.estga.chatbots.core.models.ui.Menu;
+import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
 @RequiredArgsConstructor
-public class ProposeNewMonumentCommandHandler implements ConversationStateHandler {
+public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
+
+    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final CoordinatesProcessorService coordinatesProcessorService;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        if (input.getCallbackData() != null && input.getCallbackData().equals("propose_new_monument")) {
-            context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
-            return BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please provide the name for the new monument.").build())
-                    .build();
-        }
-        return null; // Not handled
+        proposalFlowService.proposeMark(context.getProposal().getId(), input.getText());
+        return coordinatesProcessorService.processCoordinates(context);
     }
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.WAITING_FOR_MONUMENT_CONFIRMATION;
+        return ConversationState.AWAITING_NEW_MARK_DETAILS;
     }
 }

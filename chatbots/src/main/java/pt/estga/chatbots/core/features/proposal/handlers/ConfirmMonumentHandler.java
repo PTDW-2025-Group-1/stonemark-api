@@ -5,16 +5,19 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.features.proposal.service.MonumentProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
 @RequiredArgsConstructor
-public class ConfirmMonumentCommandHandler implements ConversationStateHandler {
+public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final MonumentProcessorService monumentProcessorService;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
@@ -24,12 +27,8 @@ public class ConfirmMonumentCommandHandler implements ConversationStateHandler {
 
         if (confirmed) {
             Long monumentId = Long.valueOf(callbackDataParts[2]);
-            proposalFlowService.selectMonument(proposalId, monumentId);
-            context.setCurrentState(ConversationState.READY_TO_SUBMIT);
-            // In a real scenario, you might ask for more details or confirm submission.
-            return BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Monument confirmed. Your submission is ready.").build())
-                    .build();
+            MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposalId, monumentId);
+            return monumentProcessorService.processMonumentStep(context, updatedProposal);
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return BotResponse.builder()

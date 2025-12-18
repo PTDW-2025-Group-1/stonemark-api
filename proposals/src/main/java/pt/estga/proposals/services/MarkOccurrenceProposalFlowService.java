@@ -14,7 +14,7 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal selectMark(Long proposalId, Long existingMarkId);
 
-    MarkOccurrenceProposal proposeMark(Long proposalId, String title, String description);
+    MarkOccurrenceProposal proposeMark(Long proposalId, String description);
 
     MarkOccurrenceProposal requestNewMark(Long proposalId);
 

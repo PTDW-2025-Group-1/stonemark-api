@@ -12,24 +12,24 @@ import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
 @RequiredArgsConstructor
-public class SubmitNewMarkDetailsCommandHandler implements ConversationStateHandler {
+public class SelectMarkHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         Long proposalId = context.getProposal().getId();
-        String details = input.getText();
+        Long markId = Long.valueOf(input.getCallbackData().split(":")[1]);
+        proposalFlowService.selectMark(proposalId, markId);
+        context.setCurrentState(ConversationState.AWAITING_NOTES);
 
-        proposalFlowService.proposeMark(proposalId, details, details);
-        context.setCurrentState(ConversationState.READY_TO_SUBMIT);
         return BotResponse.builder()
-                .uiComponent(Menu.builder().title("New mark details received. Your submission is ready.").build())
+                .uiComponent(Menu.builder().title("Please add any notes for this proposal.").build())
                 .build();
     }
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_NEW_MARK_DETAILS;
+        return ConversationState.AWAITING_MARK_SELECTION;
     }
 }

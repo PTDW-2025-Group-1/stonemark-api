@@ -12,7 +12,7 @@ import pt.estga.chatbots.core.models.ui.Menu;
 import java.util.List;
 
 @Component
-public class StartCommandHandler implements ConversationStateHandler {
+public class StartHandler implements ConversationStateHandler {
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         if (input.getText() != null && input.getText().startsWith("/start")) {

@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class SelectMonumentCommandHandler implements ConversationStateHandler {
+public class SelectMonumentHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
     private final ObjectMapper objectMapper;

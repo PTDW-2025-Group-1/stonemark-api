@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
 
 @Component
-public class HelpCommandHandler implements ConversationStateHandler {
+public class HelpHandler implements ConversationStateHandler {
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         if (input.getText() != null && input.getText().startsWith("/help")) {

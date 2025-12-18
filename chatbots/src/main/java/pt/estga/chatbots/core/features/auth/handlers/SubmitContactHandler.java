@@ -12,7 +12,7 @@ import pt.estga.user.services.UserContactService;
 
 @Component
 @RequiredArgsConstructor
-public class SubmitContactCommandHandler implements ConversationStateHandler {
+public class SubmitContactHandler implements ConversationStateHandler {
 
     private final UserContactService userContactService;
 
