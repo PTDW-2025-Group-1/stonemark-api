@@ -8,4 +8,6 @@ public interface MarkOccurrenceProposalManagementService {
 
     MarkOccurrenceProposal reject(Long proposalId);
 
+    MarkOccurrenceProposal pending(Long proposalId);
+
 }

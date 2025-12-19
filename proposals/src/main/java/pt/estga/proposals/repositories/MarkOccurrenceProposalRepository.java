@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.enums.ProposalPriority;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.user.entities.User;
 
@@ -16,5 +17,7 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     List<MarkOccurrenceProposal> findByCreatedBy(User user);
 
     List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
+
+    List<MarkOccurrenceProposal> findByPriority(ProposalPriority priority);
 
 }

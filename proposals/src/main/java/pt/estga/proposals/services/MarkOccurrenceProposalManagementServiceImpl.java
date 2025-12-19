@@ -34,8 +34,8 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     public MarkOccurrenceProposal approve(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        if (proposal.getStatus() != ProposalStatus.SUBMITTED) {
-            throw new IllegalStateException("Only submitted proposals can be approved.");
+        if (proposal.getStatus() != ProposalStatus.SUBMITTED && proposal.getStatus() != ProposalStatus.PENDING) {
+            throw new IllegalStateException("Only submitted or pending proposals can be approved.");
         }
 
         Monument monument = proposal.getExistingMonument();
@@ -87,6 +87,14 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     public MarkOccurrenceProposal reject(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setStatus(ProposalStatus.REJECTED);
+        return proposalRepository.save(proposal);
+    }
+
+    @Override
+    @Transactional
+    public MarkOccurrenceProposal pending(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setStatus(ProposalStatus.PENDING);
         return proposalRepository.save(proposal);
     }
 

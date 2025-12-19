@@ -4,6 +4,6 @@ import pt.estga.proposals.enums.ProposalStatus;
 
 public record ProposalStateDto(
         MarkOccurrenceProposalDto proposal,
-        ProposalStatus nextAction,
+        ProposalStatus status,
         String message
 ) { }
