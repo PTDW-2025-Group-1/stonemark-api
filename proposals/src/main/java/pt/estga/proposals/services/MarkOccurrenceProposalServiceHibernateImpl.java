@@ -39,4 +39,14 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     public List<MarkOccurrenceProposal> findByStatus(ProposalStatus status) {
         return repository.findByStatus(status);
     }
+
+    @Override
+    public long countApprovedProposalsByUser(User user) {
+        return repository.countApprovedProposalsByUser(user);
+    }
+
+    @Override
+    public MarkOccurrenceProposal save(MarkOccurrenceProposal proposal) {
+        return repository.save(proposal);
+    }
 }

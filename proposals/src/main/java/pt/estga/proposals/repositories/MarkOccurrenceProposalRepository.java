@@ -1,11 +1,10 @@
 package pt.estga.proposals.repositories;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.enums.ProposalPriority;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.user.entities.User;
 
@@ -18,6 +17,9 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
 
-    List<MarkOccurrenceProposal> findByPriority(ProposalPriority priority);
+    List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
+
+    @Query("SELECT COUNT(p) FROM MarkOccurrenceProposal p WHERE p.createdBy = :user AND p.status = 'APPROVED'")
+    long countApprovedProposalsByUser(@Param("user") User user);
 
 }

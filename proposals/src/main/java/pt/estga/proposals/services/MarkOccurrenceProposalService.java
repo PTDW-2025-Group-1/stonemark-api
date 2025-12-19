@@ -19,4 +19,8 @@ public interface MarkOccurrenceProposalService {
 
     List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
 
+    long countApprovedProposalsByUser(User user);
+
+    MarkOccurrenceProposal save(MarkOccurrenceProposal proposal);
+
 }
