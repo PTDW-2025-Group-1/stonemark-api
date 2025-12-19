@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -19,7 +20,8 @@ public class SelectMarkHandler implements ConversationStateHandler {
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         Long proposalId = context.getProposal().getId();
-        Long markId = Long.valueOf(input.getCallbackData().split(":")[1]);
+        String callbackData = input.getCallbackData();
+        Long markId = Long.valueOf(callbackData.substring(CallbackData.SELECT_MARK_PREFIX.length()));
         proposalFlowService.selectMark(proposalId, markId);
         context.setCurrentState(ConversationState.AWAITING_NOTES);
 

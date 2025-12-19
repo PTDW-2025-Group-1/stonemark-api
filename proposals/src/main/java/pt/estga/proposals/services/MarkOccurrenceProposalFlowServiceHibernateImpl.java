@@ -76,16 +76,18 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                 // suggestedMarkIds still uses ObjectMapper to store as String
                 List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
                 if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
-                    proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
-                    log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), savedProposal.getId());
+                    try {
+                        proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
+                        log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), savedProposal.getId());
+                    } catch (JsonProcessingException e) {
+                        log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", savedProposal.getId(), e.getMessage());
+                    }
                 } else {
                     log.info("No suggested marks found for proposal {}", savedProposal.getId());
                 }
             } else {
                 log.info("No embedding detected for proposal {}", savedProposal.getId());
             }
-        } catch (JsonProcessingException e) {
-            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", savedProposal.getId(), e.getMessage());
         }
 
 

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
+import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -65,13 +66,13 @@ public class MonumentProcessorService {
                 Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
                 markOptional.ifPresent(mark -> {
                     List<Button> row = new ArrayList<>();
-                    row.add(Button.builder().text(mark.getTitle()).callbackData("select_mark:" + mark.getId()).build());
+                    row.add(Button.builder().text(mark.getTitle()).callbackData(CallbackData.SELECT_MARK_PREFIX + mark.getId()).build());
                     markButtons.add(row);
                 });
             }
 
             List<Button> proposeNewRow = new ArrayList<>();
-            proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData("propose_new_mark").build());
+            proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(CallbackData.PROPOSE_NEW_MARK).build());
             markButtons.add(proposeNewRow);
 
             Menu markSelectionMenu = Menu.builder()

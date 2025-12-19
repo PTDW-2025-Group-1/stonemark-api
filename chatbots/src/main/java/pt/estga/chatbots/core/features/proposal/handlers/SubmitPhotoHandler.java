@@ -17,6 +17,9 @@ public class SubmitPhotoHandler implements ConversationStateHandler {
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
+        if (input.getFileData() == null) {
+            return null;
+        }
         return photoProcessorService.processPhoto(context, input);
     }
 

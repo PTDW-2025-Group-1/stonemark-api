@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
@@ -32,7 +33,8 @@ public class SelectMonumentHandler implements ConversationStateHandler {
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         var proposal = context.getProposal();
-        Long monumentId = Long.valueOf(input.getCallbackData().split(":")[1]);
+        String callbackData = input.getCallbackData();
+        Long monumentId = Long.valueOf(callbackData.substring(CallbackData.SELECT_MONUMENT_PREFIX.length()));
         MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposal.getId(), monumentId);
         context.setProposal(updatedProposal);
         context.setCurrentState(ConversationState.AWAITING_MARK_SELECTION);
@@ -44,13 +46,13 @@ public class SelectMonumentHandler implements ConversationStateHandler {
                 Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
                 markOptional.ifPresent(mark -> {
                     List<Button> row = new ArrayList<>();
-                    row.add(Button.builder().text(mark.getTitle()).callbackData("select_mark:" + mark.getId()).build());
+                    row.add(Button.builder().text(mark.getTitle()).callbackData(CallbackData.SELECT_MARK_PREFIX + mark.getId()).build());
                     markButtons.add(row);
                 });
             }
 
             List<Button> proposeNewRow = new ArrayList<>();
-            proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData("propose_new_mark").build());
+            proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(CallbackData.PROPOSE_NEW_MARK).build());
             markButtons.add(proposeNewRow);
 
             Menu markSelectionMenu = Menu.builder()

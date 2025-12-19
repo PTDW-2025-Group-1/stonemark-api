@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
+import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -62,8 +63,8 @@ public class LocationProcessorService {
                         .title("Was this photo taken at " + monument.getName() + "?")
                         .buttons(List.of(
                                 List.of(
-                                        Button.builder().text("✅ Yes").callbackData("confirm_monument:yes:" + monument.getId()).build(),
-                                        Button.builder().text("❌ No").callbackData("confirm_monument:no").build()
+                                        Button.builder().text("✅ Yes").callbackData(CallbackData.CONFIRM_MONUMENT_PREFIX + CallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
+                                        Button.builder().text("❌ No").callbackData(CallbackData.CONFIRM_MONUMENT_PREFIX + CallbackData.CONFIRM_NO).build()
                                 )
                         ))
                         .build();

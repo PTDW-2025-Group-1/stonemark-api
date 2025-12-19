@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
+import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -13,12 +14,10 @@ import pt.estga.chatbots.core.models.ui.Menu;
 @RequiredArgsConstructor
 public class ProposeNewMonumentHandler implements ConversationStateHandler {
 
-    private static final String PROPOSE_NEW_MONUMENT = "propose_new_monument";
-
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
 
-        if (input.getCallbackData() == null || !input.getCallbackData().equals(PROPOSE_NEW_MONUMENT))
+        if (input.getCallbackData() == null || !input.getCallbackData().equals(CallbackData.PROPOSE_NEW_MONUMENT))
             return null;
 
         context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);

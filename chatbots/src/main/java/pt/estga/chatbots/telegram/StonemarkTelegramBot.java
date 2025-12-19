@@ -12,6 +12,7 @@ import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public class StonemarkTelegramBot extends TelegramWebhookBot {
@@ -44,13 +45,22 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        BotInput botInput = telegramAdapter.toBotInput(update);
-        if (botInput != null) {
-            BotResponse botResponse = conversationService.handleInput(botInput);
-            if (botResponse != null) {
-                return telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
+        CompletableFuture.runAsync(() -> {
+            try {
+                BotInput botInput = telegramAdapter.toBotInput(update);
+                if (botInput != null) {
+                    BotResponse botResponse = conversationService.handleInput(botInput);
+                    if (botResponse != null) {
+                        BotApiMethod<?> method = telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
+                        if (method != null) {
+                            execute(method);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error processing update", e);
             }
-        }
+        });
         return null;
     }
 
