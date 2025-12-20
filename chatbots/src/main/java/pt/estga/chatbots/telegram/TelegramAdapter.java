@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -19,6 +22,7 @@ import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.ContactRequest;
 import pt.estga.chatbots.core.models.ui.LocationRequest;
 import pt.estga.chatbots.core.models.ui.Menu;
+import pt.estga.chatbots.core.models.ui.PhotoGallery;
 import pt.estga.chatbots.core.models.ui.UIComponent;
 import pt.estga.chatbots.telegram.services.TelegramFileService;
 import pt.estga.shared.models.Location;
@@ -122,20 +126,21 @@ public class TelegramAdapter {
         }
     }
 
-    public BotApiMethod<?> toBotApiMethod(String chatId, BotResponse response) {
+    public List<PartialBotApiMethod<?>> toBotApiMethod(String chatId, BotResponse response) {
         UIComponent uiComponent = response.getUiComponent();
         if (uiComponent instanceof Menu) {
-            return renderMenu(chatId, (Menu) uiComponent);
+            return List.of(renderMenu(chatId, (Menu) uiComponent));
         } else if (uiComponent instanceof LocationRequest) {
-            return renderLocationRequest(chatId, (LocationRequest) uiComponent);
+            return List.of(renderLocationRequest(chatId, (LocationRequest) uiComponent));
         } else if (uiComponent instanceof ContactRequest) {
-            return renderContactRequest(chatId, (ContactRequest) uiComponent);
+            return List.of(renderContactRequest(chatId, (ContactRequest) uiComponent));
+        } else if (uiComponent instanceof PhotoGallery) {
+            return renderPhotoGallery(chatId, (PhotoGallery) uiComponent);
         }
-        // Add other component renderings here
-        return null;
+        return List.of();
     }
 
-    private BotApiMethod<?> renderMenu(String chatId, Menu menu) {
+    private SendMessage renderMenu(String chatId, Menu menu) {
         SendMessage sendMessage = new SendMessage(chatId, menu.getTitle());
         if (menu.getButtons() != null && !menu.getButtons().isEmpty()) {
             InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
@@ -158,7 +163,7 @@ public class TelegramAdapter {
         return sendMessage;
     }
 
-    private BotApiMethod<?> renderLocationRequest(String chatId, LocationRequest locationRequest) {
+    private SendMessage renderLocationRequest(String chatId, LocationRequest locationRequest) {
         SendMessage message = new SendMessage(chatId, locationRequest.getMessage());
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
@@ -174,7 +179,7 @@ public class TelegramAdapter {
         return message;
     }
 
-    private BotApiMethod<?> renderContactRequest(String chatId, ContactRequest contactRequest) {
+    private SendMessage renderContactRequest(String chatId, ContactRequest contactRequest) {
         SendMessage message = new SendMessage(chatId, contactRequest.getMessage());
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
@@ -188,5 +193,10 @@ public class TelegramAdapter {
         keyboardMarkup.setOneTimeKeyboard(true);
         message.setReplyMarkup(keyboardMarkup);
         return message;
+    }
+
+    private List<PartialBotApiMethod<?>> renderPhotoGallery(String chatId, PhotoGallery gallery) {
+        // Todo: Implement photo gallery rendering
+        return null;
     }
 }

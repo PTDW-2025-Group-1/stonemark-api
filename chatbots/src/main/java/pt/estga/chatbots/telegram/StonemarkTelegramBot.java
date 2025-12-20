@@ -3,7 +3,9 @@ package pt.estga.chatbots.telegram;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,6 +15,7 @@ import pt.estga.chatbots.core.models.BotResponse;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Slf4j
 public class StonemarkTelegramBot extends TelegramWebhookBot {
@@ -21,13 +24,15 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
     private final String botPath;
     private final BotConversationService conversationService;
     private final TelegramAdapter telegramAdapter;
+    private final Executor botExecutor;
 
-    public StonemarkTelegramBot(String botUsername, String botToken, String botPath, BotConversationService conversationService, TelegramAdapter telegramAdapter) {
+    public StonemarkTelegramBot(String botUsername, String botToken, String botPath, BotConversationService conversationService, TelegramAdapter telegramAdapter, Executor botExecutor) {
         super(botToken);
         this.botUsername = botUsername;
         this.botPath = botPath;
         this.conversationService = conversationService;
         this.telegramAdapter = telegramAdapter;
+        this.botExecutor = botExecutor;
         setBotCommands();
     }
 
@@ -51,16 +56,22 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
                 if (botInput != null) {
                     BotResponse botResponse = conversationService.handleInput(botInput);
                     if (botResponse != null) {
-                        BotApiMethod<?> method = telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
-                        if (method != null) {
-                            execute(method);
+                        List<PartialBotApiMethod<?>> methods = telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
+                        if (methods != null) {
+                            for (PartialBotApiMethod<?> method : methods) {
+                                if (method instanceof BotApiMethod) {
+                                    execute((BotApiMethod<?>) method);
+                                } else if (method instanceof SendPhoto) {
+                                    execute((SendPhoto) method);
+                                }
+                            }
                         }
                     }
                 }
             } catch (Exception e) {
                 log.error("Error processing update", e);
             }
-        });
+        }, botExecutor);
         return null;
     }
 
