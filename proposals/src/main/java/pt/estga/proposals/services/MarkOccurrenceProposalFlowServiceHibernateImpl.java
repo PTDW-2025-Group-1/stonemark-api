@@ -151,13 +151,15 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         clearMarkSelections(proposal);
 
-        markRepository.findById(existingMarkId).ifPresentOrElse(
-                proposal::setExistingMark,
-                () -> {
-                    log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
-                    throw new RuntimeException("Selected mark not found.");
-                }
-        );
+        if (existingMarkId != null) {
+            markRepository.findById(existingMarkId).ifPresentOrElse(
+                    proposal::setExistingMark,
+                    () -> {
+                        log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
+                        throw new RuntimeException("Selected mark not found.");
+                    }
+            );
+        }
 
         return updateProposalStatus(proposal);
     }
@@ -253,21 +255,19 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                 gpsData.getLongitude(),
                 COORDINATE_SEARCH_RANGE
         );
-        if (monuments.size() > 1) {
-            log.info("Multiple existing monuments found for proposal {}", proposal.getId());
+        if (!monuments.isEmpty()) {
+            log.info("Found {} existing monuments for proposal {}", monuments.size(), proposal.getId());
             try {
                 List<String> monumentIds = monuments.stream()
                                                     .map(m -> m.getId().toString())
                                                     .toList();
                 proposal.setSuggestedMonumentIds(objectMapper.writeValueAsString(monumentIds));
+                // Even if only 1 is found, we might want to confirm it with the user, so we treat it as a suggestion
                 proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_SELECTION);
             } catch (JsonProcessingException e) {
                 log.error("Error processing JSON for suggestedMonumentIds for proposal {}: {}", proposal.getId(), e.getMessage());
                 proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
             }
-        } else if (monuments.size() == 1) {
-            log.info("Existing monument found for proposal {} with ID: {}", proposal.getId(), monuments.getFirst().getId());
-            proposal.setExistingMonument(monuments.getFirst());
         } else {
             log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
             proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
