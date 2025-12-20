@@ -8,6 +8,7 @@ import pt.estga.proposals.enums.ProposalStatus;
 public record MarkOccurrenceProposalDto(
         Long id,
         ProposalStatus status,
+        Integer priority,
         MediaFileDto originalMediaFile,
         MonumentResponseDto existingMonument,
         ProposedMonumentDto proposedMonument,

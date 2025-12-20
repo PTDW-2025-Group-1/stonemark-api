@@ -16,5 +16,6 @@ public enum ProposalStatus {
     READY_TO_SUBMIT,
     SUBMITTED,
     APPROVED,
-    REJECTED
+    REJECTED,
+    PENDING
 }
