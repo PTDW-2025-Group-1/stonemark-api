@@ -1,6 +1,5 @@
 package pt.estga.proposals.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
@@ -12,7 +11,6 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.FileStorageService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
@@ -25,8 +23,8 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
 
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final DetectionService detectionService;
+    // Todo: change to MediaService
     private final FileStorageService fileStorageService;
-    private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -41,7 +39,7 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
         try (InputStream inputStream = resource.getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(inputStream, mediaFile.getFileName());
 
-            proposal.setStatus(ProposalStatus.SUBMITTED);
+            proposal.setSubmitted(true);
 
             // Save embedding for the MarkOccurrenceProposal itself
             if (detectionResult != null && detectionResult.embedding() != null) {

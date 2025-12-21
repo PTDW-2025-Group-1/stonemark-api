@@ -26,6 +26,11 @@ public class MarkServiceHibernateImpl implements MarkService {
     }
 
     @Override
+    public Optional<Mark> findWithCoverById(Long id) {
+        return repository.findWithCoverById(id);
+    }
+
+    @Override
     public Page<Mark> searchByTitle(String title, Pageable pageable) {
         return repository.findByTitleContainingIgnoreCase(title, pageable);
     }

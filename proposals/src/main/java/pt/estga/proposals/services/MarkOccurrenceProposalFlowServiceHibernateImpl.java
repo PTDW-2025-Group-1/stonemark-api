@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
@@ -18,7 +19,6 @@ import pt.estga.file.services.MediaService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
@@ -28,6 +28,7 @@ import pt.estga.user.repositories.UserRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +38,9 @@ import java.util.Optional;
 @Transactional
 public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccurrenceProposalFlowService {
 
+    // Todo: refactor to use services instead of repositories
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final MediaService mediaService;
-    private final GpsExtractorService gpsExtractorService;
     private final MonumentRepository monumentRepository;
     private final MarkRepository markRepository;
     private final ProposedMarkRepository proposedMarkRepository;
@@ -53,52 +54,64 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename) throws IOException {
+    public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename, Double latitude, Double longitude) throws IOException {
         log.info("Initiating proposal for file: {}", filename);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(mediaFile);
-        proposal.setStatus(ProposalStatus.IN_PROGRESS);
+        proposal.setLatitude(latitude);
+        proposal.setLongitude(longitude);
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
         if (userId != null) {
             userRepository.findById(userId).ifPresent(proposal::setCreatedBy);
         }
-        MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
-        log.debug("Proposal initiated with ID: {}", savedProposal.getId());
+        return proposalRepository.save(proposal);
+    }
 
-        // Perform detection and search
-        try (ByteArrayInputStream is = new ByteArrayInputStream(photoData)) {
-            DetectionResult detectionResult = detectionService.detect(is, filename);
-            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                List<Double> embeddedVector = detectionResult.embedding();
-                proposal.setEmbedding(embeddedVector);
+    @Override
+    @Transactional
+    public MarkOccurrenceProposal processSubmission(Long proposalId) throws IOException {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        Resource photoResource = mediaService.loadFile(proposal.getOriginalMediaFile().getStoragePath());
 
-                // suggestedMarkIds still uses ObjectMapper to store as String
-                List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
-                if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
-                    proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
-                    log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), savedProposal.getId());
+        try (InputStream is = photoResource.getInputStream()) {
+            byte[] photoData = is.readAllBytes();
+            try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(photoData)) {
+                DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getFileName());
+                if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                    List<Double> embeddedVector = detectionResult.embedding();
+                    proposal.setEmbedding(embeddedVector);
+
+                    List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
+                    if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
+                        try {
+                            proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
+                            log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), proposal.getId());
+                        } catch (JsonProcessingException e) {
+                            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", proposal.getId(), e.getMessage());
+                        }
+                    } else {
+                        log.info("No suggested marks found for proposal {}", proposal.getId());
+                    }
                 } else {
-                    log.info("No suggested marks found for proposal {}", savedProposal.getId());
+                    log.info("No embedding detected for proposal {}", proposal.getId());
                 }
-            } else {
-                log.info("No embedding detected for proposal {}", savedProposal.getId());
             }
-        } catch (JsonProcessingException e) {
-            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", savedProposal.getId(), e.getMessage());
         }
 
+        handleGpsData(proposal, new Location(proposal.getLatitude(), proposal.getLongitude()));
 
-        Optional<Location> gpsData = gpsExtractorService.extractGpsData(mediaFile);
-        if (gpsData.isPresent()) {
-            proposal.setLatitude(gpsData.get().getLatitude());
-            proposal.setLongitude(gpsData.get().getLongitude());
-            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_VERIFICATION);
-        } else {
-            log.info("No GPS data found for proposal {}", savedProposal.getId());
-        }
+        return proposalRepository.save(proposal);
+    }
 
-        return updateProposalStatus(savedProposal);
+    @Override
+    @Transactional
+    public MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
+        log.info("Updating photo for proposal ID: {}", proposalId);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
+        proposal.setOriginalMediaFile(mediaFile);
+        return proposalRepository.save(proposal);
     }
 
     @Override
@@ -118,7 +131,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                         }
                 );
 
-        return updateProposalStatus(proposal);
+        return proposalRepository.save(proposal);
     }
 
     @Override
@@ -138,7 +151,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
         proposal.setProposedMonument(savedProposedMonument);
 
-        return updateProposalStatus(proposal);
+        return proposalRepository.save(proposal);
     }
 
     @Override
@@ -149,86 +162,45 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         clearMarkSelections(proposal);
 
-        markRepository.findById(existingMarkId).ifPresentOrElse(
-                proposal::setExistingMark,
-                () -> {
-                    log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
-                    throw new RuntimeException("Selected mark not found.");
-                }
-        );
+        if (existingMarkId != null) {
+            markRepository.findById(existingMarkId).ifPresentOrElse(
+                    proposal::setExistingMark,
+                    () -> {
+                        log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
+                        throw new RuntimeException("Selected mark not found.");
+                    }
+            );
+        }
 
-        return updateProposalStatus(proposal);
+        return proposalRepository.save(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal proposeMark(Long proposalId, String title, String description) {
-        log.info("User proposed a new mark for proposal ID: {}. Name: {}", proposalId, title);
+    public MarkOccurrenceProposal proposeMark(Long proposalId, String description) {
+        log.info("User proposed a new mark for proposal ID: {}.", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        clearMarkSelections(proposal);
+        ProposedMark proposedMark = proposal.getProposedMark();
+        if (proposedMark == null) {
+            clearMarkSelections(proposal);
+            proposedMark = new ProposedMark();
+            proposal.setProposedMark(proposedMark);
+        }
 
-        ProposedMark proposedMark = new ProposedMark();
-        proposedMark.setTitle(title);
         proposedMark.setDescription(Optional.ofNullable(description).orElse(""));
         proposedMark.setMediaFile(proposal.getOriginalMediaFile());
 
         ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
         proposal.setProposedMark(savedProposedMark);
 
-        return updateProposalStatus(proposal);
-    }
-
-    @Override
-    public MarkOccurrenceProposal requestNewMark(Long proposalId) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
         return proposalRepository.save(proposal);
-    }
-
-    @Override
-    public MarkOccurrenceProposal requestNewMonument(Long proposalId) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
-        return proposalRepository.save(proposal);
-    }
-
-    @Override
-    public MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        if (confirmed) {
-            Location locationToUse = null;
-
-            // Prioritize user-provided monument location if available
-            if (proposal.getProposedMonument() != null &&
-                proposal.getProposedMonument().getLatitude() != null &&
-                proposal.getProposedMonument().getLongitude() != null) {
-                log.info("Using user-provided proposed monument location for proposal {}", proposal.getId());
-                locationToUse = new Location(proposal.getProposedMonument().getLatitude(), proposal.getProposedMonument().getLongitude());
-            } else if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-                // Fallback to cached GPS data from the photo
-                log.info("Using cached GPS data from photo for proposal {}", proposal.getId());
-                locationToUse = new Location(proposal.getLatitude(), proposal.getLongitude());
-            } else {
-                log.warn("No cached GPS data or proposed monument location found for proposal {}. Setting status to AWAITING_MONUMENT_INFO.", proposal.getId());
-                // If no cached data, do not re-extract. Instead, set status to AWAITING_MONUMENT_INFO
-                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
-            }
-
-            if (locationToUse != null) {
-                handleGpsData(proposal, locationToUse);
-            }
-        } else {
-            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
-        }
-        return updateProposalStatus(proposal);
     }
 
     @Override
     public MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
-        proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
         return proposalRepository.save(proposal);
     }
 
@@ -237,7 +209,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
-        proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_NAME);
         return proposalRepository.save(proposal);
     }
 
@@ -248,29 +219,30 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     private void handleGpsData(MarkOccurrenceProposal proposal, Location gpsData) {
         log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", proposal.getId(), gpsData.getLatitude(), gpsData.getLongitude());
-        List<Monument> monuments = monumentRepository.findByCoordinatesInRange(
-                gpsData.getLatitude(),
-                gpsData.getLongitude(),
-                COORDINATE_SEARCH_RANGE
+        
+        double minLat = gpsData.getLatitude() - COORDINATE_SEARCH_RANGE;
+        double maxLat = gpsData.getLatitude() + COORDINATE_SEARCH_RANGE;
+        double minLon = gpsData.getLongitude() - COORDINATE_SEARCH_RANGE;
+        double maxLon = gpsData.getLongitude() + COORDINATE_SEARCH_RANGE;
+        
+        log.info("Searching for monuments between lat [{}, {}] and lon [{}, {}]", minLat, maxLat, minLon, maxLon);
+        
+        List<Monument> monuments = monumentRepository.findByLatitudeBetweenAndLongitudeBetween(
+                minLat, maxLat, minLon, maxLon
         );
-        if (monuments.size() > 1) {
-            log.info("Multiple existing monuments found for proposal {}", proposal.getId());
+
+        if (!monuments.isEmpty()) {
+            log.info("Found {} existing monuments for proposal {}", monuments.size(), proposal.getId());
             try {
                 List<String> monumentIds = monuments.stream()
                                                     .map(m -> m.getId().toString())
                                                     .toList();
                 proposal.setSuggestedMonumentIds(objectMapper.writeValueAsString(monumentIds));
-                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_SELECTION);
             } catch (JsonProcessingException e) {
                 log.error("Error processing JSON for suggestedMonumentIds for proposal {}: {}", proposal.getId(), e.getMessage());
-                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
             }
-        } else if (monuments.size() == 1) {
-            log.info("Existing monument found for proposal {} with ID: {}", proposal.getId(), monuments.getFirst().getId());
-            proposal.setExistingMonument(monuments.getFirst());
         } else {
             log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
-            proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
         }
     }
 
@@ -288,42 +260,5 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             proposedMarkRepository.delete(proposal.getProposedMark());
             proposal.setProposedMark(null);
         }
-    }
-
-    private boolean hasMark(MarkOccurrenceProposal proposal) {
-        return proposal.getExistingMark() != null || proposal.getProposedMark() != null;
-    }
-
-    private boolean hasMonument(MarkOccurrenceProposal proposal) {
-        return proposal.getExistingMonument() != null || proposal.getProposedMonument() != null;
-    }
-
-    private boolean hasSuggestedMarks(MarkOccurrenceProposal proposal) {
-        return proposal.getSuggestedMarkIds() != null && !proposal.getSuggestedMarkIds().isEmpty();
-    }
-
-    private boolean hasSuggestedMonuments(MarkOccurrenceProposal proposal) {
-        return proposal.getSuggestedMonumentIds() != null && !proposal.getSuggestedMonumentIds().isEmpty();
-    }
-
-    private MarkOccurrenceProposal updateProposalStatus(MarkOccurrenceProposal proposal) {
-        if (proposal.getStatus() != ProposalStatus.AWAITING_MONUMENT_VERIFICATION) {
-            if (hasMark(proposal) && hasMonument(proposal)) {
-                if (proposal.getUserNotes() == null) {
-                    proposal.setStatus(ProposalStatus.AWAITING_NOTES);
-                } else {
-                    proposal.setStatus(ProposalStatus.READY_TO_SUBMIT);
-                }
-            } else if (hasSuggestedMarks(proposal) && !hasMark(proposal)) {
-                proposal.setStatus(ProposalStatus.AWAITING_MARK_SELECTION);
-            } else if (hasSuggestedMonuments(proposal) && !hasMonument(proposal)) {
-                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_SELECTION);
-            } else if (!hasMark(proposal)) {
-                proposal.setStatus(ProposalStatus.AWAITING_MARK_INFO);
-            } else {
-                proposal.setStatus(ProposalStatus.AWAITING_MONUMENT_INFO);
-            }
-        }
-        return proposalRepository.save(proposal);
     }
 }
