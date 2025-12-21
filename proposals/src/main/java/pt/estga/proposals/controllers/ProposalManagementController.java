@@ -20,27 +20,16 @@ public class ProposalManagementController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PutMapping("/{proposalId}/status")
-    public ResponseEntity<ProposalStateDto> updateStatus(
+    public ResponseEntity<MarkOccurrenceProposalDto> updateStatus(
             @PathVariable Long proposalId,
             @RequestBody UpdateProposalStatusRequestDto request) {
 
-        MarkOccurrenceProposal proposal;
-        String message;
+        MarkOccurrenceProposal proposal = switch (request.status()) {
+            case APPROVED -> markOccurrenceProposalManagementService.approve(proposalId);
+            case REJECTED -> markOccurrenceProposalManagementService.reject(proposalId);
+            case PENDING -> markOccurrenceProposalManagementService.pending(proposalId);
+        };
 
-        switch (request.status()) {
-            case APPROVED -> {
-                proposal = markOccurrenceProposalManagementService.approve(proposalId);
-                message = "Proposal approved.";
-            }
-            case REJECTED -> {
-                proposal = markOccurrenceProposalManagementService.reject(proposalId);
-                message = "Proposal rejected.";
-            }
-            case PENDING -> {
-                proposal = markOccurrenceProposalManagementService.pending(proposalId);
-                message = "Proposal marked as pending.";
-            }
-            default -> throw new IllegalArgumentException("Invalid status transition requested.");
-        }
+        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
     }
 }

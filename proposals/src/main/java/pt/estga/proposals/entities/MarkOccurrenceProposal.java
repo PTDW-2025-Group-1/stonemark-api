@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.shared.utils.DoubleListConverter;
 import pt.estga.user.entities.User;
@@ -60,6 +61,9 @@ public class MarkOccurrenceProposal {
 
     @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
+
+    @Enumerated(EnumType.STRING)
+    private ProposalStatus status;
 
     private Integer priority;
 

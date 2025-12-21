@@ -12,6 +12,7 @@ import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
+import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 import java.util.List;
@@ -78,16 +79,16 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
                 .build();
         markOccurrenceRepository.save(occurrence);
 
+        proposal.setStatus(ProposalStatus.APPROVED);
         return proposalRepository.save(proposal);
     }
 
     @Override
     @Transactional
     public MarkOccurrenceProposal reject(Long proposalId) {
-        // Todo: improve this logic
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        proposalRepository.delete(proposal);
-        return proposal;
+        proposal.setStatus(ProposalStatus.REJECTED);
+        return proposalRepository.save(proposal);
     }
 
     @Override

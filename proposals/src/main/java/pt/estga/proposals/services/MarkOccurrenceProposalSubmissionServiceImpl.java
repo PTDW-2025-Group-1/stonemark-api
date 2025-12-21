@@ -11,7 +11,6 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.FileStorageService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
