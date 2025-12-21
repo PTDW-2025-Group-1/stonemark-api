@@ -8,11 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.services.FileStorageService;
+import pt.estga.file.services.MediaService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
-import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,20 +20,19 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurrenceProposalSubmissionService {
 
-    private final MarkOccurrenceProposalRepository proposalRepository;
+    private final MarkOccurrenceProposalService proposalService;
     private final DetectionService detectionService;
-    // Todo: change to MediaService
-    private final FileStorageService fileStorageService;
+    private final MediaService mediaService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
     public MarkOccurrenceProposal submit(Long proposalId) {
-        MarkOccurrenceProposal proposal = proposalRepository.findById(proposalId)
+        MarkOccurrenceProposal proposal = proposalService.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
 
         MediaFile mediaFile = proposal.getOriginalMediaFile();
-        Resource resource = fileStorageService.loadFile(mediaFile.getStoragePath());
+        Resource resource = mediaService.loadFile(mediaFile.getStoragePath());
 
         try (InputStream inputStream = resource.getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(inputStream, mediaFile.getFileName());
@@ -55,9 +53,9 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
             throw new RuntimeException("Error reading image data", e);
         }
 
-        MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
-        eventPublisher.publishEvent(new ProposalSubmittedEvent(this, savedProposal));
+        MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
+        eventPublisher.publishEvent(new ProposalSubmittedEvent(this, updatedProposal));
 
-        return savedProposal;
+        return updatedProposal;
     }
 }

@@ -15,14 +15,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import pt.estga.chatbots.core.models.BotInput;
-import pt.estga.chatbots.core.models.BotResponse;
-import pt.estga.chatbots.core.models.ui.Button;
-import pt.estga.chatbots.core.models.ui.ContactRequest;
-import pt.estga.chatbots.core.models.ui.LocationRequest;
-import pt.estga.chatbots.core.models.ui.Menu;
-import pt.estga.chatbots.core.models.ui.PhotoGallery;
-import pt.estga.chatbots.core.models.ui.UIComponent;
+import pt.estga.chatbots.core.shared.models.BotInput;
+import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.core.shared.models.ui.Button;
+import pt.estga.chatbots.core.shared.models.ui.ContactRequest;
+import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
+import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.models.ui.PhotoGallery;
+import pt.estga.chatbots.core.shared.models.ui.TextMessage;
+import pt.estga.chatbots.core.shared.models.ui.UIComponent;
 import pt.estga.chatbots.telegram.services.TelegramFileService;
 import pt.estga.shared.models.Location;
 
@@ -52,21 +53,24 @@ public class TelegramAdapter {
                 return createImageInput(chatId, message.getPhoto());
             } else if (message.hasText()) {
                 return BotInput.builder()
-                        .userId(String.valueOf(chatId))
+                        .userId(String.valueOf(message.getFrom().getId()))
+                        .chatId(chatId)
                         .platform("TELEGRAM")
                         .type(BotInput.InputType.TEXT)
                         .text(message.getText())
                         .build();
             } else if (message.hasContact()) {
                 return BotInput.builder()
-                        .userId(String.valueOf(chatId))
+                        .userId(String.valueOf(message.getFrom().getId()))
+                        .chatId(chatId)
                         .platform("TELEGRAM")
                         .type(BotInput.InputType.CONTACT)
                         .text(message.getContact().getPhoneNumber())
                         .build();
             } else if (message.hasLocation()) {
                 return BotInput.builder()
-                        .userId(String.valueOf(chatId))
+                        .userId(String.valueOf(message.getFrom().getId()))
+                        .chatId(chatId)
                         .platform("TELEGRAM")
                         .type(BotInput.InputType.LOCATION)
                         .location(new Location(
@@ -77,7 +81,8 @@ public class TelegramAdapter {
             }
         } else if (update.hasCallbackQuery()) {
             return BotInput.builder()
-                    .userId(String.valueOf(update.getCallbackQuery().getMessage().getChatId()))
+                    .userId(String.valueOf(update.getCallbackQuery().getFrom().getId()))
+                    .chatId(update.getCallbackQuery().getMessage().getChatId())
                     .platform("TELEGRAM")
                     .type(BotInput.InputType.CALLBACK)
                     .callbackData(update.getCallbackQuery().getData())
@@ -114,6 +119,7 @@ public class TelegramAdapter {
 
             return BotInput.builder()
                     .userId(String.valueOf(chatId))
+                    .chatId(chatId)
                     .platform("TELEGRAM")
                     .type(BotInput.InputType.PHOTO)
                     .fileData(photoData)
@@ -125,22 +131,32 @@ public class TelegramAdapter {
         }
     }
 
-    public List<PartialBotApiMethod<?>> toBotApiMethod(String chatId, BotResponse response) {
+    public List<PartialBotApiMethod<?>> toBotApiMethod(long chatId, BotResponse response) {
+        List<PartialBotApiMethod<?>> methods = new ArrayList<>();
         UIComponent uiComponent = response.getUiComponent();
+
         if (uiComponent instanceof Menu) {
-            return List.of(renderMenu(chatId, (Menu) uiComponent));
-        } else if (uiComponent instanceof LocationRequest) {
-            return List.of(renderLocationRequest(chatId, (LocationRequest) uiComponent));
-        } else if (uiComponent instanceof ContactRequest) {
-            return List.of(renderContactRequest(chatId, (ContactRequest) uiComponent));
-        } else if (uiComponent instanceof PhotoGallery) {
-            return renderPhotoGallery(chatId, (PhotoGallery) uiComponent);
+            methods.add(renderMenu(String.valueOf(chatId), (Menu) uiComponent, response.getText()));
+        } else {
+            if (response.getText() != null) {
+                methods.add(new SendMessage(String.valueOf(chatId), response.getText()));
+            }
+            if (uiComponent instanceof LocationRequest) {
+                methods.add(renderLocationRequest(String.valueOf(chatId), (LocationRequest) uiComponent));
+            } else if (uiComponent instanceof ContactRequest) {
+                methods.add(renderContactRequest(String.valueOf(chatId), (ContactRequest) uiComponent));
+            } else if (uiComponent instanceof PhotoGallery) {
+                methods.addAll(renderPhotoGallery(String.valueOf(chatId), (PhotoGallery) uiComponent));
+            } else if (uiComponent instanceof TextMessage) {
+                methods.add(new SendMessage(String.valueOf(chatId), ((TextMessage) uiComponent).getText()));
+            }
         }
-        return List.of();
+        return methods;
     }
 
-    private SendMessage renderMenu(String chatId, Menu menu) {
-        SendMessage sendMessage = new SendMessage(chatId, menu.getTitle());
+    private SendMessage renderMenu(String chatId, Menu menu, String text) {
+        String messageText = (text != null) ? text : menu.getTitle();
+        SendMessage sendMessage = new SendMessage(chatId, messageText);
         if (menu.getButtons() != null && !menu.getButtons().isEmpty()) {
             sendMessage.setReplyMarkup(createInlineKeyboardMarkup(menu.getButtons()));
         }

@@ -63,7 +63,6 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
         if (mark == null) {
             ProposedMark proposedMark = proposal.getProposedMark();
             mark = Mark.builder()
-                    .title(proposedMark.getTitle())
                     .description(proposedMark.getDescription())
                     .embedding(proposal.getEmbedding())
                     .cover(proposedMark.getMediaFile())

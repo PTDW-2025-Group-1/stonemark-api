@@ -1,6 +1,7 @@
 package pt.estga.user.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.user.entities.User;
@@ -10,6 +11,7 @@ import pt.estga.user.repositories.UserIdentityRepository;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserIdentityServiceImpl implements UserIdentityService {
@@ -46,6 +48,21 @@ public class UserIdentityServiceImpl implements UserIdentityService {
         user.getIdentities().add(identity);
 
         return userIdentityRepository.save(identity);
+    }
+
+    @Override
+    @Transactional
+    public UserIdentity createOrUpdateTelegramIdentity(User user, String telegramId) {
+        Optional<UserIdentity> existingIdentity = userIdentityRepository.findByUserAndProvider(user, Provider.TELEGRAM);
+
+        if (existingIdentity.isPresent()) {
+            log.info("Updating Telegram identity for user: {}", user.getId());
+            existingIdentity.get().setValue(telegramId);
+            return userIdentityRepository.save(existingIdentity.get());
+        } else {
+            log.info("Creating Telegram identity for user: {}", user.getId());
+            return createAndAssociate(user, Provider.TELEGRAM, telegramId);
+        }
     }
 
     @Override

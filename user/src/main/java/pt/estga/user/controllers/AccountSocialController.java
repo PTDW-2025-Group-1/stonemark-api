@@ -13,7 +13,7 @@ import pt.estga.user.dtos.LinkGoogleRequestDto;
 import pt.estga.user.dtos.LinkedProviderDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.Provider;
-import pt.estga.user.services.AccountService;
+import pt.estga.user.services.AccountSocialService;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
 @PreAuthorize("isAuthenticated()")
 public class AccountSocialController {
 
-    private final AccountService accountService;
+    private final AccountSocialService service;
 
     @GetMapping("/providers")
     @Operation(
@@ -39,7 +39,7 @@ public class AccountSocialController {
             @AuthenticationPrincipal User connectedUser
     ) {
         List<LinkedProviderDto> providers =
-                accountService.getLinkedProviders(connectedUser);
+                service.getLinkedProviders(connectedUser);
 
         return ResponseEntity.ok(providers);
     }
@@ -53,7 +53,7 @@ public class AccountSocialController {
     public ResponseEntity<MessageResponseDto> linkGoogle(
             @RequestBody LinkGoogleRequestDto request,
             @AuthenticationPrincipal User user) {
-        accountService.linkGoogleAccount(user, request.token());
+        service.linkGoogleAccount(user, request.token());
         return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully linked with Google."));
     }
 
@@ -61,7 +61,7 @@ public class AccountSocialController {
     @Operation(summary = "Unlink Google Account", description = "Disconnects the Google account from the current user.")
     @ApiResponse(responseCode = "200", description = "Google account disconnected successfully")
     public ResponseEntity<MessageResponseDto> disconnectGoogle(@AuthenticationPrincipal User user) {
-        accountService.unlinkSocialAccount(user, Provider.GOOGLE);
+        service.unlinkSocialAccount(user, Provider.GOOGLE);
         return ResponseEntity.ok(new MessageResponseDto("Your account has been successfully disconnected from Google."));
     }
 }

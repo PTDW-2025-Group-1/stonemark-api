@@ -1,7 +1,5 @@
 package pt.estga.user.services;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -9,18 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.shared.aop.SensitiveOperation;
 import pt.estga.shared.exceptions.ContactMethodNotAvailableException;
-import pt.estga.shared.exceptions.InvalidGoogleTokenException;
 import pt.estga.user.dtos.AccountSecurityStatusDto;
-import pt.estga.user.dtos.LinkedProviderDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.enums.ContactType;
-import pt.estga.user.enums.Provider;
 import pt.estga.user.events.EmailVerificationRequestedEvent;
 import pt.estga.user.events.TelephoneVerificationRequestedEvent;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Slf4j
@@ -31,8 +24,6 @@ public class AccountServiceImpl implements AccountService {
     private final UserContactService userContactService;
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
-    private final GoogleIdTokenVerifier googleIdTokenVerifier;
-    private final UserIdentityService userIdentityService;
 
     @Override
     public void addContact(User user, String value, ContactType type) {
@@ -74,68 +65,6 @@ public class AccountServiceImpl implements AccountService {
                 log.error("Unsupported contact type for verification: {}", type);
                 throw new IllegalArgumentException("Unsupported contact type for verification: " + type);
         }
-    }
-
-    @Override
-    public void linkGoogleAccount(User user, String token) {
-        try {
-            GoogleIdToken idToken = googleIdTokenVerifier.verify(token);
-            if (idToken == null) {
-                throw new InvalidGoogleTokenException("Invalid Google token.");
-            }
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            String googleId = payload.getSubject();
-
-            userIdentityService.createAndAssociate(user, Provider.GOOGLE, googleId);
-
-        } catch (GeneralSecurityException | IOException e) {
-            throw new InvalidGoogleTokenException("Error while verifying Google token.");
-        }
-    }
-
-    @Override
-    public void linkTelegramAccount(User user, String token) {
-        // Todo: implement telegram account linking later
-    }
-
-    @Override
-    @Transactional
-    public void unlinkSocialAccount(User user, Provider provider) {
-
-        User managedUser = userService
-                .findByIdWithIdentities(user.getId())
-                .orElseThrow();
-
-        boolean hasPassword =
-                managedUser.getPassword() != null &&
-                        !managedUser.getPassword().isBlank();
-
-        boolean isLastProvider = managedUser.getIdentities().size() <= 1;
-
-        if (!hasPassword && isLastProvider) {
-            throw new IllegalStateException(
-                    "You must set a password before disconnecting the last authentication provider."
-            );
-        }
-
-        boolean removed = managedUser.getIdentities()
-                .removeIf(identity -> identity.getProvider() == provider);
-
-        if (!removed) {
-            throw new IllegalStateException("Provider not linked to user.");
-        }
-
-    }
-
-    @Override
-    public List<LinkedProviderDto> getLinkedProviders(User user) {
-        User managedUser = userService
-                .findByIdWithIdentities(user.getId())
-                .orElseThrow();
-
-        return managedUser.getIdentities().stream()
-                .map(identity -> new LinkedProviderDto(identity.getProvider()))
-                .toList();
     }
 
     @Override

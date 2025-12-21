@@ -23,7 +23,6 @@ public class Mark extends AuditableContentEntity {
     @GeneratedValue
     private Long id;
 
-    private String title;
     private String description;
 
     @OneToOne

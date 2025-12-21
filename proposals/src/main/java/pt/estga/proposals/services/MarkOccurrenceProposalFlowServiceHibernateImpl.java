@@ -8,23 +8,22 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
-import pt.estga.content.repositories.MarkRepository;
-import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.content.services.MarkService;
+import pt.estga.content.services.MonumentService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.shared.enums.TargetType;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.SubmissionSource;
-import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
+import pt.estga.shared.enums.TargetType;
 import pt.estga.shared.models.Location;
-import pt.estga.user.repositories.UserRepository;
+import pt.estga.user.services.UserService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,17 +37,16 @@ import java.util.Optional;
 @Transactional
 public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccurrenceProposalFlowService {
 
-    // Todo: refactor to use services instead of repositories
-    private final MarkOccurrenceProposalRepository proposalRepository;
+    private final MarkOccurrenceProposalService proposalService;
     private final MediaService mediaService;
-    private final MonumentRepository monumentRepository;
-    private final MarkRepository markRepository;
+    private final MonumentService monumentService;
+    private final MarkService markService;
     private final ProposedMarkRepository proposedMarkRepository;
     private final ProposedMonumentRepository proposedMonumentRepository;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
     private final ObjectMapper objectMapper;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
@@ -63,9 +61,9 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         proposal.setLongitude(longitude);
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
         if (userId != null) {
-            userRepository.findById(userId).ifPresent(proposal::setCreatedBy);
+            userService.findById(userId).ifPresent(proposal::setCreatedBy);
         }
-        return proposalRepository.save(proposal);
+        return proposalService.create(proposal);
     }
 
     @Override
@@ -101,7 +99,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         handleGpsData(proposal, new Location(proposal.getLatitude(), proposal.getLongitude()));
 
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -111,7 +109,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         proposal.setOriginalMediaFile(mediaFile);
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -122,7 +120,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
         clearMonumentSelections(proposal);
 
-        monumentRepository.findById(existingMonumentId)
+        monumentService.findById(existingMonumentId)
                 .ifPresentOrElse(
                         proposal::setExistingMonument,
                         () -> {
@@ -131,7 +129,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
                         }
                 );
 
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -151,7 +149,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
         proposal.setProposedMonument(savedProposedMonument);
 
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -163,7 +161,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         clearMarkSelections(proposal);
 
         if (existingMarkId != null) {
-            markRepository.findById(existingMarkId).ifPresentOrElse(
+            markService.findById(existingMarkId).ifPresentOrElse(
                     proposal::setExistingMark,
                     () -> {
                         log.error("Existing mark with ID {} not found for proposal ID {}", existingMarkId, proposal.getId());
@@ -172,7 +170,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             );
         }
 
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -194,14 +192,14 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
         proposal.setProposedMark(savedProposedMark);
 
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
     public MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     @Override
@@ -209,26 +207,19 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
-        return proposalRepository.save(proposal);
+        return proposalService.update(proposal);
     }
 
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
-        return proposalRepository.findById(proposalId)
+        return proposalService.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
     }
 
     private void handleGpsData(MarkOccurrenceProposal proposal, Location gpsData) {
         log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", proposal.getId(), gpsData.getLatitude(), gpsData.getLongitude());
         
-        double minLat = gpsData.getLatitude() - COORDINATE_SEARCH_RANGE;
-        double maxLat = gpsData.getLatitude() + COORDINATE_SEARCH_RANGE;
-        double minLon = gpsData.getLongitude() - COORDINATE_SEARCH_RANGE;
-        double maxLon = gpsData.getLongitude() + COORDINATE_SEARCH_RANGE;
-        
-        log.info("Searching for monuments between lat [{}, {}] and lon [{}, {}]", minLat, maxLat, minLon, maxLon);
-        
-        List<Monument> monuments = monumentRepository.findByLatitudeBetweenAndLongitudeBetween(
-                minLat, maxLat, minLon, maxLon
+        List<Monument> monuments = monumentService.findByCoordinatesInRange(
+                gpsData.getLatitude(), gpsData.getLongitude(), COORDINATE_SEARCH_RANGE
         );
 
         if (!monuments.isEmpty()) {

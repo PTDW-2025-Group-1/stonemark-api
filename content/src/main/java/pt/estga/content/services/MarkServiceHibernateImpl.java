@@ -31,11 +31,6 @@ public class MarkServiceHibernateImpl implements MarkService {
     }
 
     @Override
-    public Page<Mark> searchByTitle(String title, Pageable pageable) {
-        return repository.findByTitleContainingIgnoreCase(title, pageable);
-    }
-
-    @Override
     public long count() {
         return repository.count();
     }

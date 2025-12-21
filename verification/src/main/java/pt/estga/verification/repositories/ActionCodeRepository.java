@@ -11,7 +11,10 @@ import java.util.Optional;
 @Repository
 public interface ActionCodeRepository extends JpaRepository<ActionCode, String> {
 
+    Optional<ActionCode> findByCode(String code);
+
     Optional<ActionCode> findByUserAndType(User user, ActionCodeType type);
 
     void deleteByUserAndType(User user, ActionCodeType type);
+
 }

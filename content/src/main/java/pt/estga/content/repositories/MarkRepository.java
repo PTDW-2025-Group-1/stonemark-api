@@ -14,9 +14,6 @@ import java.util.Optional;
 public interface MarkRepository extends JpaRepository<Mark, Long> {
 
     @EntityGraph(value = "MyEntity.withMedia")
-    Page<Mark> findByTitleContainingIgnoreCase(String title, Pageable pageable);
-
-    @EntityGraph(value = "MyEntity.withMedia")
     @Query("SELECT m FROM Mark m")
     Page<Mark> findAllWithCover(Pageable pageable);
 

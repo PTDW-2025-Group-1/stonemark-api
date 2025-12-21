@@ -40,16 +40,6 @@ public class MarkController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/search")
-    public Page<MarkDto> searchMarks(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("title"));
-        return service.searchByTitle(query, pageable).map(mapper::markToMarkDto);
-    }
-
     @PutMapping("/{id}")
     public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
         Mark mark = mapper.markUpdateDtoToMark(markDto);

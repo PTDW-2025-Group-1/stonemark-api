@@ -15,14 +15,6 @@ public interface AccountService {
 
     void requestContactVerification(User user, Long contactId);
 
-    void linkGoogleAccount(User user, String token);
-
-    void linkTelegramAccount(User user, String token);
-
-    void unlinkSocialAccount(User user, Provider provider);
-
-    List<LinkedProviderDto> getLinkedProviders(User user);
-
     List<UserContact> getContacts(User user);
 
     AccountSecurityStatusDto getSecurityStatus(User user);

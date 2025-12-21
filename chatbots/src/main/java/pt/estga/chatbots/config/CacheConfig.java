@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import pt.estga.chatbots.core.context.ConversationContext;
+import pt.estga.chatbots.core.shared.context.ConversationContext;
 
 import java.util.concurrent.TimeUnit;
 

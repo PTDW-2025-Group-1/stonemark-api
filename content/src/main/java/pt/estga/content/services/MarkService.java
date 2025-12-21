@@ -16,8 +16,6 @@ public interface MarkService {
 
     long count();
 
-    Page<Mark> searchByTitle(String title, Pageable pageable);
-
     Mark create(Mark mark);
 
     Mark update(Mark mark);

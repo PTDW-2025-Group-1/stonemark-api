@@ -36,6 +36,9 @@ public class ActionCodeServiceImpl implements ActionCodeService {
     @Value("${application.security.action-code.device-verification.expiration}")
     private long deviceVerificationExpiration;
 
+    @Value("${application.security.action-code.chatbot-verification.expiration}")
+    private long chatbotVerificationExpiration;
+
     @Override
     public ActionCode createAndSave(User user, UserContact userContact, ActionCodeType type) {
         log.info("Creating and saving action code of type {} for user {}", type, user.getId());
@@ -92,6 +95,7 @@ public class ActionCodeServiceImpl implements ActionCodeService {
             case RESET_PASSWORD -> passwordResetExpiration;
             case TWO_FACTOR -> twoFactorExpiration;
             case DEVICE_VERIFICATION -> deviceVerificationExpiration;
+            case TELEGRAM_VERIFICATION -> chatbotVerificationExpiration;
         };
     }
 }

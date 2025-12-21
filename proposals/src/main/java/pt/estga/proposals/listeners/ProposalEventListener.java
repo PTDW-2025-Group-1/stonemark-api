@@ -29,10 +29,10 @@ public class ProposalEventListener {
         Integer priority = calculatePriority(proposal);
         proposal.setPriority(priority);
 
-        MarkOccurrenceProposal savedProposal = proposalService.save(proposal);
-        log.info("Updated priority for proposal ID: {} to {}", savedProposal.getId(), priority);
+        MarkOccurrenceProposal createdProposal = proposalService.create(proposal);
+        log.info("Updated priority for proposal ID: {} to {}", createdProposal.getId(), priority);
 
-        decisionMaker.makeDecision(savedProposal);
+        decisionMaker.makeDecision(createdProposal);
     }
 
     private Integer calculatePriority(MarkOccurrenceProposal proposal) {

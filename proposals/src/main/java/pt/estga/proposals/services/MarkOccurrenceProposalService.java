@@ -24,6 +24,4 @@ public interface MarkOccurrenceProposalService {
 
     long countApprovedProposalsByUser(User user);
 
-    MarkOccurrenceProposal save(MarkOccurrenceProposal proposal);
-
 }

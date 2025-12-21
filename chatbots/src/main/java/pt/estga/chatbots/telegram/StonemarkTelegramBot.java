@@ -9,9 +9,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pt.estga.chatbots.core.BotConversationService;
-import pt.estga.chatbots.core.models.BotInput;
-import pt.estga.chatbots.core.models.BotResponse;
+import pt.estga.chatbots.core.shared.services.BotConversationService;
+import pt.estga.chatbots.core.shared.models.BotInput;
+import pt.estga.chatbots.core.shared.models.BotResponse;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +38,8 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private void setBotCommands() {
         List<BotCommand> commands = List.of(
-                new BotCommand("start", "Start a new conversation")
+                new BotCommand("start", "Start a new conversation"),
+                new BotCommand("options", "Show main options")
         );
 
         try {
@@ -54,15 +55,17 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
             try {
                 BotInput botInput = telegramAdapter.toBotInput(update);
                 if (botInput != null) {
-                    BotResponse botResponse = conversationService.handleInput(botInput);
-                    if (botResponse != null) {
-                        List<PartialBotApiMethod<?>> methods = telegramAdapter.toBotApiMethod(botInput.getUserId(), botResponse);
-                        if (methods != null) {
-                            for (PartialBotApiMethod<?> method : methods) {
-                                if (method instanceof BotApiMethod) {
-                                    execute((BotApiMethod<?>) method);
-                                } else if (method instanceof SendPhoto) {
-                                    execute((SendPhoto) method);
+                    List<BotResponse> botResponses = conversationService.handleInput(botInput);
+                    if (botResponses != null) {
+                        for (BotResponse botResponse : botResponses) {
+                            List<PartialBotApiMethod<?>> methods = telegramAdapter.toBotApiMethod(botInput.getChatId(), botResponse);
+                            if (methods != null) {
+                                for (PartialBotApiMethod<?> method : methods) {
+                                    if (method instanceof BotApiMethod) {
+                                        execute((BotApiMethod<?>) method);
+                                    } else if (method instanceof SendPhoto) {
+                                        execute((SendPhoto) method);
+                                    }
                                 }
                             }
                         }
