@@ -22,4 +22,8 @@ public interface MarkOccurrenceProposalService {
 
     void delete(MarkOccurrenceProposal proposal);
 
+    long countApprovedProposalsByUser(User user);
+
+    MarkOccurrenceProposal save(MarkOccurrenceProposal proposal);
+
 }

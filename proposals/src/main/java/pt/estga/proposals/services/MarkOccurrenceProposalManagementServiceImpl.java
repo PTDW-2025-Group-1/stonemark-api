@@ -90,6 +90,14 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
         return proposal;
     }
 
+    @Override
+    @Transactional
+    public MarkOccurrenceProposal pending(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setStatus(ProposalStatus.PENDING);
+        return proposalRepository.save(proposal);
+    }
+
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
         return proposalRepository.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));

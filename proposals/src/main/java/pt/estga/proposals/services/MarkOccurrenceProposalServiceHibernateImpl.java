@@ -47,4 +47,14 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
         repository.delete(proposal);
     }
 
+
+    @Override
+    public long countApprovedProposalsByUser(User user) {
+        return repository.countApprovedProposalsByUser(user);
+    }
+
+    @Override
+    public MarkOccurrenceProposal save(MarkOccurrenceProposal proposal) {
+        return repository.save(proposal);
+    }
 }

@@ -6,6 +6,7 @@ import pt.estga.file.dtos.MediaFileDto;
 
 public record MarkOccurrenceProposalDto(
         Long id,
+        Integer priority,
         MediaFileDto originalMediaFile,
         MonumentResponseDto existingMonument,
         ProposedMonumentDto proposedMonument,

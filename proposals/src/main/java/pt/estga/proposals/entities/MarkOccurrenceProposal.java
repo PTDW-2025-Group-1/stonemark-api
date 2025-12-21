@@ -61,6 +61,8 @@ public class MarkOccurrenceProposal {
     @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
 
+    private Integer priority;
+
     @CreatedBy
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(updatable = false)

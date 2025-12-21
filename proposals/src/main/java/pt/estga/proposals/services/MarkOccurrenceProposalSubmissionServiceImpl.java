@@ -1,6 +1,7 @@
 package pt.estga.proposals.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,8 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.FileStorageService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
+import pt.estga.proposals.enums.ProposalStatus;
+import pt.estga.proposals.events.ProposalSubmittedEvent;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 import java.io.IOException;
@@ -23,6 +26,7 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
     private final DetectionService detectionService;
     // Todo: change to MediaService
     private final FileStorageService fileStorageService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -52,6 +56,9 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
             throw new RuntimeException("Error reading image data", e);
         }
 
-        return proposalRepository.save(proposal);
+        MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
+        eventPublisher.publishEvent(new ProposalSubmittedEvent(this, savedProposal));
+
+        return savedProposal;
     }
 }

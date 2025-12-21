@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposals.dtos.MarkOccurrenceProposalDto;
+import pt.estga.proposals.dtos.UpdateProposalStatusRequestDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposals.services.MarkOccurrenceProposalManagementService;
@@ -18,15 +19,28 @@ public class ProposalManagementController {
     private final MarkOccurrenceProposalManagementService markOccurrenceProposalManagementService;
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
-    @PostMapping("/{proposalId}/approve")
-    public ResponseEntity<MarkOccurrenceProposalDto> approve(@PathVariable Long proposalId) {
-        MarkOccurrenceProposal proposal = markOccurrenceProposalManagementService.approve(proposalId);
-        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
-    }
+    @PutMapping("/{proposalId}/status")
+    public ResponseEntity<ProposalStateDto> updateStatus(
+            @PathVariable Long proposalId,
+            @RequestBody UpdateProposalStatusRequestDto request) {
 
-    @PostMapping("/{proposalId}/reject")
-    public ResponseEntity<MarkOccurrenceProposalDto> reject(@PathVariable Long proposalId) {
-        MarkOccurrenceProposal proposal = markOccurrenceProposalManagementService.reject(proposalId);
-        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
+        MarkOccurrenceProposal proposal;
+        String message;
+
+        switch (request.status()) {
+            case APPROVED -> {
+                proposal = markOccurrenceProposalManagementService.approve(proposalId);
+                message = "Proposal approved.";
+            }
+            case REJECTED -> {
+                proposal = markOccurrenceProposalManagementService.reject(proposalId);
+                message = "Proposal rejected.";
+            }
+            case PENDING -> {
+                proposal = markOccurrenceProposalManagementService.pending(proposalId);
+                message = "Proposal marked as pending.";
+            }
+            default -> throw new IllegalArgumentException("Invalid status transition requested.");
+        }
     }
 }
