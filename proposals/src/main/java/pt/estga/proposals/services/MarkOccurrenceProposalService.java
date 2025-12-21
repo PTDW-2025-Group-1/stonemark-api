@@ -3,6 +3,7 @@ package pt.estga.proposals.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.user.entities.User;
 
 import java.util.List;
@@ -16,11 +17,7 @@ public interface MarkOccurrenceProposalService {
 
     List<MarkOccurrenceProposal> findByUser(User user);
 
-    MarkOccurrenceProposal create(MarkOccurrenceProposal proposal);
-
-    MarkOccurrenceProposal update(MarkOccurrenceProposal proposal);
-
-    void delete(MarkOccurrenceProposal proposal);
+    List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
 
     long countApprovedProposalsByUser(User user);
 

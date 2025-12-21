@@ -1,10 +1,12 @@
 package pt.estga.proposals.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
 
@@ -16,6 +18,7 @@ import java.util.Optional;
 public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenceProposalService {
 
     private final MarkOccurrenceProposalRepository repository;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Page<MarkOccurrenceProposal> getAll(Pageable pageable) {
@@ -33,20 +36,9 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
-    public MarkOccurrenceProposal create(MarkOccurrenceProposal proposal) {
-        return repository.save(proposal);
+    public List<MarkOccurrenceProposal> findByStatus(ProposalStatus status) {
+        return repository.findByStatus(status);
     }
-
-    @Override
-    public MarkOccurrenceProposal update(MarkOccurrenceProposal proposal) {
-        return repository.save(proposal);
-    }
-
-    @Override
-    public void delete(MarkOccurrenceProposal proposal) {
-        repository.delete(proposal);
-    }
-
 
     @Override
     public long countApprovedProposalsByUser(User user) {

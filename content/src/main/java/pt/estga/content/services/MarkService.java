@@ -12,8 +12,6 @@ public interface MarkService {
 
     Optional<Mark> findById(Long id);
 
-    Optional<Mark> findWithCoverById(Long id);
-
     long count();
 
     Page<Mark> searchByTitle(String title, Pageable pageable);

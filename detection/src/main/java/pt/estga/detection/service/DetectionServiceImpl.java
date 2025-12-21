@@ -30,11 +30,10 @@ public class DetectionServiceImpl implements DetectionService {
 
     @Override
     public DetectionResult detect(InputStream imageInputStream, String originalFilename) {
-        log.info("Starting detection process for file: {}", originalFilename);
+        log.info("Starting detection process.");
 
         // Determine the MediaType based on the filename
         MediaType fileMediaType = getMediaType(originalFilename);
-        log.info("Determined MediaType for file {}: {}", originalFilename, fileMediaType);
 
         // Use MultipartBodyBuilder to construct the request body
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -44,12 +43,10 @@ public class DetectionServiceImpl implements DetectionService {
 
         // Build the HttpEntity for the request
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA); // Set overall content type
 
         HttpEntity<MultiValueMap<String, HttpEntity<?>>> requestEntity =
                 new HttpEntity<>(builder.build(), headers);
-
-        log.info("Sending request to detection server at: {}", detectionServerUrl + "/process");
 
         ResponseEntity<DetectionResponseDto> response = restTemplate.postForEntity(detectionServerUrl + "/process", requestEntity, DetectionResponseDto.class);
 

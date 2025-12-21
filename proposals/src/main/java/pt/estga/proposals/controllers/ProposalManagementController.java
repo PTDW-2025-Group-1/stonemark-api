@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.proposals.dtos.MarkOccurrenceProposalDto;
+import pt.estga.proposals.dtos.ProposalStateDto;
 import pt.estga.proposals.dtos.UpdateProposalStatusRequestDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
@@ -20,16 +20,29 @@ public class ProposalManagementController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PutMapping("/{proposalId}/status")
-    public ResponseEntity<MarkOccurrenceProposalDto> updateStatus(
+    public ResponseEntity<ProposalStateDto> updateStatus(
             @PathVariable Long proposalId,
             @RequestBody UpdateProposalStatusRequestDto request) {
+        
+        MarkOccurrenceProposal proposal;
+        String message;
 
-        MarkOccurrenceProposal proposal = switch (request.status()) {
-            case APPROVED -> markOccurrenceProposalManagementService.approve(proposalId);
-            case REJECTED -> markOccurrenceProposalManagementService.reject(proposalId);
-            case PENDING -> markOccurrenceProposalManagementService.pending(proposalId);
-        };
+        switch (request.status()) {
+            case APPROVED -> {
+                proposal = markOccurrenceProposalManagementService.approve(proposalId);
+                message = "Proposal approved.";
+            }
+            case REJECTED -> {
+                proposal = markOccurrenceProposalManagementService.reject(proposalId);
+                message = "Proposal rejected.";
+            }
+            case PENDING -> {
+                proposal = markOccurrenceProposalManagementService.pending(proposalId);
+                message = "Proposal marked as pending.";
+            }
+            default -> throw new IllegalArgumentException("Invalid status transition requested.");
+        }
 
-        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), message));
     }
 }

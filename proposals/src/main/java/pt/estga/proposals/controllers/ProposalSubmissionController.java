@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.proposals.dtos.MarkOccurrenceProposalDto;
+import pt.estga.proposals.dtos.ProposalStateDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
@@ -19,8 +19,8 @@ public class ProposalSubmissionController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PostMapping("/{proposalId}/submit")
-    public ResponseEntity<MarkOccurrenceProposalDto> submit(@PathVariable Long proposalId) {
+    public ResponseEntity<ProposalStateDto> submit(@PathVariable Long proposalId) {
         MarkOccurrenceProposal proposal = markOccurrenceProposalSubmissionService.submit(proposalId);
-        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
+        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal submitted."));
     }
 }

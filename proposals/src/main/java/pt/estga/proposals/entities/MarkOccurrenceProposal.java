@@ -50,7 +50,6 @@ public class MarkOccurrenceProposal {
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    // Todo: pass back to single value
     private String suggestedMarkIds;
 
     @Lob
@@ -60,10 +59,12 @@ public class MarkOccurrenceProposal {
     private String userNotes;
 
     @Enumerated(EnumType.STRING)
-    private SubmissionSource submissionSource;
+    @Column(nullable = false)
+    @Builder.Default
+    private ProposalStatus status = ProposalStatus.IN_PROGRESS;
 
     @Enumerated(EnumType.STRING)
-    private ProposalStatus status;
+    private SubmissionSource submissionSource;
 
     private Integer priority;
 
@@ -78,7 +79,4 @@ public class MarkOccurrenceProposal {
 
     private Double latitude;
     private Double longitude;
-
-    @Builder.Default
-    private boolean isSubmitted = false;
 }

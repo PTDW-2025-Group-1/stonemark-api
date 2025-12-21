@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.enums.Role;
 import pt.estga.user.repositories.UserRepository;
@@ -36,7 +34,6 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public Optional<User> findByUsername(String username) {
         return repository.findByUsername(username);
     }
