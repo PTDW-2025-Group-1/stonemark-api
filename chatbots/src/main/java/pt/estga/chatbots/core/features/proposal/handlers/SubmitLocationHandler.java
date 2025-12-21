@@ -6,20 +6,18 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
-import pt.estga.chatbots.core.features.proposal.service.LocationProcessorService;
-import pt.estga.chatbots.core.features.proposal.service.MonumentSuggestionProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
-import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class SubmitLocationHandler implements ConversationStateHandler {
 
-    private final LocationProcessorService locationProcessorService;
-    private final MonumentSuggestionProcessorService monumentSuggestionProcessorService;
+    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final LoopOptionsHandler loopOptionsHandler;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
@@ -31,13 +29,14 @@ public class SubmitLocationHandler implements ConversationStateHandler {
         }
 
         log.info("Handling location submission for proposal ID: {}", context.getProposal().getId());
-        MarkOccurrenceProposal proposal = locationProcessorService.processLocation(
-                context,
+        proposalFlowService.addLocationToProposal(
+                context.getProposal().getId(),
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()
         );
 
-        return monumentSuggestionProcessorService.processMonumentSuggestions(context, proposal);
+        context.setCurrentState(ConversationState.LOOP_OPTIONS);
+        return loopOptionsHandler.handle(context, BotInput.builder().build());
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
@@ -28,6 +28,7 @@ import pt.estga.user.repositories.UserRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,47 +54,54 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename) throws IOException {
+    public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename, Double latitude, Double longitude) throws IOException {
         log.info("Initiating proposal for file: {}", filename);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(mediaFile);
+        proposal.setLatitude(latitude);
+        proposal.setLongitude(longitude);
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
         if (userId != null) {
             userRepository.findById(userId).ifPresent(proposal::setCreatedBy);
         }
-        MarkOccurrenceProposal savedProposal = proposalRepository.save(proposal);
-        log.debug("Proposal initiated with ID: {}", savedProposal.getId());
-
-        return detectAndSearch(photoData, filename, mediaFile, proposal, savedProposal);
+        return proposalRepository.save(proposal);
     }
 
-    @NonNull
-    private MarkOccurrenceProposal detectAndSearch(byte[] photoData, String filename, MediaFile mediaFile, MarkOccurrenceProposal proposal, MarkOccurrenceProposal savedProposal) throws IOException {
-        try (ByteArrayInputStream is = new ByteArrayInputStream(photoData)) {
-            DetectionResult detectionResult = detectionService.detect(is, filename);
-            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                List<Double> embeddedVector = detectionResult.embedding();
-                proposal.setEmbedding(embeddedVector);
+    @Override
+    @Transactional
+    public MarkOccurrenceProposal processSubmission(Long proposalId) throws IOException {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        Resource photoResource = mediaService.loadFile(proposal.getOriginalMediaFile().getStoragePath());
 
-                // suggestedMarkIds still uses ObjectMapper to store as String
-                List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
-                if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
-                    try {
-                        proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
-                        log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), savedProposal.getId());
-                    } catch (JsonProcessingException e) {
-                        log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", savedProposal.getId(), e.getMessage());
+        try (InputStream is = photoResource.getInputStream()) {
+            byte[] photoData = is.readAllBytes();
+            try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(photoData)) {
+                DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getFileName());
+                if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                    List<Double> embeddedVector = detectionResult.embedding();
+                    proposal.setEmbedding(embeddedVector);
+
+                    List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
+                    if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
+                        try {
+                            proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
+                            log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), proposal.getId());
+                        } catch (JsonProcessingException e) {
+                            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", proposal.getId(), e.getMessage());
+                        }
+                    } else {
+                        log.info("No suggested marks found for proposal {}", proposal.getId());
                     }
                 } else {
-                    log.info("No suggested marks found for proposal {}", savedProposal.getId());
+                    log.info("No embedding detected for proposal {}", proposal.getId());
                 }
-            } else {
-                log.info("No embedding detected for proposal {}", savedProposal.getId());
             }
         }
 
-        return proposalRepository.save(savedProposal);
+        handleGpsData(proposal, new Location(proposal.getLatitude(), proposal.getLongitude()));
+
+        return proposalRepository.save(proposal);
     }
 
     @Override
@@ -101,13 +109,9 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     public MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
         log.info("Updating photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        proposal.setLatitude(null);
-        proposal.setLongitude(null);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         proposal.setOriginalMediaFile(mediaFile);
-
-        // Perform detection and search
-        return detectAndSearch(photoData, filename, mediaFile, proposal, proposal);
+        return proposalRepository.save(proposal);
     }
 
     @Override
@@ -244,7 +248,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
-        handleGpsData(proposal, new Location(latitude, longitude));
         return proposalRepository.save(proposal);
     }
 

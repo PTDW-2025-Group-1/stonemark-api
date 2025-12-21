@@ -22,8 +22,12 @@ public class PhotoProcessorService {
         MarkOccurrenceProposal proposal = context.getProposal();
         if (proposal == null) {
             Long domainUserId = context.getDomainUserId();
-            log.info("Initiating proposal for user ID: {} (domain ID: {}) with file: {}", input.getUserId(), domainUserId, input.getFileName());
-            proposal = proposalFlowService.initiate(domainUserId, input.getFileData(), input.getFileName());
+            log.info("Initiating proposal for user ID: {} (domain ID: {}) with file: {}",
+                    input.getUserId(), domainUserId, input.getFileName());
+            proposal = proposalFlowService.initiate(
+                    domainUserId, input.getFileData(), input.getFileName(),
+                    input.getLocation().getLatitude(), input.getLocation().getLongitude()
+            );
             context.setProposal(proposal);
             log.info("Proposal with ID {} created.", proposal.getId());
         } else {

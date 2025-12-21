@@ -17,7 +17,7 @@ import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final LoopOptionsHandler loopOptionsHandler;
+    private final SubmissionLoopHandler submissionLoopHandler;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
@@ -29,8 +29,8 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
             Long monumentId = Long.valueOf(callbackDataParts[2]);
             MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposalId, monumentId);
             context.setProposal(updatedProposal);
-            context.setCurrentState(ConversationState.LOOP_OPTIONS);
-            return loopOptionsHandler.handle(context, BotInput.builder().build());
+            context.setCurrentState(ConversationState.SUBMISSION_LOOP_OPTIONS);
+            return submissionLoopHandler.handle(context, BotInput.builder().build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return BotResponse.builder()

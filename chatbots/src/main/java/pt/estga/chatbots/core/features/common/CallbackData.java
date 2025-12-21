@@ -22,5 +22,9 @@ public final class CallbackData {
     public static final String LOOP_REDO_LOCATION = "loop_redo_location";
     public static final String LOOP_REDO_IMAGE_UPLOAD = "loop_redo_image_upload";
     public static final String LOOP_CONTINUE = "loop_continue";
-
+    public static final String SUBMISSION_LOOP_OPTIONS = "submission_loop_options";
+    public static final String SUBMISSION_LOOP_CHANGE_MARK = "submission_loop_change_mark";
+    public static final String SUBMISSION_LOOP_CHANGE_MONUMENT = "submission_loop_change_monument";
+    public static final String SUBMISSION_LOOP_START_OVER = "submission_loop_start_over";
+    public static final String SUBMISSION_LOOP_CONTINUE = "submission_loop_continue";
 }
