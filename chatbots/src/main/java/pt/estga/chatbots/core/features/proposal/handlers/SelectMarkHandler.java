@@ -9,6 +9,7 @@ import pt.estga.chatbots.core.features.common.CallbackData;
 import pt.estga.chatbots.core.features.proposal.service.CoordinatesProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
@@ -20,12 +21,12 @@ public class SelectMarkHandler implements ConversationStateHandler {
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        Long proposalId = context.getProposal().getId();
+        MarkOccurrenceProposal proposal = context.getProposal();
         String callbackData = input.getCallbackData();
         Long markId = Long.valueOf(callbackData.substring(CallbackData.SELECT_MARK_PREFIX.length()));
-        proposalFlowService.selectMark(proposalId, markId);
-        
-        context.setCurrentState(ConversationState.LOOP_OPTIONS);
+        proposal = proposalFlowService.selectMark(proposal.getId(), markId);
+        context.setProposal(proposal);
+
         return coordinatesProcessorService.processCoordinates(context);
     }
 

@@ -7,9 +7,11 @@ import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
 import pt.estga.chatbots.core.features.proposal.service.LocationProcessorService;
+import pt.estga.chatbots.core.features.proposal.service.MonumentSuggestionProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +19,7 @@ import pt.estga.chatbots.core.models.ui.Menu;
 public class SubmitLocationHandler implements ConversationStateHandler {
 
     private final LocationProcessorService locationProcessorService;
+    private final MonumentSuggestionProcessorService monumentSuggestionProcessorService;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
@@ -28,11 +31,13 @@ public class SubmitLocationHandler implements ConversationStateHandler {
         }
 
         log.info("Handling location submission for proposal ID: {}", context.getProposal().getId());
-        return locationProcessorService.processLocation(
+        MarkOccurrenceProposal proposal = locationProcessorService.processLocation(
                 context,
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()
         );
+
+        return monumentSuggestionProcessorService.processMonumentSuggestions(context, proposal);
     }
 
     @Override

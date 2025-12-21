@@ -27,7 +27,7 @@ public class MonumentProcessorService {
                 .uiComponent(Menu.builder()
                         .title("What would you like to do next?")
                         .buttons(List.of(
-                                List.of(Button.builder().text("Redo Monument Selection").callbackData(CallbackData.LOOP_REDO_MONUMENT).build()),
+                                List.of(Button.builder().text("Reselect Location").callbackData(CallbackData.LOOP_REDO_LOCATION).build()),
                                 List.of(Button.builder().text("Redo Image Upload").callbackData(CallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
                                 List.of(Button.builder().text("Continue to Notes").callbackData(CallbackData.LOOP_CONTINUE).build())
                         ))

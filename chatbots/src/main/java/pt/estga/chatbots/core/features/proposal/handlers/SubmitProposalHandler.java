@@ -25,6 +25,7 @@ public class SubmitProposalHandler implements ConversationStateHandler {
             return null;
 
         submissionService.submit(context.getProposal().getId());
+        context.setProposal(null);
         context.setCurrentState(ConversationState.START);
 
         input.setText("/start");

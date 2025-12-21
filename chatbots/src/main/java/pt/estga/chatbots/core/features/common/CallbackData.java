@@ -19,7 +19,7 @@ public final class CallbackData {
     public static final String CONFIRM_YES = "yes";
     public static final String CONFIRM_NO = "no";
     public static final String LOOP_OPTIONS = "loop_options";
-    public static final String LOOP_REDO_MONUMENT = "loop_redo_monument";
+    public static final String LOOP_REDO_LOCATION = "loop_redo_location";
     public static final String LOOP_REDO_IMAGE_UPLOAD = "loop_redo_image_upload";
     public static final String LOOP_CONTINUE = "loop_continue";
 

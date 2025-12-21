@@ -6,7 +6,6 @@ import pt.estga.chatbots.core.context.ConversationContext;
 import pt.estga.chatbots.core.context.ConversationState;
 import pt.estga.chatbots.core.context.ConversationStateHandler;
 import pt.estga.chatbots.core.features.common.CallbackData;
-import pt.estga.chatbots.core.features.proposal.service.MonumentProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Menu;
@@ -18,7 +17,7 @@ import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final MonumentProcessorService monumentProcessorService;
+    private final LoopOptionsHandler loopOptionsHandler;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
@@ -29,8 +28,9 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         if (confirmed) {
             Long monumentId = Long.valueOf(callbackDataParts[2]);
             MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposalId, monumentId);
+            context.setProposal(updatedProposal);
             context.setCurrentState(ConversationState.LOOP_OPTIONS);
-            return monumentProcessorService.processMonumentStep(context, updatedProposal);
+            return loopOptionsHandler.handle(context, BotInput.builder().build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return BotResponse.builder()

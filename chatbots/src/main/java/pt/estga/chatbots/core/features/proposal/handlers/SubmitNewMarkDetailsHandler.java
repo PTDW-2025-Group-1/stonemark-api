@@ -8,6 +8,7 @@ import pt.estga.chatbots.core.context.ConversationStateHandler;
 import pt.estga.chatbots.core.features.proposal.service.CoordinatesProcessorService;
 import pt.estga.chatbots.core.models.BotInput;
 import pt.estga.chatbots.core.models.BotResponse;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
 
 @Component
@@ -19,8 +20,10 @@ public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
-        proposalFlowService.proposeMark(context.getProposal().getId(), input.getText());
-        context.setCurrentState(ConversationState.LOOP_OPTIONS);
+        MarkOccurrenceProposal proposal = context.getProposal();
+        proposal = proposalFlowService.proposeMark(proposal.getId(), input.getText());
+        context.setProposal(proposal);
+
         return coordinatesProcessorService.processCoordinates(context);
     }
 

@@ -40,7 +40,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     // Todo: refactor to use services instead of repositories
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final MediaService mediaService;
-    private final GpsExtractorService gpsExtractorService;
     private final MonumentRepository monumentRepository;
     private final MarkRepository markRepository;
     private final ProposedMarkRepository proposedMarkRepository;
@@ -94,15 +93,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             }
         }
 
-
-        Optional<Location> gpsData = gpsExtractorService.extractGpsData(mediaFile);
-        if (gpsData.isPresent()) {
-            proposal.setLatitude(gpsData.get().getLatitude());
-            proposal.setLongitude(gpsData.get().getLongitude());
-        } else {
-            log.info("No GPS data found for proposal {}", savedProposal.getId());
-        }
-
         return proposalRepository.save(savedProposal);
     }
 
@@ -111,6 +101,8 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     public MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
         log.info("Updating photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        proposal.setLatitude(null);
+        proposal.setLongitude(null);
         MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
         proposal.setOriginalMediaFile(mediaFile);
 
