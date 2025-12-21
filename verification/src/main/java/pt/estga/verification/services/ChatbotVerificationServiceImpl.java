@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.user.entities.User;
-import pt.estga.user.services.UserIdentityService;
 import pt.estga.verification.entities.ActionCode;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.verification.repositories.ActionCodeRepository;
@@ -21,7 +20,6 @@ import java.util.Optional;
 public class ChatbotVerificationServiceImpl implements ChatbotVerificationService {
 
     private final ActionCodeRepository actionCodeRepository;
-    private final UserIdentityService userIdentityService;
 
     private static final int CODE_LENGTH = 6;
     private static final int EXPIRATION_MINUTES = 15;
@@ -80,9 +78,6 @@ public class ChatbotVerificationServiceImpl implements ChatbotVerificationServic
         // Mark code as consumed
         actionCode.setConsumed(true);
         actionCodeRepository.save(actionCode);
-
-        // Create verified identity (which also handles the contact)
-        userIdentityService.createOrUpdateTelegramIdentity(user, telegramId);
 
         log.info("Telegram verification successful for user: {}", user.getId());
         return Optional.of(user);

@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface UserContactService {
 
     UserContact create(UserContact userContact);
+    
+    UserContact createVerifiedContact(User user, ContactType type, String value);
 
     List<UserContact> findAllByUser(User user);
 
@@ -18,6 +20,8 @@ public interface UserContactService {
     Optional<UserContact> findById(Long id);
 
     Optional<UserContact> findByValue(String value);
+    
+    Optional<User> findUserByPhoneNumber(String phoneNumber);
 
     Optional<UserContact> findByUserAndValue(User user, String value);
 

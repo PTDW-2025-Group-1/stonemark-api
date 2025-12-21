@@ -8,6 +8,7 @@ import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.repositories.UserIdentityRepository;
+import pt.estga.user.repositories.UserRepository;
 
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class UserIdentityServiceImpl implements UserIdentityService {
 
     private final UserIdentityRepository userIdentityRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Optional<UserIdentity> findByProviderAndValue(Provider provider, String value) {
@@ -53,15 +55,19 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     @Override
     @Transactional
     public UserIdentity createOrUpdateTelegramIdentity(User user, String telegramId) {
-        Optional<UserIdentity> existingIdentity = userIdentityRepository.findByUserAndProvider(user, Provider.TELEGRAM);
+        // Re-fetch the user to ensure it's attached to the current session
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalStateException("User not found with ID: " + user.getId()));
+
+        Optional<UserIdentity> existingIdentity = userIdentityRepository.findByUserAndProvider(managedUser, Provider.TELEGRAM);
 
         if (existingIdentity.isPresent()) {
-            log.info("Updating Telegram identity for user: {}", user.getId());
+            log.info("Updating Telegram identity for user: {}", managedUser.getId());
             existingIdentity.get().setValue(telegramId);
             return userIdentityRepository.save(existingIdentity.get());
         } else {
-            log.info("Creating Telegram identity for user: {}", user.getId());
-            return createAndAssociate(user, Provider.TELEGRAM, telegramId);
+            log.info("Creating Telegram identity for user: {}", managedUser.getId());
+            return createAndAssociate(managedUser, Provider.TELEGRAM, telegramId);
         }
     }
 

@@ -1,6 +1,5 @@
 package pt.estga.shared.config;
 
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.vonage.client.VonageClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -18,10 +17,5 @@ public class VonageConfig {
                 .apiKey(apiKey)
                 .apiSecret(apiSecret)
                 .build();
-    }
-
-    @Bean
-    public PhoneNumberUtil phoneNumberUtil() {
-        return PhoneNumberUtil.getInstance();
     }
 }

@@ -7,6 +7,7 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 public class ConversationContext {
     private ConversationState currentState;
     private Long domainUserId;
+    private String verificationPhoneNumber;
     // This will be moved to a feature-specific context later
     private MarkOccurrenceProposal proposal;
 }

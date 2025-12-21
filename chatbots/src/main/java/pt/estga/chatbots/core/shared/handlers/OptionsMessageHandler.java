@@ -30,14 +30,18 @@ public class OptionsMessageHandler implements ConversationStateHandler {
         boolean isAuthenticated = authService.isAuthenticated(input.getUserId());
 
         List<Button> buttons = new ArrayList<>();
-        buttons.add(Button.builder().text("New Submission").callbackData(ProposalCallbackData.START_SUBMISSION).build());
+        String title;
 
-        if (!isAuthenticated) {
+        if (isAuthenticated) {
+            title = "What would you like to do?";
+            buttons.add(Button.builder().text("New Submission").callbackData(ProposalCallbackData.START_SUBMISSION).build());
+        } else {
+            title = "To use this chatbot, you need to verify your account.";
             buttons.add(Button.builder().text("Verify Account").callbackData(VerificationCallbackData.START_VERIFICATION).build());
         }
 
         Menu mainMenu = Menu.builder()
-                .title("What would you like to do?")
+                .title(title)
                 .buttons(List.of(buttons))
                 .build();
 

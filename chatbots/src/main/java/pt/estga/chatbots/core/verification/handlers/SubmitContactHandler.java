@@ -13,65 +13,51 @@ import pt.estga.user.entities.User;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
-import pt.estga.verification.services.ChatbotVerificationService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SubmitVerificationCodeHandler implements ConversationStateHandler {
+public class SubmitContactHandler implements ConversationStateHandler {
 
-    private final ChatbotVerificationService verificationService;
     private final UserContactService userContactService;
     private final UserIdentityService userIdentityService;
     private final OptionsMessageHandler optionsMessageHandler;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        String code = input.getText();
-        String phoneNumber = context.getVerificationPhoneNumber();
-
-        log.info("Attempting to verify code '{}' with phone number '{}' from context.", code, phoneNumber);
-
-        if (phoneNumber == null) {
-            log.error("Verification phone number is missing from conversation context for user {}", input.getUserId());
-            return Collections.singletonList(BotResponse.builder()
-                    .text("An unexpected error occurred. Please start the verification process again.")
-                    .build());
+        if (input.getType() != BotInput.InputType.CONTACT || input.getText() == null) {
+            return null;
         }
 
-        Optional<User> userOptional = verificationService.verifyTelegramCode(code, input.getUserId());
+        String phoneNumber = input.getText();
+        Optional<User> userOptional = userContactService.findUserByPhoneNumber(phoneNumber);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            context.setDomainUserId(user.getId());
-            context.setCurrentState(ConversationState.START);
-            context.setVerificationPhoneNumber(null); // Clean up context
-
-            // Create verified contact and identity
+            // Create a verified contact for the user
             userContactService.createVerifiedContact(user, ContactType.TELEPHONE, phoneNumber);
+            // Associate the Telegram ID with the user
             userIdentityService.createOrUpdateTelegramIdentity(user, input.getUserId());
-
-            log.info("Successfully verified user {} with phone number and created Telegram identity.", user.getUsername());
+            
+            log.info("Successfully verified user {} and associated their Telegram ID.", user.getUsername());
 
             List<BotResponse> responses = new ArrayList<>();
-            responses.add(BotResponse.builder().text("Thank you, " + user.getFirstName() + "! Your account has been successfully verified.").build());
+            responses.add(BotResponse.builder().text("Thank you, " + user.getFirstName() + "! Your account is now verified.").build());
             responses.addAll(optionsMessageHandler.handle(context, input));
-
             return responses;
+            
         } else {
-            return Collections.singletonList(BotResponse.builder()
-                    .text("That code is invalid or has expired. Please try again.")
-                    .build());
+            log.warn("No user found for phone number: {}", phoneNumber);
+            return List.of(BotResponse.builder().text("Sorry, we couldn't find an account associated with that phone number. Please try again or contact support.").build());
         }
     }
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_VERIFICATION_CODE;
+        return ConversationState.AWAITING_CONTACT;
     }
 }

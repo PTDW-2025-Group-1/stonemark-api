@@ -9,6 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.services.UserIdentityService;
 
@@ -33,7 +34,7 @@ public class StartHandler implements ConversationStateHandler {
             try {
                 Optional<User> userOptional = userIdentityService
                         .findByProviderAndValue(Provider.valueOf(input.getPlatform()), input.getUserId())
-                        .map(identity -> identity.getUser());
+                        .map(UserIdentity::getUser);
 
                 if (userOptional.isPresent()) {
                     welcomeMessage = "Welcome back, " + userOptional.get().getFirstName() + "!";
@@ -44,14 +45,13 @@ public class StartHandler implements ConversationStateHandler {
                 log.error("Error retrieving user for welcome message", e);
             }
 
-
             List<BotResponse> responses = new ArrayList<>();
             responses.add(BotResponse.builder().text(welcomeMessage).build());
             responses.addAll(optionsMessageHandler.handle(context, input));
 
             return responses;
         }
-        return null; // Not handled
+        return null;
     }
 
     @Override

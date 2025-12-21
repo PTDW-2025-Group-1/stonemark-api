@@ -1,5 +1,6 @@
 package pt.estga.boot.config;
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,5 +35,10 @@ public class ApplicationConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public PhoneNumberUtil phoneNumberUtil() {
+        return PhoneNumberUtil.getInstance();
     }
 }
