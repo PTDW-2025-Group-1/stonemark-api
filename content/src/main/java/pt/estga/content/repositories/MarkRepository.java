@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pt.estga.content.entities.Mark;
 
+import java.util.Optional;
+
 @Repository
 public interface MarkRepository extends JpaRepository<Mark, Long> {
 
@@ -17,5 +19,8 @@ public interface MarkRepository extends JpaRepository<Mark, Long> {
     @EntityGraph(value = "MyEntity.withMedia")
     @Query("SELECT m FROM Mark m")
     Page<Mark> findAllWithCover(Pageable pageable);
+
+    @EntityGraph(value = "MyEntity.withMedia")
+    Optional<Mark> findWithCoverById(Long id);
 
 }

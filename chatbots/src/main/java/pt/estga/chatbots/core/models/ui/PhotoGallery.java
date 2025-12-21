@@ -10,6 +10,7 @@ import java.util.List;
 public class PhotoGallery implements UIComponent {
     private String title;
     private List<PhotoItem> photos;
+    private List<List<Button>> additionalButtons;
     
     @Data
     @Builder

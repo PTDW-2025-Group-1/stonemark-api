@@ -3,7 +3,6 @@ package pt.estga.chatbots.telegram;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -143,60 +142,109 @@ public class TelegramAdapter {
     private SendMessage renderMenu(String chatId, Menu menu) {
         SendMessage sendMessage = new SendMessage(chatId, menu.getTitle());
         if (menu.getButtons() != null && !menu.getButtons().isEmpty()) {
-            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-            List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-
-            for (List<Button> row : menu.getButtons()) {
-                List<InlineKeyboardButton> rowInline = new ArrayList<>();
-                for (Button button : row) {
-                    InlineKeyboardButton inlineButton = new InlineKeyboardButton();
-                    inlineButton.setText(button.getText());
-                    inlineButton.setCallbackData(button.getCallbackData());
-                    rowInline.add(inlineButton);
-                }
-                rowsInline.add(rowInline);
-            }
-
-            markupInline.setKeyboard(rowsInline);
-            sendMessage.setReplyMarkup(markupInline);
+            sendMessage.setReplyMarkup(createInlineKeyboardMarkup(menu.getButtons()));
         }
         return sendMessage;
     }
 
     private SendMessage renderLocationRequest(String chatId, LocationRequest locationRequest) {
         SendMessage message = new SendMessage(chatId, locationRequest.getMessage());
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
-        KeyboardButton button = new KeyboardButton();
-        button.setText("Send my location");
-        button.setRequestLocation(true);
-        row.add(button);
-        keyboard.add(row);
-        keyboardMarkup.setKeyboard(keyboard);
-        keyboardMarkup.setOneTimeKeyboard(true);
-        message.setReplyMarkup(keyboardMarkup);
+        message.setReplyMarkup(createReplyKeyboardMarkup("Send my location", true, false));
         return message;
     }
 
     private SendMessage renderContactRequest(String chatId, ContactRequest contactRequest) {
         SendMessage message = new SendMessage(chatId, contactRequest.getMessage());
-        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        KeyboardRow row = new KeyboardRow();
-        KeyboardButton button = new KeyboardButton();
-        button.setText("Share my phone number");
-        button.setRequestContact(true);
-        row.add(button);
-        keyboard.add(row);
-        keyboardMarkup.setKeyboard(keyboard);
-        keyboardMarkup.setOneTimeKeyboard(true);
-        message.setReplyMarkup(keyboardMarkup);
+        message.setReplyMarkup(createReplyKeyboardMarkup("Share my phone number", false, true));
         return message;
     }
 
     private List<PartialBotApiMethod<?>> renderPhotoGallery(String chatId, PhotoGallery gallery) {
-        // Todo: Implement photo gallery rendering
-        return null;
+        List<PartialBotApiMethod<?>> methods = new ArrayList<>();
+
+        if (gallery.getTitle() != null) {
+            methods.add(new SendMessage(chatId, gallery.getTitle()));
+        }
+
+        if (gallery.getPhotos() != null) {
+            for (PhotoGallery.PhotoItem item : gallery.getPhotos()) {
+                InlineKeyboardMarkup markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
+                
+                if (item.getImageUrl() != null) {
+                    SendPhoto photo = new SendPhoto();
+                    photo.setChatId(chatId);
+                    photo.setCaption(item.getCaption());
+                    
+                    InputFile inputFile = new InputFile();
+                    String imageUrl = item.getImageUrl();
+                    
+                    if (imageUrl.startsWith("http")) {
+                        try {
+                            java.net.URL url = java.net.URI.create(imageUrl).toURL();
+                            inputFile.setMedia(url.openStream(), "image.jpg");
+                        } catch (Exception e) {
+                            log.warn("Could not read URL {}, letting Telegram try.", imageUrl);
+                            inputFile.setMedia(imageUrl);
+                        }
+                    } else {
+                        inputFile.setMedia(new File(imageUrl));
+                    }
+                    photo.setPhoto(inputFile);
+
+                    photo.setReplyMarkup(markup);
+                    methods.add(photo);
+                } else {
+                    SendMessage message = new SendMessage(chatId, item.getCaption());
+                    message.setReplyMarkup(markup);
+                    methods.add(message);
+                }
+            }
+        }
+
+        if (gallery.getAdditionalButtons() != null && !gallery.getAdditionalButtons().isEmpty()) {
+            SendMessage message = new SendMessage(chatId, "Or:");
+            message.setReplyMarkup(createInlineKeyboardMarkup(gallery.getAdditionalButtons()));
+            methods.add(message);
+        }
+
+        return methods;
+    }
+
+    private InlineKeyboardMarkup createInlineKeyboardMarkup(List<List<Button>> buttons) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        for (List<Button> row : buttons) {
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            for (Button button : row) {
+                InlineKeyboardButton inlineButton = new InlineKeyboardButton();
+                inlineButton.setText(button.getText());
+                inlineButton.setCallbackData(button.getCallbackData());
+                rowInline.add(inlineButton);
+            }
+            rowsInline.add(rowInline);
+        }
+
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
+    }
+
+    private InlineKeyboardMarkup createSingleButtonInlineMarkup(String text, String callbackData) {
+        return createInlineKeyboardMarkup(List.of(List.of(Button.builder().text(text).callbackData(callbackData).build())));
+    }
+
+    private ReplyKeyboardMarkup createReplyKeyboardMarkup(String buttonText, boolean requestLocation, boolean requestContact) {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        KeyboardButton button = new KeyboardButton();
+        button.setText(buttonText);
+        if (requestLocation) button.setRequestLocation(true);
+        if (requestContact) button.setRequestContact(true);
+        row.add(button);
+        keyboard.add(row);
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        return keyboardMarkup;
     }
 }

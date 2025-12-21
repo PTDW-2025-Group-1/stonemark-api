@@ -66,6 +66,7 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
                     .title(proposedMark.getTitle())
                     .description(proposedMark.getDescription())
                     .embedding(proposal.getEmbedding())
+                    .cover(proposedMark.getMediaFile())
                     .build();
             mark = markRepository.save(mark);
         }

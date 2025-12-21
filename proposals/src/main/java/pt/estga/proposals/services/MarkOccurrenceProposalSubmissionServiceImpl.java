@@ -22,6 +22,7 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
 
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final DetectionService detectionService;
+    // Todo: change to MediaService
     private final FileStorageService fileStorageService;
 
     @Override

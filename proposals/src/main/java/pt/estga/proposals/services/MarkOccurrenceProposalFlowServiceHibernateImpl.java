@@ -250,11 +250,18 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     private void handleGpsData(MarkOccurrenceProposal proposal, Location gpsData) {
         log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", proposal.getId(), gpsData.getLatitude(), gpsData.getLongitude());
-        List<Monument> monuments = monumentRepository.findByCoordinatesInRange(
-                gpsData.getLatitude(),
-                gpsData.getLongitude(),
-                COORDINATE_SEARCH_RANGE
+        
+        double minLat = gpsData.getLatitude() - COORDINATE_SEARCH_RANGE;
+        double maxLat = gpsData.getLatitude() + COORDINATE_SEARCH_RANGE;
+        double minLon = gpsData.getLongitude() - COORDINATE_SEARCH_RANGE;
+        double maxLon = gpsData.getLongitude() + COORDINATE_SEARCH_RANGE;
+        
+        log.info("Searching for monuments between lat [{}, {}] and lon [{}, {}]", minLat, maxLat, minLon, maxLon);
+        
+        List<Monument> monuments = monumentRepository.findByLatitudeBetweenAndLongitudeBetween(
+                minLat, maxLat, minLon, maxLon
         );
+
         if (!monuments.isEmpty()) {
             log.info("Found {} existing monuments for proposal {}", monuments.size(), proposal.getId());
             try {

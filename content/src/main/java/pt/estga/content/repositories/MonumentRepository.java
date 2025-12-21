@@ -21,6 +21,8 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @Query("SELECT m FROM Monument m WHERE m.latitude BETWEEN :lat - :range AND :lat + :range AND m.longitude BETWEEN :lon - :range AND :lon + :range")
     List<Monument> findByCoordinatesInRange(@Param("lat") double latitude, @Param("lon") double longitude, @Param("range") double range);
 
+    List<Monument> findByLatitudeBetweenAndLongitudeBetween(double minLat, double maxLat, double minLon, double maxLon);
+
     Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
 
     Page<Monument> findByNameContainingIgnoreCase(String name, Pageable pageable);
