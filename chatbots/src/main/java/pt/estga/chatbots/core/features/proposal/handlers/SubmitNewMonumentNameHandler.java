@@ -27,6 +27,7 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
                 proposal.getLatitude(),
                 proposal.getLongitude()
         );
+        context.setCurrentState(ConversationState.LOOP_OPTIONS);
         return monumentProcessorService.processMonumentStep(context, updatedProposal);
     }
 

@@ -10,7 +10,6 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.FileStorageService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
         try (InputStream inputStream = resource.getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(inputStream, mediaFile.getFileName());
 
-            proposal.setStatus(ProposalStatus.SUBMITTED);
+            proposal.setSubmitted(true);
 
             // Save embedding for the MarkOccurrenceProposal itself
             if (detectionResult != null && detectionResult.embedding() != null) {

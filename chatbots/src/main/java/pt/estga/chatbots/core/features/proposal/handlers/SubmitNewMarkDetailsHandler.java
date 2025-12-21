@@ -20,6 +20,7 @@ public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         proposalFlowService.proposeMark(context.getProposal().getId(), input.getText());
+        context.setCurrentState(ConversationState.LOOP_OPTIONS);
         return coordinatesProcessorService.processCoordinates(context);
     }
 

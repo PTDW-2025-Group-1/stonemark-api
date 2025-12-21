@@ -7,11 +7,11 @@ import pt.estga.proposals.enums.ProposalStatus;
 
 public record MarkOccurrenceProposalDto(
         Long id,
-        ProposalStatus status,
         MediaFileDto originalMediaFile,
         MonumentResponseDto existingMonument,
         ProposedMonumentDto proposedMonument,
         MarkDto existingMark,
-        ProposedMarkDto proposedMark
+        ProposedMarkDto proposedMark,
+        boolean isSubmitted
 ) {
 }

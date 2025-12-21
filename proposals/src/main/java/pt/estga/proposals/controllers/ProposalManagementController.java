@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.proposals.dtos.ProposalStateDto;
+import pt.estga.proposals.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposals.services.MarkOccurrenceProposalManagementService;
@@ -19,14 +19,14 @@ public class ProposalManagementController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PostMapping("/{proposalId}/approve")
-    public ResponseEntity<ProposalStateDto> approve(@PathVariable Long proposalId) {
+    public ResponseEntity<MarkOccurrenceProposalDto> approve(@PathVariable Long proposalId) {
         MarkOccurrenceProposal proposal = markOccurrenceProposalManagementService.approve(proposalId);
-        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal approved."));
+        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
     }
 
     @PostMapping("/{proposalId}/reject")
-    public ResponseEntity<ProposalStateDto> reject(@PathVariable Long proposalId) {
+    public ResponseEntity<MarkOccurrenceProposalDto> reject(@PathVariable Long proposalId) {
         MarkOccurrenceProposal proposal = markOccurrenceProposalManagementService.reject(proposalId);
-        return ResponseEntity.ok(new ProposalStateDto(markOccurrenceProposalMapper.toDto(proposal), proposal.getStatus(), "Proposal rejected."));
+        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
     }
 }

@@ -60,11 +60,6 @@ public class MarkOccurrenceProposal {
     private String userNotes;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private ProposalStatus status = ProposalStatus.IN_PROGRESS;
-
-    @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
 
     @CreatedBy
@@ -78,4 +73,7 @@ public class MarkOccurrenceProposal {
 
     private Double latitude;
     private Double longitude;
+
+    @Builder.Default
+    private boolean isSubmitted = false;
 }

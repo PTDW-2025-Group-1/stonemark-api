@@ -29,6 +29,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         if (confirmed) {
             Long monumentId = Long.valueOf(callbackDataParts[2]);
             MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposalId, monumentId);
+            context.setCurrentState(ConversationState.LOOP_OPTIONS);
             return monumentProcessorService.processMonumentStep(context, updatedProposal);
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);

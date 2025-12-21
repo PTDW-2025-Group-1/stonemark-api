@@ -35,8 +35,4 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
         return repository.findByCreatedBy(user);
     }
 
-    @Override
-    public List<MarkOccurrenceProposal> findByStatus(ProposalStatus status) {
-        return repository.findByStatus(status);
-    }
 }

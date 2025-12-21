@@ -32,14 +32,6 @@ public class MarkOccurrenceProposalController {
                 .collect(Collectors.toList()));
     }
 
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<MarkOccurrenceProposalDto>> findByStatus(@PathVariable ProposalStatus status) {
-        List<MarkOccurrenceProposal> proposals = proposalService.findByStatus(status);
-        return ResponseEntity.ok(proposals.stream()
-                .map(markOccurrenceProposalMapper::toDto)
-                .collect(Collectors.toList()));
-    }
-
     @GetMapping("/{proposalId}")
     public ResponseEntity<MarkOccurrenceProposalDto> findById(@PathVariable Long proposalId) {
         return proposalService.findById(proposalId)

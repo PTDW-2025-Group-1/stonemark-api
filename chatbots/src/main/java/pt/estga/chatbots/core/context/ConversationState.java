@@ -15,4 +15,5 @@ public enum ConversationState {
     AWAITING_NOTES,
     READY_TO_SUBMIT,
     SUBMITTED,
+    LOOP_OPTIONS
 }

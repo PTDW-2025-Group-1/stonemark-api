@@ -25,6 +25,7 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
         if (matches) {
             proposalFlowService.selectMark(context.getProposal().getId(), null); // This will be improved later
+            context.setCurrentState(ConversationState.LOOP_OPTIONS);
             return coordinatesProcessorService.processCoordinates(context);
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);

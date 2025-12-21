@@ -8,6 +8,8 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename) throws IOException;
 
+    MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
+
     MarkOccurrenceProposal selectMonument(Long proposalId, Long existingMonumentId);
 
     MarkOccurrenceProposal proposeMonument(Long proposalId, String title, Double latitude, Double longitude);

@@ -25,6 +25,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
         Long markId = Long.valueOf(callbackData.substring(CallbackData.SELECT_MARK_PREFIX.length()));
         proposalFlowService.selectMark(proposalId, markId);
         
+        context.setCurrentState(ConversationState.LOOP_OPTIONS);
         return coordinatesProcessorService.processCoordinates(context);
     }
 

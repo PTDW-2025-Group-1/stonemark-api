@@ -37,7 +37,7 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         Long monumentId = Long.valueOf(callbackData.substring(CallbackData.SELECT_MONUMENT_PREFIX.length()));
         MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposal.getId(), monumentId);
         context.setProposal(updatedProposal);
-        context.setCurrentState(ConversationState.AWAITING_MARK_SELECTION);
+        context.setCurrentState(ConversationState.LOOP_OPTIONS);
 
         try {
             List<String> suggestedMarkIds = objectMapper.readValue(updatedProposal.getSuggestedMarkIds(), new TypeReference<>() {});

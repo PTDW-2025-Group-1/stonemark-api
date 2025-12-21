@@ -22,11 +22,19 @@ public class PhotoProcessorService {
 
     public BotResponse processPhoto(ConversationContext context, BotInput input) {
         try {
-            Long domainUserId = context.getDomainUserId();
-            log.info("Initiating proposal for user ID: {} (domain ID: {}) with file: {}", input.getUserId(), domainUserId, input.getFileName());
-            MarkOccurrenceProposal proposal = proposalFlowService.initiate(domainUserId, input.getFileData(), input.getFileName());
-            context.setProposal(proposal);
-            log.info("Proposal with ID {} created.", proposal.getId());
+            MarkOccurrenceProposal proposal = context.getProposal();
+            if (proposal == null) {
+                Long domainUserId = context.getDomainUserId();
+                log.info("Initiating proposal for user ID: {} (domain ID: {}) with file: {}", input.getUserId(), domainUserId, input.getFileName());
+                proposal = proposalFlowService.initiate(domainUserId, input.getFileData(), input.getFileName());
+                context.setProposal(proposal);
+                log.info("Proposal with ID {} created.", proposal.getId());
+            } else {
+                log.info("Updating proposal ID {} with new photo: {}", proposal.getId(), input.getFileName());
+                proposal = proposalFlowService.updatePhoto(proposal.getId(), input.getFileData(), input.getFileName());
+                context.setProposal(proposal);
+                log.info("Proposal with ID {} updated.", proposal.getId());
+            }
 
             return markProcessorService.processMarkSuggestions(context, proposal);
 

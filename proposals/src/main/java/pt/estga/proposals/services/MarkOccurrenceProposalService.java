@@ -17,6 +17,4 @@ public interface MarkOccurrenceProposalService {
 
     List<MarkOccurrenceProposal> findByUser(User user);
 
-    List<MarkOccurrenceProposal> findByStatus(ProposalStatus status);
-
 }

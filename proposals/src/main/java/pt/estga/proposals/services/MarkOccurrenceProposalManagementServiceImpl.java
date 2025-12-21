@@ -12,7 +12,6 @@ import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     public MarkOccurrenceProposal approve(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        if (proposal.getStatus() != ProposalStatus.SUBMITTED) {
+        if (!proposal.isSubmitted()) {
             throw new IllegalStateException("Only submitted proposals can be approved.");
         }
 
@@ -79,16 +78,16 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
                 .build();
         markOccurrenceRepository.save(occurrence);
 
-        proposal.setStatus(ProposalStatus.APPROVED);
         return proposalRepository.save(proposal);
     }
 
     @Override
     @Transactional
     public MarkOccurrenceProposal reject(Long proposalId) {
+        // Todo: improve this logic
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        proposal.setStatus(ProposalStatus.REJECTED);
-        return proposalRepository.save(proposal);
+        proposalRepository.delete(proposal);
+        return proposal;
     }
 
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
