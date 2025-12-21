@@ -11,6 +11,7 @@ import pt.estga.chatbots.core.models.BotResponse;
 import pt.estga.chatbots.core.models.ui.Button;
 import pt.estga.chatbots.core.models.ui.Menu;
 import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
 
 import java.util.List;
 
@@ -19,23 +20,24 @@ import java.util.List;
 public class AddNotesHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final MarkOccurrenceProposalSubmissionService submissionService;
 
     @Override
     public BotResponse handle(ConversationContext context, BotInput input) {
         proposalFlowService.addNotesToProposal(context.getProposal().getId(), input.getText());
-        context.setCurrentState(ConversationState.READY_TO_SUBMIT);
+        submissionService.submit(context.getProposal().getId());
+        context.setProposal(null);
+        context.setCurrentState(ConversationState.START);
 
-        Menu submissionMenu = Menu.builder()
-                .title("Your proposal is ready to submit.")
+        Menu thankYouMenu = Menu.builder()
+                .title("Thank you for your submission!")
                 .buttons(List.of(
-                        List.of(
-                                Button.builder().text("Submit").callbackData(CallbackData.SUBMIT_PROPOSAL).build()
-                        )
+                        List.of(Button.builder().text("Back to Main Menu").callbackData(CallbackData.BACK_TO_MAIN_MENU).build())
                 ))
                 .build();
 
         return BotResponse.builder()
-                .uiComponent(submissionMenu)
+                .uiComponent(thankYouMenu)
                 .build();
     }
 

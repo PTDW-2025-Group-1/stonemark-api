@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposals.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
 import pt.estga.user.entities.User;

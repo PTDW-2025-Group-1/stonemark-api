@@ -20,12 +20,6 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal proposeMark(Long proposalId, String description);
 
-    MarkOccurrenceProposal requestNewMark(Long proposalId);
-
-    MarkOccurrenceProposal requestNewMonument(Long proposalId);
-
-    MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed);
-
     MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes);
 
     MarkOccurrenceProposal addLocationToProposal(Long proposalId, Double latitude, Double longitude);

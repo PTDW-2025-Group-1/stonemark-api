@@ -198,45 +198,6 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
     }
 
     @Override
-    public MarkOccurrenceProposal requestNewMark(Long proposalId) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        return proposalRepository.save(proposal);
-    }
-
-    @Override
-    public MarkOccurrenceProposal requestNewMonument(Long proposalId) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        return proposalRepository.save(proposal);
-    }
-
-    @Override
-    public MarkOccurrenceProposal confirmMonumentLocation(Long proposalId, boolean confirmed) {
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        if (confirmed) {
-            Location locationToUse = null;
-
-            // Prioritize user-provided monument location if available
-            if (proposal.getProposedMonument() != null &&
-                proposal.getProposedMonument().getLatitude() != null &&
-                proposal.getProposedMonument().getLongitude() != null) {
-                log.info("Using user-provided proposed monument location for proposal {}", proposal.getId());
-                locationToUse = new Location(proposal.getProposedMonument().getLatitude(), proposal.getProposedMonument().getLongitude());
-            } else if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-                // Fallback to cached GPS data from the photo
-                log.info("Using cached GPS data from photo for proposal {}", proposal.getId());
-                locationToUse = new Location(proposal.getLatitude(), proposal.getLongitude());
-            } else {
-                log.warn("No cached GPS data or proposed monument location found for proposal {}.", proposal.getId());
-            }
-
-            if (locationToUse != null) {
-                handleGpsData(proposal, locationToUse);
-            }
-        }
-        return proposalRepository.save(proposal);
-    }
-
-    @Override
     public MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
