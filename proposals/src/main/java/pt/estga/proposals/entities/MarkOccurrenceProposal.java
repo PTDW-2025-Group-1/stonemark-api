@@ -50,7 +50,6 @@ public class MarkOccurrenceProposal {
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    // Todo: pass back to single value
     private String suggestedMarkIds;
 
     @Lob

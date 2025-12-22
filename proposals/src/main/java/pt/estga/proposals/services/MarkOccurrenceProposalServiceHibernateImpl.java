@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
@@ -30,6 +31,12 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     @Override
     public List<MarkOccurrenceProposal> findByUser(User user) {
         return repository.findByCreatedBy(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId) {
+        return repository.findFirstByIsSubmitted(false);
     }
 
     @Override

@@ -8,6 +8,7 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.user.entities.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
@@ -15,6 +16,8 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     List<MarkOccurrenceProposal> findByCreatedBy(User user);
 
     List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
+
+    Optional<MarkOccurrenceProposal> findFirstByIsSubmitted(boolean isSubmitted);
 
     @Query("SELECT COUNT(p) FROM MarkOccurrenceProposal p WHERE p.createdBy = :user AND p.status = 'APPROVED'")
     long countApprovedProposalsByUser(@Param("user") User user);

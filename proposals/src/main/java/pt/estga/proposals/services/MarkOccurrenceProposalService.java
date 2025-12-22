@@ -13,6 +13,8 @@ public interface MarkOccurrenceProposalService {
     Page<MarkOccurrenceProposal> getAll(Pageable pageable);
 
     Optional<MarkOccurrenceProposal> findById(Long id);
+    
+    Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId);
 
     List<MarkOccurrenceProposal> findByUser(User user);
 

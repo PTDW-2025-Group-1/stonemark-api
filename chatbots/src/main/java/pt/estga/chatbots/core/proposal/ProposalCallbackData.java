@@ -23,4 +23,6 @@ public final class ProposalCallbackData {
     public static final String SUBMISSION_LOOP_CONTINUE = "submission_loop_continue";
     public static final String SKIP_NOTES = "skip_notes";
     public static final String SKIP_MARK_DETAILS = "skip_mark_details";
+    public static final String CONTINUE_PROPOSAL = "continue_proposal";
+    public static final String DELETE_AND_START_NEW = "delete_and_start_new";
 }

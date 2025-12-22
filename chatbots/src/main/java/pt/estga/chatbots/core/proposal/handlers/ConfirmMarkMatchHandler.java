@@ -6,7 +6,6 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
-import pt.estga.chatbots.core.proposal.service.CoordinatesProcessorService;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
@@ -20,16 +19,19 @@ import java.util.List;
 public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final CoordinatesProcessorService coordinatesProcessorService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        boolean matches = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(input.getCallbackData().split(":")[1]);
+        String[] callbackDataParts = input.getCallbackData().split(":");
+        boolean matches = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackDataParts[1]);
 
         if (matches) {
-            proposalFlowService.selectMark(context.getProposal().getId(), null); // This will be improved later
-            context.setCurrentState(ConversationState.LOOP_OPTIONS);
-            return coordinatesProcessorService.processCoordinates(context);
+            Long markId = Long.valueOf(callbackDataParts[2]);
+            proposalFlowService.selectMark(context.getProposal().getId(), markId);
+            context.setCurrentState(ConversationState.AWAITING_LOCATION);
+            return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please provide the location.").build())
+                    .build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
             return Collections.singletonList(BotResponse.builder()

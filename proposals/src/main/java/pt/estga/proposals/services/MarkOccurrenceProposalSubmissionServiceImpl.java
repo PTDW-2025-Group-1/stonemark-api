@@ -1,60 +1,46 @@
 package pt.estga.proposals.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.detection.model.DetectionResult;
-import pt.estga.detection.service.DetectionService;
-import pt.estga.file.entities.MediaFile;
-import pt.estga.file.services.MediaService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurrenceProposalSubmissionService {
 
     private final MarkOccurrenceProposalService proposalService;
-    private final DetectionService detectionService;
-    private final MediaService mediaService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
     public MarkOccurrenceProposal submit(Long proposalId) {
+        log.info("Submitting proposal with ID: {}", proposalId);
         MarkOccurrenceProposal proposal = proposalService.findById(proposalId)
-                .orElseThrow(() -> new RuntimeException("Proposal not found"));
+                .orElseThrow(() -> {
+                    log.error("Proposal with ID {} not found during submission", proposalId);
+                    return new RuntimeException("Proposal not found");
+                });
 
-        MediaFile mediaFile = proposal.getOriginalMediaFile();
-        Resource resource = mediaService.loadFile(mediaFile.getStoragePath());
+        proposal.setSubmitted(true);
 
-        try (InputStream inputStream = resource.getInputStream()) {
-            DetectionResult detectionResult = detectionService.detect(inputStream, mediaFile.getFileName());
-
-            proposal.setSubmitted(true);
-
-            // Save embedding for the MarkOccurrenceProposal itself
-            if (detectionResult != null && detectionResult.embedding() != null) {
-                proposal.setEmbedding(detectionResult.embedding());
-            }
-
-            // If there's a proposed mark, save its embedding too (if applicable)
-            ProposedMark proposedMark = proposal.getProposedMark();
-            if (proposedMark != null && detectionResult != null && detectionResult.embedding() != null) {
-                proposedMark.setEmbedding(detectionResult.embedding());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading image data", e);
+        // Ensure embedding is propagated to ProposedMark if it exists and hasn't been set yet
+        ProposedMark proposedMark = proposal.getProposedMark();
+        if (proposedMark != null && proposal.getEmbedding() != null && (proposedMark.getEmbedding() == null || proposedMark.getEmbedding().isEmpty())) {
+            log.info("Propagating embedding to ProposedMark for proposal ID: {}", proposalId);
+            proposedMark.setEmbedding(proposal.getEmbedding());
         }
 
         MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
+        log.info("Proposal with ID: {} submitted successfully", proposalId);
+        
         eventPublisher.publishEvent(new ProposalSubmittedEvent(this, updatedProposal));
+        log.debug("Published ProposalSubmittedEvent for proposal ID: {}", proposalId);
 
         return updatedProposal;
     }

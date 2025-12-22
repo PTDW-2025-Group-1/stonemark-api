@@ -34,7 +34,7 @@ public class OptionsMessageHandler implements ConversationStateHandler {
 
         if (isAuthenticated) {
             title = "What would you like to do?";
-            buttons.add(Button.builder().text("New Submission").callbackData(ProposalCallbackData.START_SUBMISSION).build());
+            buttons.add(Button.builder().text("Propose a mason's mark").callbackData(ProposalCallbackData.START_SUBMISSION).build());
         } else {
             title = "To use this chatbot, you need to verify your account.";
             buttons.add(Button.builder().text("Verify Account").callbackData(VerificationCallbackData.START_VERIFICATION).build());

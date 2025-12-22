@@ -2,7 +2,7 @@ package pt.estga.chatbots.core.shared.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.features.auth.handlers.AuthenticationGuardHandler;
+import pt.estga.chatbots.core.auth.handlers.AuthenticationGuardHandler;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;

@@ -29,13 +29,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccurrenceProposalFlowService {
+public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProposalFlowService {
 
     private final MarkOccurrenceProposalService proposalService;
     private final MediaService mediaService;
@@ -68,7 +67,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal processSubmission(Long proposalId) throws IOException {
+    public MarkOccurrenceProposal analyzeMedia(Long proposalId) throws IOException {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         Resource photoResource = mediaService.loadFile(proposal.getOriginalMediaFile().getStoragePath());
 
@@ -179,6 +178,16 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         log.info("User proposed a new mark for proposal ID: {}.", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
+        if (description == null || description.trim().isEmpty()) {
+            clearMarkSelections(proposal);
+            ProposedMark proposedMark = new ProposedMark();
+            proposedMark.setDescription("");
+            proposedMark.setMediaFile(proposal.getOriginalMediaFile());
+            ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
+            proposal.setProposedMark(savedProposedMark);
+            return proposalService.update(proposal);
+        }
+
         ProposedMark proposedMark = proposal.getProposedMark();
         if (proposedMark == null) {
             clearMarkSelections(proposal);
@@ -186,7 +195,7 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
             proposal.setProposedMark(proposedMark);
         }
 
-        proposedMark.setDescription(Optional.ofNullable(description).orElse(""));
+        proposedMark.setDescription(description);
         proposedMark.setMediaFile(proposal.getOriginalMediaFile());
 
         ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
@@ -208,6 +217,11 @@ public class MarkOccurrenceProposalFlowServiceHibernateImpl implements MarkOccur
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
         return proposalService.update(proposal);
+    }
+
+    @Override
+    public MarkOccurrenceProposal getProposal(Long proposalId) {
+        return findProposalById(proposalId);
     }
 
     private MarkOccurrenceProposal findProposalById(Long proposalId) {

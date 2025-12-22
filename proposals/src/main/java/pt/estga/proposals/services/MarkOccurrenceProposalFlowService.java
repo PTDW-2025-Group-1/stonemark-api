@@ -8,7 +8,7 @@ public interface MarkOccurrenceProposalFlowService {
 
     MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename, Double latitude, Double longitude) throws IOException;
 
-    MarkOccurrenceProposal processSubmission(Long proposalId) throws IOException;
+    MarkOccurrenceProposal analyzeMedia(Long proposalId) throws IOException;
 
     MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
 
@@ -23,5 +23,7 @@ public interface MarkOccurrenceProposalFlowService {
     MarkOccurrenceProposal addNotesToProposal(Long proposalId, String notes);
 
     MarkOccurrenceProposal addLocationToProposal(Long proposalId, Double latitude, Double longitude);
+
+    MarkOccurrenceProposal getProposal(Long proposalId);
 
 }

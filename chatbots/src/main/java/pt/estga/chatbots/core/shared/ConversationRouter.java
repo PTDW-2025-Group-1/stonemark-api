@@ -3,7 +3,7 @@ package pt.estga.chatbots.core.shared;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.features.auth.AuthenticationGuard;
+import pt.estga.chatbots.core.auth.AuthenticationGuard;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class DecisionRecordServiceHibernateImpl implements DecisionRecordService {
+public class DecisionRecordServiceImpl implements DecisionRecordService {
 
     private final DecisionRecordRepository repository;
 

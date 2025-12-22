@@ -24,10 +24,12 @@ public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         MarkOccurrenceProposal proposal = context.getProposal();
-        if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_MARK_DETAILS)) {
-            proposal = proposalFlowService.proposeMark(proposal.getId(), input.getText());
-            context.setProposal(proposal);
-        }
+        String description = (input.getCallbackData() != null && input.getCallbackData().equals(ProposalCallbackData.SKIP_MARK_DETAILS))
+                ? ""
+                : input.getText();
+
+        proposal = proposalFlowService.proposeMark(proposal.getId(), description);
+        context.setProposal(proposal);
 
         return monumentSuggestionProcessorService.processMonumentSuggestions(context, proposal);
     }

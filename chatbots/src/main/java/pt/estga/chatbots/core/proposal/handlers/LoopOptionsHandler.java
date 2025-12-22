@@ -45,7 +45,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
 
             case ProposalCallbackData.LOOP_CONTINUE:
                 try {
-                    MarkOccurrenceProposal updatedProposal = proposalFlowService.processSubmission(proposal.getId());
+                    MarkOccurrenceProposal updatedProposal = proposalFlowService.analyzeMedia(proposal.getId());
                     context.setProposal(updatedProposal);
                     return markProcessorService.processMarkSuggestions(context, updatedProposal);
                 } catch (IOException e) {

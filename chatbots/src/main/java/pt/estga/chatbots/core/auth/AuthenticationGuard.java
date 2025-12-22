@@ -1,4 +1,4 @@
-package pt.estga.chatbots.core.features.auth;
+package pt.estga.chatbots.core.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -47,13 +47,8 @@ public class AuthenticationGuard {
                    VerificationCallbackData.CHOOSE_VERIFY_WITH_PHONE.equals(callbackData);
         }
 
-        // Allow user to submit their phone number for verification
-        if (input.getType() == BotInput.InputType.CONTACT) {
-            return true;
-        }
-
-        // Deny everything else by default.
-        return false;
+        // Allow sending a contact
+        return input.getType() == BotInput.InputType.CONTACT;
     }
 
     private boolean isAuthenticated(BotInput input) {
