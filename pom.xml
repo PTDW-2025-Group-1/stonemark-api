@@ -35,6 +35,7 @@
         <module>bookmark</module>
         <module>verification</module>
         <module>report</module>
+        <module>security</module>
     </modules>
     <scm>
 		<connection/>

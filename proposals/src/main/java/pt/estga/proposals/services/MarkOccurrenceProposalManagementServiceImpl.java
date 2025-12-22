@@ -15,8 +15,6 @@ import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurrenceProposalManagementService {
@@ -26,49 +24,15 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     private final MarkRepository markRepository;
     private final MarkOccurrenceRepository markOccurrenceRepository;
 
-    // Search range in decimal degrees (~1.1km at equator)
-    private static final double COORDINATE_SEARCH_RANGE = 0.01;
-
     @Override
     @Transactional
     public MarkOccurrenceProposal approve(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        if (!proposal.isSubmitted()) {
-            throw new IllegalStateException("Only submitted proposals can be approved.");
-        }
+        validateProposalForApproval(proposal);
 
-        Monument monument = proposal.getExistingMonument();
-        if (monument == null) {
-            ProposedMonument proposedMonument = proposal.getProposedMonument();
-            List<Monument> existingMonuments = monumentRepository.findByCoordinatesInRange(
-                    proposedMonument.getLatitude(),
-                    proposedMonument.getLongitude(),
-                    COORDINATE_SEARCH_RANGE
-            );
-
-            if (!existingMonuments.isEmpty()) {
-                monument = existingMonuments.getFirst();
-            } else {
-                monument = Monument.builder()
-                        .name(proposedMonument.getName())
-                        .latitude(proposedMonument.getLatitude())
-                        .longitude(proposedMonument.getLongitude())
-                        .build();
-                monument = monumentRepository.save(monument);
-            }
-        }
-
-        Mark mark = proposal.getExistingMark();
-        if (mark == null) {
-            ProposedMark proposedMark = proposal.getProposedMark();
-            mark = Mark.builder()
-                    .description(proposedMark.getDescription())
-                    .embedding(proposal.getEmbedding())
-                    .cover(proposedMark.getMediaFile())
-                    .build();
-            mark = markRepository.save(mark);
-        }
+        Monument monument = resolveMonument(proposal);
+        Mark mark = resolveMark(proposal);
 
         MarkOccurrence occurrence = MarkOccurrence.builder()
                 .monument(monument)
@@ -101,5 +65,48 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
         return proposalRepository.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
+    }
+
+    private void validateProposalForApproval(MarkOccurrenceProposal proposal) {
+        if (!proposal.isSubmitted()) {
+            throw new IllegalStateException("Only submitted proposals can be approved.");
+        }
+        if (proposal.getExistingMonument() == null && proposal.getProposedMonument() == null) {
+            throw new IllegalStateException("Proposal must have either an existing monument or a proposed monument.");
+        }
+        if (proposal.getExistingMark() == null && proposal.getProposedMark() == null) {
+            throw new IllegalStateException("Proposal must have either an existing mark or a proposed mark.");
+        }
+    }
+
+    private Monument resolveMonument(MarkOccurrenceProposal proposal) {
+        // If the proposal links to an existing monument, use it.
+        if (proposal.getExistingMonument() != null) {
+            return proposal.getExistingMonument();
+        }
+
+        // Otherwise, create a new one based on the proposal details.
+        // We do NOT automatically check for nearby monuments here to avoid false positives.
+        ProposedMonument proposedMonument = proposal.getProposedMonument();
+        Monument newMonument = Monument.builder()
+                .name(proposedMonument.getName())
+                .latitude(proposedMonument.getLatitude())
+                .longitude(proposedMonument.getLongitude())
+                .build();
+        return monumentRepository.save(newMonument);
+    }
+
+    private Mark resolveMark(MarkOccurrenceProposal proposal) {
+        if (proposal.getExistingMark() != null) {
+            return proposal.getExistingMark();
+        }
+
+        ProposedMark proposedMark = proposal.getProposedMark();
+        Mark newMark = Mark.builder()
+                .description(proposedMark.getDescription())
+                .embedding(proposal.getEmbedding())
+                .cover(proposedMark.getMediaFile())
+                .build();
+        return markRepository.save(newMark);
     }
 }

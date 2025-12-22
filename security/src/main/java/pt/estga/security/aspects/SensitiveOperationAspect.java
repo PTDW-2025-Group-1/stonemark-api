@@ -1,4 +1,4 @@
-package pt.estga.auth.aspects;
+package pt.estga.security.aspects;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

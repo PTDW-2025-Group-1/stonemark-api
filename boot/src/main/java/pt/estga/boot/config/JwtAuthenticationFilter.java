@@ -12,8 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pt.estga.auth.services.JwtService;
-import pt.estga.auth.services.token.AccessTokenService;
+import pt.estga.security.services.AccessTokenService;
+import pt.estga.security.services.JwtService;
 
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         accessTokenService.findByTokenWithUser(jwt)
                 .filter(token -> !token.isRevoked())
                 .map(token -> (UserDetails) token.getUser())
-                .filter(userDetails -> jwtService.isTokenValid(jwt, userDetails))
+                .filter(userDetails -> jwtService.isTokenValid(jwt, userDetails.getUsername()))
                 .ifPresent(userDetails -> {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

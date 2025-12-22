@@ -1,8 +1,8 @@
-package pt.estga.auth.repositories;
+package pt.estga.security.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import pt.estga.auth.entities.RefreshToken;
+import pt.estga.security.entities.RefreshToken;
 import pt.estga.user.entities.User;
 
 import java.util.List;

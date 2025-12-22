@@ -1,11 +1,11 @@
-package pt.estga.auth.entities;
+package pt.estga.security.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import pt.estga.auth.enums.TokenType;
+import pt.estga.security.enums.TokenType;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;

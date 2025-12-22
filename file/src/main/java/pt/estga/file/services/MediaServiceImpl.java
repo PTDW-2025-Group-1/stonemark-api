@@ -42,6 +42,7 @@ public class MediaServiceImpl implements MediaService {
         String newFilename = "stonemark-" + media.getId() + (extension != null ? "." + extension : "");
         media.setFileName(newFilename);
 
+        // Todo: add target type start of relative path
         String normalizedFilename = newFilename.replace("\\", "/");
         String relativePath = String.format("%d/%s", media.getId(), normalizedFilename);
 

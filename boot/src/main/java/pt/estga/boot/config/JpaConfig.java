@@ -7,8 +7,7 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import pt.estga.user.entities.User;
-import pt.estga.user.services.AuditorUserService;
+import pt.estga.security.models.UserPrincipal;
 
 import java.util.Optional;
 
@@ -18,15 +17,25 @@ import java.util.Optional;
 public class JpaConfig {
 
     @Bean
-    public AuditorAware<User> auditorProvider(AuditorUserService auditorUserService) {
+    public AuditorAware<Long> auditorProvider() {
         return () -> {
             try {
-                return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                        .filter(Authentication::isAuthenticated)
-                        .map(Authentication::getName)
-                        .flatMap(auditorUserService::findByUsername);
+                Authentication authentication =
+                        SecurityContextHolder.getContext().getAuthentication();
+
+                if (authentication == null || !authentication.isAuthenticated()) {
+                    return Optional.empty();
+                }
+
+                Object principal = authentication.getPrincipal();
+
+                if (principal instanceof UserPrincipal userPrincipal) {
+                    return Optional.of(userPrincipal.getId());
+                }
+
+                return Optional.empty();
             } catch (Exception e) {
-                log.error("Error retrieving auditor user: {}", e.getMessage(), e);
+                log.error("Error retrieving auditor id", e);
                 return Optional.empty();
             }
         };

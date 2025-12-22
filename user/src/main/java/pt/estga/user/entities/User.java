@@ -3,18 +3,13 @@ package pt.estga.user.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Entity
 @Table(name = "_user")
@@ -23,7 +18,7 @@ import java.util.Optional;
 @Getter
 @Setter
 @Builder
-public class User implements UserDetails {
+public class User {
 
     @Id
     @GeneratedValue
@@ -57,60 +52,6 @@ public class User implements UserDetails {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserIdentity> identities = new ArrayList<>();
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return switch (role) {
-            case Role.ADMIN -> List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name(),
-                    () -> Role.MODERATOR.name(),
-                    () -> Role.ADMIN.name()
-            );
-            case Role.MODERATOR -> List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name(),
-                    () -> Role.MODERATOR.name()
-            );
-            case Role.REVIEWER ->  List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name()
-            );
-            case Role.USER -> List.of(
-                    () -> Role.USER.name()
-            );
-        };
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return !accountLocked;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
 
     @Override
     public boolean equals(Object o) {

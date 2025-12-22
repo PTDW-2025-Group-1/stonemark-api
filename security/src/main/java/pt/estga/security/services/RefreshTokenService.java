@@ -1,6 +1,6 @@
-package pt.estga.auth.services.token;
+package pt.estga.security.services;
 
-import pt.estga.auth.entities.RefreshToken;
+import pt.estga.security.entities.RefreshToken;
 import pt.estga.user.entities.User;
 
 import java.util.List;

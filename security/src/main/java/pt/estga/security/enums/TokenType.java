@@ -1,4 +1,4 @@
-package pt.estga.auth.enums;
+package pt.estga.security.enums;
 
 public enum TokenType {
     ACCESS,

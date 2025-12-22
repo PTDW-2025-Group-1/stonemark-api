@@ -11,11 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-import pt.estga.auth.entities.AccessToken;
-import pt.estga.auth.entities.RefreshToken;
-import pt.estga.auth.services.LogoutService;
-import pt.estga.auth.services.token.AccessTokenService;
-import pt.estga.auth.services.token.RefreshTokenService;
+import pt.estga.security.entities.AccessToken;
+import pt.estga.security.entities.RefreshToken;
+import pt.estga.security.services.AccessTokenService;
+import pt.estga.security.services.RefreshTokenService;
 
 import java.util.Optional;
 

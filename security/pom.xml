@@ -10,28 +10,18 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>auth</artifactId>
+    <artifactId>security</artifactId>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>pt.estga</groupId>
-            <artifactId>security</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.estga</groupId>
             <artifactId>user</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>pt.estga</groupId>
-            <artifactId>verification</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>

@@ -13,8 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TotpService;
-import pt.estga.auth.services.token.AccessTokenService;
-import pt.estga.auth.services.token.RefreshTokenService;
+import pt.estga.security.services.AccessTokenService;
+import pt.estga.security.services.JwtService;
+import pt.estga.security.services.RefreshTokenService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
@@ -81,8 +82,8 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
         }
 
-        var refreshTokenString = jwtService.generateRefreshToken(user);
-        var accessTokenString = jwtService.generateAccessToken(user);
+        var refreshTokenString = jwtService.generateRefreshToken(user.getUsername());
+        var accessTokenString = jwtService.generateAccessToken(user.getUsername());
 
         var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
         accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
@@ -152,16 +153,16 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public Optional<AuthenticationResponseDto> refreshToken(String refreshTokenString) {
         return refreshTokenService.findByToken(refreshTokenString)
                 .filter(token -> !token.isRevoked())
-                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUser()))
+                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUser().getUsername()))
                 .map(refreshToken -> {
                     User user = refreshToken.getUser();
 
                     accessTokenService.revokeAllByRefreshToken(refreshToken);
 
-                    String newAccessToken = jwtService.generateAccessToken(user);
+                    String newAccessToken = jwtService.generateAccessToken(user.getUsername());
                     accessTokenService.createToken(user.getUsername(), newAccessToken, refreshToken);
 
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getAuthorities().iterator().next().getAuthority(), user.getTfaMethod() != TfaMethod.NONE, false, false);
+                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, false);
                 });
     }
 

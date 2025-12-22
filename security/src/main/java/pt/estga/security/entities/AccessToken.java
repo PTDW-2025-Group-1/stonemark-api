@@ -1,4 +1,4 @@
-package pt.estga.auth.entities;
+package pt.estga.security.entities;
 
 import jakarta.persistence.*;
 import lombok.*;

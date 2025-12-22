@@ -1,4 +1,4 @@
-package pt.estga.auth.services;
+package pt.estga.security.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -8,7 +8,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -53,26 +52,26 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(String username) {
         Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, userDetails, accessTokenExpiration);
+        return buildToken(extraClaims, username, accessTokenExpiration);
     }
 
     @Override
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(String username) {
         Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, userDetails, refreshTokenExpiration);
+        return buildToken(extraClaims, username, refreshTokenExpiration);
     }
 
     private String buildToken(
             Map<String, Object> extraClaims,
-            UserDetails userDetails,
+            String username,
             long expiration
     ) {
         long current = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(username)
                 .issuedAt(new Date(current))
                 .expiration(new Date(current + expiration))
                 .signWith(getSigningKey())
@@ -80,12 +79,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public Boolean isTokenValid(String token, UserDetails userDetail) {
-        if (userDetail == null) {
+    public Boolean isTokenValid(String token, String username) {
+        if (username == null) {
             return false;
         }
-        final String username = extractUsername(token);
-        return username != null && (username.equals(userDetail.getUsername())) && !isTokenExpired(token);
+        final String extractedUsername = extractUsername(token);
+        return extractedUsername != null && (extractedUsername.equals(username)) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

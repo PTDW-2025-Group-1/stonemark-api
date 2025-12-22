@@ -1,12 +1,12 @@
-package pt.estga.auth.services.token;
+package pt.estga.security.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.auth.entities.AccessToken;
-import pt.estga.auth.entities.RefreshToken;
-import pt.estga.auth.repositories.AccessTokenRepository;
+import pt.estga.security.entities.AccessToken;
+import pt.estga.security.entities.RefreshToken;
+import pt.estga.security.repositories.AccessTokenRepository;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
