@@ -3,6 +3,8 @@ package pt.estga.auth.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import pt.estga.auth.enums.TokenType;
 import pt.estga.user.entities.User;
 
@@ -27,6 +29,7 @@ public abstract class BaseToken {
     private String token;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @Column(nullable = false)

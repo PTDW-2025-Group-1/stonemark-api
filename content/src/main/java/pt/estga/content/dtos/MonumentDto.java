@@ -5,5 +5,6 @@ public record MonumentDto(
         String name,
         String description,
         Double latitude,
-        Double longitude
+        Double longitude,
+        Long coverId
 ) { }

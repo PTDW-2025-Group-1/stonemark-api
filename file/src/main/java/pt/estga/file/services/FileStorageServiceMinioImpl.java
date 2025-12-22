@@ -9,12 +9,10 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "storage.provider", havingValue = "minio")
@@ -33,33 +31,26 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
     }
 
     @Override
-    public String storeFile(byte[] fileData, String filename, String directory) {
-        log.info("Storing file with filename: {} in directory: {}", filename, directory);
-        if (fileData == null || fileData.length == 0) {
-            log.error("Cannot store empty file");
-            throw new RuntimeException("Cannot store empty file");
+    public String storeFile(InputStream fileStream, String filename) {
+        log.info("Storing file with filename: {}", filename);
+        if (fileStream == null) {
+            log.error("Cannot store empty file stream");
+            throw new RuntimeException("Cannot store empty file stream");
         }
 
         try {
-            String originalName = filename;
-            String extension = "";
-            if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf('.'));
-            }
-            String newFileName = UUID.randomUUID() + extension;
-            String objectName = (directory != null && !directory.isBlank() ? directory + "/" : "") + newFileName;
 
-            log.debug("Putting object with name: {}", objectName);
+            log.debug("Putting object with name: {}", filename);
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(objectName)
-                            .stream(new ByteArrayInputStream(fileData), fileData.length, -1)
+                            .object(filename)
+                            .stream(fileStream, -1, 10485760) // Let Minio handle stream size and multipart
                             .build()
             );
 
-            log.info("File stored successfully with object name: {}", objectName);
-            return objectName;
+            log.info("File stored successfully with object name: {}", filename);
+            return filename;
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
             log.error("Failed to store file in MinIO", e);
             throw new RuntimeException("Failed to store file in MinIO", e);

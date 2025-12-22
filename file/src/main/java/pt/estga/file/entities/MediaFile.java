@@ -5,7 +5,6 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import pt.estga.file.enums.StorageProvider;
-import pt.estga.shared.enums.TargetType;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
@@ -30,9 +29,6 @@ public class MediaFile {
 
     private Long size;
 
-    @Column(columnDefinition = "TEXT")
-    private String metadata;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StorageProvider storageProvider;
@@ -42,12 +38,6 @@ public class MediaFile {
 
     @Column(length = 512)
     private String providerPublicId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private TargetType targetType;
-
-    private Long targetId;
 
     @CreatedDate
     private Instant uploadedAt;

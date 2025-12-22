@@ -10,6 +10,7 @@ import pt.estga.file.mappers.MediaFileMapper;
 @Mapper(componentModel = "spring", uses = {MediaFileMapper.class})
 public interface MarkMapper {
 
+    @Mapping(source = "cover.id", target = "coverId")
     MarkDto markToMarkDto(Mark mark);
 
     @Mapping(source = "coverId", target = "cover.id")

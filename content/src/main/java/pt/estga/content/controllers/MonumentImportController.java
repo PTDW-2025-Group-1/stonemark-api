@@ -22,6 +22,6 @@ public class MonumentImportController {
 
     @PostMapping("/overpass")
     public List<MonumentResponseDto> importFromOverpass(@RequestBody String geoJson) throws JsonProcessingException {
-        return monumentImportService.overpass(geoJson).stream().map(monumentMapper::toDto).toList();
+        return monumentImportService.overpass(geoJson).stream().map(monumentMapper::toResponseDto).toList();
     }
 }

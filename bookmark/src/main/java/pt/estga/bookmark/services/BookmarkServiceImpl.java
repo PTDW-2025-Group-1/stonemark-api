@@ -38,7 +38,7 @@ public class BookmarkServiceImpl implements BookmarkService {
 
         Object content = switch (type) {
             case MONUMENT -> monumentRepository.findById(targetId)
-                    .map(monumentMapper::toDto)
+                    .map(monumentMapper::toResponseDto)
                     .orElseThrow(() -> new IllegalArgumentException("Monument not found"));
 
             case MARK -> markRepository.findById(targetId)
@@ -67,7 +67,7 @@ public class BookmarkServiceImpl implements BookmarkService {
                 .map(b -> {
                     Object content = switch (b.getTargetType()) {
                         case MONUMENT -> monumentRepository.findById(b.getTargetId())
-                                .map(monumentMapper::toDto)
+                                .map(monumentMapper::toResponseDto)
                                 .orElse(null);
 
                         case MARK -> markRepository.findById(b.getTargetId())

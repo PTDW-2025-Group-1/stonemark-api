@@ -50,11 +50,11 @@ public class User implements UserDetails {
     @CreationTimestamp
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserContact> contacts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserIdentity> identities = new ArrayList<>();
 

@@ -53,7 +53,7 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
     @Transactional
     public MarkOccurrenceProposal initiate(Long userId, byte[] photoData, String filename, Double latitude, Double longitude) throws IOException {
         log.info("Initiating proposal for file: {}", filename);
-        MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
+        MediaFile mediaFile = mediaService.save(new ByteArrayInputStream(photoData), filename);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setOriginalMediaFile(mediaFile);
         proposal.setLatitude(latitude);
@@ -106,7 +106,7 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
     public MarkOccurrenceProposal updatePhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
         log.info("Updating photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        MediaFile mediaFile = mediaService.save(photoData, filename, TargetType.PROPOSAL);
+        MediaFile mediaFile = mediaService.save(new ByteArrayInputStream(photoData), filename);
         proposal.setOriginalMediaFile(mediaFile);
         return proposalService.update(proposal);
     }

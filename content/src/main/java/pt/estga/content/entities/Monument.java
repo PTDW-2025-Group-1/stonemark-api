@@ -2,6 +2,7 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pt.estga.file.entities.MediaFile;
 
 @Entity
 @NoArgsConstructor
@@ -18,6 +19,10 @@ public class Monument extends AuditableContentEntity {
     @Column(unique = true)
     private String name;
     private String description;
+
+    @OneToOne
+    private MediaFile cover;
+
     private Double latitude;
     private Double longitude;
     private String website;

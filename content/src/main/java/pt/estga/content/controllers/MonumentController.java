@@ -34,7 +34,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toDto);
+        return service.findAll(pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/search")
@@ -44,7 +44,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.searchByName(query, pageable).map(mapper::toDto);
+        return service.searchByName(query, pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/filter")
@@ -54,7 +54,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByCity(city, pageable).map(mapper::toDto);
+        return service.findByCity(city, pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/latest")
@@ -64,7 +64,7 @@ public class MonumentController {
         int safeLimit = Math.min(limit, 50);
         return service.findLatest(safeLimit)
                 .stream()
-                .map(mapper::toDto)
+                .map(mapper::toResponseDto)
                 .toList();
     }
 
@@ -78,7 +78,7 @@ public class MonumentController {
             @PathVariable Long id
     ) {
         return service.findById(id)
-                .map(mapper::toDto)
+                .map(mapper::toResponseDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -89,7 +89,7 @@ public class MonumentController {
     ) {
         Monument monument = mapper.toEntity(monumentDto);
         Monument createdMonument = service.create(monument);
-        MonumentResponseDto response = mapper.toDto(createdMonument);
+        MonumentResponseDto response = mapper.toResponseDto(createdMonument);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -109,7 +109,7 @@ public class MonumentController {
         Monument monument = mapper.toEntity(monumentDto);
         monument.setId(id);
         Monument updatedMonument = service.update(monument);
-        return ResponseEntity.ok(mapper.toDto(updatedMonument));
+        return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
     }
 
     @DeleteMapping("/{id}")

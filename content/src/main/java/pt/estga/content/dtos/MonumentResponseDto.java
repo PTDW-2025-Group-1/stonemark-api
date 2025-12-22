@@ -12,9 +12,7 @@ public record MonumentResponseDto(
         Double longitude,
         String address,
         String city,
+        Long coverId,
         Instant createdAt,
-        Instant lastModifiedAt,
-        String createdBy,
-        String lastModifiedBy
-) {
-}
+        Instant lastModifiedAt
+) { }

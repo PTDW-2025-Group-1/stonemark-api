@@ -5,7 +5,7 @@ import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.dtos.MarkOccurrenceDto;
 import pt.estga.user.entities.User;
 
-@Mapper(componentModel = "spring", uses = {MarkMapper.class})
+@Mapper(componentModel = "spring", uses = {MarkMapper.class, MonumentMapper.class})
 public interface MarkOccurrenceMapper {
 
     MarkOccurrenceDto toDto(MarkOccurrence entity);

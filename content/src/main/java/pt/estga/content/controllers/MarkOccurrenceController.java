@@ -99,7 +99,7 @@ public class MarkOccurrenceController {
     public List<MonumentResponseDto> getAvailableMonumentsByMark(@RequestParam Long markId) {
         return service.findAvailableMonumentsByMarkId(markId)
                 .stream()
-                .map(monumentMapper::toDto)
+                .map(monumentMapper::toResponseDto)
                 .toList();
     }
 

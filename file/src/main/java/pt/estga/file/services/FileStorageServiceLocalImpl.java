@@ -8,9 +8,9 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.*;
-import java.util.UUID;
 
 @Service
 @ConditionalOnProperty(name = "storage.provider", havingValue = "local", matchIfMissing = true)
@@ -32,38 +32,34 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
     }
 
     @Override
-    public String storeFile(byte[] fileData, String filename, String directory) {
-        log.info("Storing file with filename: {} in directory: {}", filename, directory);
-        if (fileData == null || fileData.length == 0) {
-            log.error("Cannot store empty file");
-            throw new RuntimeException("Cannot store empty file");
+    public String storeFile(InputStream fileStream, String filename) {
+        log.info("Storing file with filename: {}", filename);
+        if (fileStream == null) {
+            log.error("Cannot store empty file stream");
+            throw new RuntimeException("Cannot store empty file stream");
         }
 
         try {
-            // Create subdirectory if specified
-            Path targetDir = rootPath;
-            if (directory != null && !directory.isBlank()) {
-                targetDir = rootPath.resolve(directory).normalize();
-                log.debug("Creating subdirectory: {}", targetDir);
-                Files.createDirectories(targetDir);
+            // Resolve the full path
+            Path targetPath = rootPath.resolve(filename).normalize();
+            
+            // Security check: ensure the path is inside the root directory
+            if (!targetPath.startsWith(rootPath)) {
+                log.error("Security check failed: Cannot store file outside of root path. Path: {}", filename);
+                throw new SecurityException("Cannot store file outside of root path");
             }
 
-            // Generate safe unique filename
-            String originalName = filename;
-            String extension = "";
-            if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf('.'));
-            }
-            String newFileName = UUID.randomUUID() + extension;
+            // Create parent directories if they don't exist
+            Files.createDirectories(targetPath.getParent());
 
-            Path targetPath = targetDir.resolve(newFileName).normalize();
             log.debug("Writing file to: {}", targetPath);
 
             // Save file
-            Files.write(targetPath, fileData, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.copy(fileStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Return relative path (for DB storage)
-            String relativePath = rootPath.relativize(targetPath).toString().replace("\\", "/");
+            // Return the relative path (which is the filename passed in)
+            // Ensure we use forward slashes for consistency
+            String relativePath = filename.replace("\\", "/");
             log.info("File stored successfully at: {}", relativePath);
             return relativePath;
 
@@ -99,6 +95,19 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
         try {
             Path filePath = rootPath.resolve(path).normalize();
             Files.deleteIfExists(filePath);
+            
+            // Try to delete the parent folder if it's empty (cleanup)
+            Path parentDir = filePath.getParent();
+            if (parentDir != null && !parentDir.equals(rootPath)) {
+                try {
+                    if (Files.list(parentDir).findAny().isEmpty()) {
+                        Files.delete(parentDir);
+                    }
+                } catch (IOException ignored) {
+                    // Ignore if folder not empty or other error
+                }
+            }
+
             log.info("File deleted successfully from path: {}", path);
         } catch (IOException e) {
             log.error("Could not delete file: {}", path, e);
