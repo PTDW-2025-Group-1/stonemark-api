@@ -1,8 +1,5 @@
 package pt.estga.chatbots.core.proposal.handlers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
@@ -29,7 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SelectMonumentHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalFlowService proposalFlowService;
-    private final ObjectMapper objectMapper;
     private final MarkService markService;
 
     @Override
@@ -41,38 +37,31 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         context.setProposal(updatedProposal);
         context.setCurrentState(ConversationState.LOOP_OPTIONS);
 
-        try {
-            List<String> suggestedMarkIds = objectMapper.readValue(updatedProposal.getSuggestedMarkIds(), new TypeReference<>() {});
-            List<List<Button>> markButtons = new ArrayList<>();
-            AtomicInteger counter = new AtomicInteger(1);
-            for (String markId : suggestedMarkIds) {
-                Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
-                markOptional.ifPresent(mark -> {
-                    List<Button> row = new ArrayList<>();
-                    row.add(Button.builder().text(counter.getAndIncrement() + ". Mark #" + mark.getId())
-                            .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId()).build());
-                    markButtons.add(row);
-                });
-            }
-
-            List<Button> proposeNewRow = new ArrayList<>();
-            proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
-            markButtons.add(proposeNewRow);
-
-            Menu markSelectionMenu = Menu.builder()
-                    .title("I found some marks that might match. Please select one or propose a new one:")
-                    .buttons(markButtons)
-                    .build();
-
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(markSelectionMenu)
-                    .build());
-        } catch (JsonProcessingException e) {
-            // Handle exception
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing mark suggestions.").build())
-                    .build());
+        List<String> suggestedMarkIds = proposalFlowService.getSuggestedMarkIds(updatedProposal.getId());
+        List<List<Button>> markButtons = new ArrayList<>();
+        AtomicInteger counter = new AtomicInteger(1);
+        for (String markId : suggestedMarkIds) {
+            Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
+            markOptional.ifPresent(mark -> {
+                List<Button> row = new ArrayList<>();
+                row.add(Button.builder().text(counter.getAndIncrement() + ". Mark #" + mark.getId())
+                        .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId()).build());
+                markButtons.add(row);
+            });
         }
+
+        List<Button> proposeNewRow = new ArrayList<>();
+        proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
+        markButtons.add(proposeNewRow);
+
+        Menu markSelectionMenu = Menu.builder()
+                .title("I found some marks that might match. Please select one or propose a new one:")
+                .buttons(markButtons)
+                .build();
+
+        return Collections.singletonList(BotResponse.builder()
+                .uiComponent(markSelectionMenu)
+                .build());
     }
 
     @Override

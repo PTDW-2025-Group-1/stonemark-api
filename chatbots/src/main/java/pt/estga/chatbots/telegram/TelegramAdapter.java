@@ -186,29 +186,21 @@ public class TelegramAdapter {
             for (PhotoGallery.PhotoItem item : gallery.getPhotos()) {
                 InlineKeyboardMarkup markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
                 
-                if (item.getImageUrl() != null) {
-                    SendPhoto photo = new SendPhoto();
-                    photo.setChatId(chatId);
-                    photo.setCaption(item.getCaption());
-                    
-                    InputFile inputFile = new InputFile();
-                    String imageUrl = item.getImageUrl();
-                    
-                    if (imageUrl.startsWith("http")) {
-                        try {
-                            java.net.URL url = java.net.URI.create(imageUrl).toURL();
-                            inputFile.setMedia(url.openStream(), "image.jpg");
-                        } catch (Exception e) {
-                            log.warn("Could not read URL {}, letting Telegram try.", imageUrl);
-                            inputFile.setMedia(imageUrl);
-                        }
+                if (item.getMediaFileId() != null) {
+                    InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
+                    if (inputFile != null) {
+                        SendPhoto photo = new SendPhoto();
+                        photo.setChatId(chatId);
+                        photo.setCaption(item.getCaption());
+                        photo.setPhoto(inputFile);
+                        photo.setReplyMarkup(markup);
+                        methods.add(photo);
                     } else {
-                        inputFile.setMedia(new File(imageUrl));
+                        // Fallback if image loading fails
+                        SendMessage message = new SendMessage(chatId, item.getCaption() + " (Image unavailable)");
+                        message.setReplyMarkup(markup);
+                        methods.add(message);
                     }
-                    photo.setPhoto(inputFile);
-
-                    photo.setReplyMarkup(markup);
-                    methods.add(photo);
                 } else {
                     SendMessage message = new SendMessage(chatId, item.getCaption());
                     message.setReplyMarkup(markup);

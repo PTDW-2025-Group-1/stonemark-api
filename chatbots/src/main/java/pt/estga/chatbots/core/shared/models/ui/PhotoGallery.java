@@ -15,7 +15,7 @@ public class PhotoGallery implements UIComponent {
     @Data
     @Builder
     public static class PhotoItem {
-        private String imageUrl;
+        private Long mediaFileId;
         private String caption;
         private String callbackData;
     }

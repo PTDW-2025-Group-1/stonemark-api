@@ -1,7 +1,5 @@
 package pt.estga.proposals.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -21,8 +19,6 @@ import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
-import pt.estga.shared.enums.TargetType;
-import pt.estga.shared.models.Location;
 import pt.estga.user.services.UserService;
 
 import java.io.ByteArrayInputStream;
@@ -44,7 +40,6 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
     private final ProposedMonumentRepository proposedMonumentRepository;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
-    private final ObjectMapper objectMapper;
     private final UserService userService;
 
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
@@ -78,25 +73,11 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
                 if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
                     List<Double> embeddedVector = detectionResult.embedding();
                     proposal.setEmbedding(embeddedVector);
-
-                    List<String> suggestedMarkIds = markSearchService.searchMarks(embeddedVector);
-                    if (suggestedMarkIds != null && !suggestedMarkIds.isEmpty()) {
-                        try {
-                            proposal.setSuggestedMarkIds(objectMapper.writeValueAsString(suggestedMarkIds));
-                            log.info("Found {} suggested marks for proposal {}", suggestedMarkIds.size(), proposal.getId());
-                        } catch (JsonProcessingException e) {
-                            log.error("Error processing JSON for suggestedMarkIds for proposal {}: {}", proposal.getId(), e.getMessage());
-                        }
-                    } else {
-                        log.info("No suggested marks found for proposal {}", proposal.getId());
-                    }
                 } else {
                     log.info("No embedding detected for proposal {}", proposal.getId());
                 }
             }
         }
-
-        handleGpsData(proposal, new Location(proposal.getLatitude(), proposal.getLongitude()));
 
         return proposalService.update(proposal);
     }
@@ -224,31 +205,32 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
         return findProposalById(proposalId);
     }
 
+    @Override
+    public List<String> getSuggestedMarkIds(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        if (proposal.getEmbedding() != null && !proposal.getEmbedding().isEmpty()) {
+            return markSearchService.searchMarks(proposal.getEmbedding());
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<String> getSuggestedMonumentIds(Long proposalId) {
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
+            List<Monument> monuments = monumentService.findByCoordinatesInRange(
+                    proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE
+            );
+            return monuments.stream()
+                    .map(m -> m.getId().toString())
+                    .toList();
+        }
+        return List.of();
+    }
+
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
         return proposalService.findById(proposalId)
                 .orElseThrow(() -> new RuntimeException("Proposal not found"));
-    }
-
-    private void handleGpsData(MarkOccurrenceProposal proposal, Location gpsData) {
-        log.info("GPS data found for proposal {}: Latitude={}, Longitude={}", proposal.getId(), gpsData.getLatitude(), gpsData.getLongitude());
-        
-        List<Monument> monuments = monumentService.findByCoordinatesInRange(
-                gpsData.getLatitude(), gpsData.getLongitude(), COORDINATE_SEARCH_RANGE
-        );
-
-        if (!monuments.isEmpty()) {
-            log.info("Found {} existing monuments for proposal {}", monuments.size(), proposal.getId());
-            try {
-                List<String> monumentIds = monuments.stream()
-                                                    .map(m -> m.getId().toString())
-                                                    .toList();
-                proposal.setSuggestedMonumentIds(objectMapper.writeValueAsString(monumentIds));
-            } catch (JsonProcessingException e) {
-                log.error("Error processing JSON for suggestedMonumentIds for proposal {}: {}", proposal.getId(), e.getMessage());
-            }
-        } else {
-            log.info("No existing monument found near GPS coordinates for proposal {}", proposal.getId());
-        }
     }
 
     private void clearMonumentSelections(MarkOccurrenceProposal proposal) {

@@ -3,6 +3,7 @@ package pt.estga.proposals.services;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface MarkOccurrenceProposalFlowService {
 
@@ -25,5 +26,9 @@ public interface MarkOccurrenceProposalFlowService {
     MarkOccurrenceProposal addLocationToProposal(Long proposalId, Double latitude, Double longitude);
 
     MarkOccurrenceProposal getProposal(Long proposalId);
+
+    List<String> getSuggestedMarkIds(Long proposalId);
+
+    List<String> getSuggestedMonumentIds(Long proposalId);
 
 }

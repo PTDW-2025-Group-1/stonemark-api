@@ -48,14 +48,6 @@ public class MarkOccurrenceProposal {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private ProposedMonument proposedMonument;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String suggestedMarkIds;
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String suggestedMonumentIds;
-
     private String userNotes;
 
     @Enumerated(EnumType.STRING)
