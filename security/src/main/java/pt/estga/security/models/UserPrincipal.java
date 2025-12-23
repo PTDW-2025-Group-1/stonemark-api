@@ -3,11 +3,12 @@ package pt.estga.security.models;
 import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pt.estga.shared.models.AuthenticatedPrincipal;
 
 import java.util.Collection;
 
 @Builder
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails, AuthenticatedPrincipal {
 
     private final Long id;
     private final String username;
@@ -32,6 +33,7 @@ public class UserPrincipal implements UserDetails {
         this.accountNonLocked = accountNonLocked;
     }
 
+    @Override
     public Long getId() {
         return id;
     }

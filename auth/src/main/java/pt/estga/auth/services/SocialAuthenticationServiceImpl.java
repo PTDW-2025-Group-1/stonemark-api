@@ -68,38 +68,35 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
 
         return userIdentityService.findByProviderAndValue(Provider.GOOGLE, googleId)
                 .map(UserIdentity::getUser)
-                .orElseGet(() -> {
-                    User user = userContactService.findByValue(email)
-                            .map(UserContact::getUser)
-                            .orElseGet(() -> {
-                                String firstName = (String) payload.get("given_name");
-                                String lastName = (String) payload.get("family_name");
-                                String username = generateUniqueUsername(firstName, lastName);
+                .orElseGet(() -> userContactService.findByValue(email)
+                        .map(UserContact::getUser)
+                        .orElseGet(() -> {
+                            String firstName = (String) payload.get("given_name");
+                            String lastName = (String) payload.get("family_name");
+                            String username = generateUniqueUsername(firstName, lastName);
 
-                                User newUser = User.builder()
-                                        .username(username)
-                                        .firstName(firstName)
-                                        .lastName(lastName)
-                                        .role(Role.USER)
-                                        .enabled(true)
-                                        .tfaMethod(TfaMethod.NONE)
-                                        .password(null)
-                                        .build();
-                                UserContact primaryEmail = UserContact.builder()
-                                        .type(ContactType.EMAIL)
-                                        .value(email)
-                                        .primaryContact(true)
-                                        .verified(true)
-                                        .user(newUser)
-                                        .build();
+                            User newUser = User.builder()
+                                    .username(username)
+                                    .firstName(firstName)
+                                    .lastName(lastName)
+                                    .role(Role.USER)
+                                    .enabled(true)
+                                    .tfaMethod(TfaMethod.NONE)
+                                    .password(null)
+                                    .build();
+                            UserContact primaryEmail = UserContact.builder()
+                                    .type(ContactType.EMAIL)
+                                    .value(email)
+                                    .primaryContact(true)
+                                    .verified(true)
+                                    .user(newUser)
+                                    .build();
 
-                                newUser.setContacts(new ArrayList<>(List.of(primaryEmail)));
-                                return userService.create(newUser);
-                            });
-
-                    userIdentityService.createAndAssociate(user, Provider.GOOGLE, googleId);
-                    return user;
-                });
+                            newUser.setContacts(new ArrayList<>(List.of(primaryEmail)));
+                            User createdUser = userService.create(newUser);
+                            userIdentityService.createAndAssociate(createdUser, Provider.GOOGLE, googleId);
+                            return createdUser;
+                        }));
     }
 
     private String generateUniqueUsername(String firstName, String lastName) {

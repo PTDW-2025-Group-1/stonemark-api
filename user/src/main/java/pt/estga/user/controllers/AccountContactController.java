@@ -11,9 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.security.models.UserPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.shared.aop.SensitiveOperation;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.dtos.ContactDto;
@@ -47,9 +46,9 @@ public class AccountContactController {
     @PostMapping
     public ResponseEntity<?> addContact(
             @Parameter(description = "Contact details to be added", required = true)
-            @Valid @RequestBody ContactDto request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId())
+            @Valid @RequestBody ContactDto request) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId)
                 .orElseThrow();
         accountService.addContact(user, request.value(), request.type());
         return ResponseEntity.ok(new MessageResponseDto("A new contact has been added to your account."));
@@ -62,8 +61,9 @@ public class AccountContactController {
                             schema = @Schema(implementation = UserContactDto.class)))
     })
     @GetMapping
-    public ResponseEntity<List<UserContactDto>> getContacts(@AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findByIdWithContacts(principal.getId())
+    public ResponseEntity<List<UserContactDto>> getContacts() {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findByIdWithContacts(userId)
                 .orElseThrow();
         List<UserContactDto> contactDtos = accountService.getContacts(user).stream()
                 .map(userContactMapper::toDto)
@@ -81,9 +81,9 @@ public class AccountContactController {
     @PostMapping("/{id}/verify")
     public ResponseEntity<?> requestContactVerification(
             @Parameter(description = "The ID of the contact to verify", required = true)
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId())
+            @PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId)
                 .orElseThrow();
         accountService.requestContactVerification(user, id);
         return ResponseEntity.ok(new MessageResponseDto("A verification message has been sent."));
@@ -101,10 +101,10 @@ public class AccountContactController {
     })
     @PatchMapping("/{contactId}/primary")
     public ResponseEntity<?> setPrimaryContact(
-            @PathVariable Long contactId,
-            @AuthenticationPrincipal UserPrincipal principal
+            @PathVariable Long contactId
     ) {
-        User user = userService.findById(principal.getId())
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId)
                 .orElseThrow();
         accountService.setPrimaryContact(user, contactId);
         return ResponseEntity.ok(new MessageResponseDto("Contact set as primary."));
@@ -121,9 +121,9 @@ public class AccountContactController {
     @DeleteMapping("/{contactId}")
     public ResponseEntity<?> deleteContact(
             @Parameter(description = "The ID of the contact to be deleted", required = true)
-            @PathVariable Long contactId,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId())
+            @PathVariable Long contactId) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId)
                 .orElseThrow();
         accountService.deleteContact(user, contactId);
         return ResponseEntity.ok(new MessageResponseDto("Contact has been deleted from your account."));

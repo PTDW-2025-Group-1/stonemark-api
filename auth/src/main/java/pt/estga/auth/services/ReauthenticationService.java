@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -14,6 +13,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import pt.estga.auth.dtos.ReauthenticationRequest;
 import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.shared.exceptions.InvalidOtpException;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
@@ -36,19 +36,19 @@ public class ReauthenticationService {
 
         log.info("Attempting reauthentication for sensitive operation.");
 
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new BadCredentialsException("User not authenticated."));
 
-        log.debug("Authenticated username: {}", username);
+        log.debug("Authenticated user ID: {}", userId);
 
-        User user = userService.findByUsername(username)
+        User user = userService.findById(userId)
                 .orElseThrow(() -> {
-                    log.warn("Reauthentication failed: user not found ({})", username);
+                    log.warn("Reauthentication failed: user not found ({})", userId);
                     return new BadCredentialsException("User not found.");
                 });
 
-        log.debug("User found: {}", user.getUsername());
+        String username = user.getUsername();
+        log.debug("User found: {}", username);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("Reauthentication failed: invalid password for user {}", username);

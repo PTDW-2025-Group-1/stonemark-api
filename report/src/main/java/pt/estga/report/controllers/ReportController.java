@@ -5,13 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.report.dtos.ReportRequestDto;
 import pt.estga.report.dtos.ReportResponseDto;
 import pt.estga.report.enums.ReportStatus;
 import pt.estga.report.services.ReportService;
-import pt.estga.security.models.UserPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
@@ -26,10 +25,10 @@ public class ReportController {
 
     @PostMapping
     public ReportResponseDto createReport(
-            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody ReportRequestDto dto
     ) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         return service.createReport(user, dto);
     }
 

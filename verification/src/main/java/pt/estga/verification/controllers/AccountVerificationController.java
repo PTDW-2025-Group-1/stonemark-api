@@ -4,9 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.security.models.UserPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 import pt.estga.verification.dtos.ConfirmationResponseDto;
@@ -38,8 +37,9 @@ public class AccountVerificationController {
 
     @PostMapping("/telegram/generate")
     @Operation(summary = "Generate Telegram verification code", description = "Generates a code for the authenticated user to verify their Telegram account.")
-    public ResponseEntity<Map<String, String>> generateTelegramCode(@AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+    public ResponseEntity<Map<String, String>> generateTelegramCode() {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         ActionCode actionCode = verificationService.generateTelegramVerificationCode(user);
         return ResponseEntity.ok(Map.of("code", actionCode.getCode()));
     }

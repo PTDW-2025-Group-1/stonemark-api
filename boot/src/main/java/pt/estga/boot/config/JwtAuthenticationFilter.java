@@ -9,12 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pt.estga.security.services.AccessTokenService;
 import pt.estga.security.services.JwtService;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.user.services.UserService;
 
 import java.io.IOException;
@@ -25,8 +25,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final AccessTokenService accessTokenService;
-    private final UserDetailsService userDetailsService;
     private final UserService userService;
+    private final UserPrincipalFactory userPrincipalFactory;
 
     @Override
     protected void doFilterInternal(
@@ -42,16 +42,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+        if (SecurityUtils.getCurrentUserId().isPresent()) {
             filterChain.doFilter(request, response);
             return;
         }
 
         final Long userId = jwtService.getUserIdFromToken(jwt);
 
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userId != null && SecurityUtils.getCurrentUserId().isEmpty()) {
             userService.findById(userId).ifPresent(user -> {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+                UserDetails userDetails = userPrincipalFactory.create(user);
                 if (jwtService.isTokenValid(jwt, userId) && accessTokenService.isTokenValid(jwt)) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

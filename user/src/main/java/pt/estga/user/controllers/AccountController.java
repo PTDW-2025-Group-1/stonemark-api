@@ -11,9 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.security.models.UserPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
@@ -41,9 +40,10 @@ public class AccountController {
                             schema = @Schema(implementation = UserDto.class)))
     })
     @GetMapping("/profile")
-    public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal UserPrincipal principal) {
+    public ResponseEntity<UserDto> getProfileInfo() {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
         User user = userService
-                .findByIdWithContacts(principal.getId())
+                .findByIdWithContacts(userId)
                 .orElseThrow();
         return ResponseEntity.ok(mapper.toDto(user));
     }
@@ -53,10 +53,9 @@ public class AccountController {
             summary = "Get account security status",
             description = "Returns information about available authentication methods."
     )
-    public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus(
-            @AuthenticationPrincipal UserPrincipal principal
-    ) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+    public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus() {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         return ResponseEntity.ok(accountService.getSecurityStatus(user));
     }
 
@@ -71,9 +70,9 @@ public class AccountController {
     @PutMapping("/profile")
     public ResponseEntity<MessageResponseDto> updateProfile(
             @Parameter(description = "Updated profile information", required = true)
-            @Valid @RequestBody ProfileUpdateRequestDto request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+            @Valid @RequestBody ProfileUpdateRequestDto request) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         mapper.update(user, request);
         userService.update(user);
         return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
@@ -89,9 +88,9 @@ public class AccountController {
     @PostMapping("/change-password")
     public ResponseEntity<MessageResponseDto> changePassword(
             @Parameter(description = "Password change request details", required = true)
-            @Valid @RequestBody PasswordChangeRequestDto request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+            @Valid @RequestBody PasswordChangeRequestDto request) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         passwordService.changePassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been changed successfully."));
     }
@@ -106,9 +105,9 @@ public class AccountController {
     @PostMapping("/set-password")
     public ResponseEntity<MessageResponseDto> setPassword(
             @Parameter(description = "Password set request details", required = true)
-            @Valid @RequestBody PasswordSetRequestDto request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        User user = userService.findById(principal.getId()).orElseThrow();
+            @Valid @RequestBody PasswordSetRequestDto request) {
+        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+        User user = userService.findById(userId).orElseThrow();
         passwordService.setPassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
     }
