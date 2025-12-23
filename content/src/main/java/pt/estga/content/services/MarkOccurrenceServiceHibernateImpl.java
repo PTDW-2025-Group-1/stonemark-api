@@ -31,6 +31,11 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     }
 
     @Override
+    public Optional<MarkOccurrence> findByIdWithRelationships(Long id) {
+        return repository.findByIdWithRelationships(id);
+    }
+
+    @Override
     public Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable) {
         return repository.findAllByMarkId(markId, pageable);
     }

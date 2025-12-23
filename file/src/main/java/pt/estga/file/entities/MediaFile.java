@@ -2,10 +2,8 @@ package pt.estga.file.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import pt.estga.file.enums.StorageProvider;
-import pt.estga.user.entities.User;
 
 import java.time.Instant;
 
@@ -40,10 +38,6 @@ public class MediaFile {
     private String providerPublicId;
 
     @CreatedDate
-    private Instant uploadedAt;
-
-    @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User uploadedBy;
+    private Instant createdAt;
 
 }

@@ -19,6 +19,7 @@ import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.proposals.repositories.ProposedMarkRepository;
 import pt.estga.proposals.repositories.ProposedMonumentRepository;
+import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
 import java.io.ByteArrayInputStream;
@@ -55,7 +56,8 @@ public class MarkOccurrenceProposalFlowServiceImpl implements MarkOccurrenceProp
         proposal.setLongitude(longitude);
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
         if (userId != null) {
-            userService.findById(userId).ifPresent(proposal::setCreatedBy);
+            User user = userService.findById(userId).orElseThrow();
+            proposal.setSubmittedById(user.getId());
         }
         return proposalService.create(proposal);
     }

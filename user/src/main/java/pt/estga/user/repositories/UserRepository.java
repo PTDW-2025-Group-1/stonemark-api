@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.user.entities.User;
 
-import javax.swing.text.html.Option;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -17,13 +16,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.contacts WHERE u.id = :id")
+    @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdWithContacts(@Param("id") Long id);
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.identities WHERE u.id = :id")
+    @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdWithIdentities(@Param("id") Long id);
 
-    @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.contacts",
+    @Query(value = "SELECT DISTINCT u FROM User u",
            countQuery = "SELECT COUNT(u) FROM User u")
     Page<User> findAllWithContacts(Pageable pageable);
 

@@ -30,7 +30,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     @Override
     public List<MarkOccurrenceProposal> findByUser(User user) {
-        return repository.findByCreatedBy(user);
+        return repository.findBySubmittedById(user.getId());
     }
 
     @Override
@@ -56,8 +56,8 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
 
     @Override
-    public long countApprovedProposalsByUser(User user) {
-        return repository.countApprovedProposalsByUser(user);
+    public long countApprovedProposalsByUserId(Long userId) {
+        return repository.countApprovedProposalsByUserId(userId);
     }
 
 }

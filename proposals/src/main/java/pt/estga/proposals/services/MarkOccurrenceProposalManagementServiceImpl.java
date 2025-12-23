@@ -37,7 +37,7 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
         MarkOccurrence occurrence = MarkOccurrence.builder()
                 .monument(monument)
                 .mark(mark)
-                .image(proposal.getOriginalMediaFile())
+                .cover(proposal.getOriginalMediaFile())
                 .embedding(proposal.getEmbedding())
                 .build();
         markOccurrenceRepository.save(occurrence);

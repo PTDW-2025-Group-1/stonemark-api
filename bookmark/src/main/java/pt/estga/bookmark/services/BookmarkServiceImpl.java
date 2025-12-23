@@ -42,7 +42,7 @@ public class BookmarkServiceImpl implements BookmarkService {
                     .orElseThrow(() -> new IllegalArgumentException("Monument not found"));
 
             case MARK -> markRepository.findById(targetId)
-                    .map(markMapper::markToMarkDto)
+                    .map(markMapper::toDto)
                     .orElseThrow(() -> new IllegalArgumentException("Mark not found"));
 
             default -> null;
@@ -71,7 +71,7 @@ public class BookmarkServiceImpl implements BookmarkService {
                                 .orElse(null);
 
                         case MARK -> markRepository.findById(b.getTargetId())
-                                .map(markMapper::markToMarkDto)
+                                .map(markMapper::toDto)
                                 .orElse(null);
 
                         default -> null;

@@ -64,7 +64,6 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         user.setTfaMethod(TfaMethod.NONE);
         user.setEnabled(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.getContacts().clear();
 
         User createdUser = userService.create(user);
 

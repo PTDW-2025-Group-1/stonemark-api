@@ -10,7 +10,6 @@ import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
 import pt.estga.proposals.services.AutomaticProposalDecisionMaker;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
-import pt.estga.user.entities.User;
 
 @Component
 @RequiredArgsConstructor
@@ -44,9 +43,9 @@ public class ProposalEventListener {
         }
 
         // 2. User Reputation Boost (based on approved proposals)
-        User user = proposal.getCreatedBy();
-        if (user != null) {
-            long approvedCount = proposalService.countApprovedProposalsByUser(user);
+        Long userId = proposal.getSubmittedById();
+        if (userId != null) {
+            long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
             
             // Cap the reputation boost at +40 (e.g., 2 points per approved proposal up to 40)
             int reputationBoost = (int) Math.min(approvedCount * 2, 40);

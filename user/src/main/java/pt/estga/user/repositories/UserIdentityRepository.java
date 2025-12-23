@@ -6,6 +6,7 @@ import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.Provider;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,5 +17,7 @@ public interface UserIdentityRepository extends JpaRepository<UserIdentity, Long
     void deleteByUserAndProvider(User user, Provider provider);
 
     Optional<UserIdentity> findByUserAndProvider(User user, Provider provider);
+
+    List<UserIdentity> findByUser(User user);
 
 }

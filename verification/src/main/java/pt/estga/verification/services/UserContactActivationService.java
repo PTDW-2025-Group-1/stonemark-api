@@ -12,7 +12,6 @@ import pt.estga.user.repositories.UserContactRepository;
 import pt.estga.verification.entities.ActionCode;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -56,17 +55,6 @@ public class UserContactActivationService {
         sendConfirmationEmail(contactToVerify);
 
         return Optional.empty();
-    }
-
-    private UserContact findContactForActionCode(ActionCode actionCode) {
-        ContactType expectedContactType = getContactTypeForAction(actionCode.getType());
-        return actionCode.getUser().getContacts().stream()
-                .filter(contact -> contact.getType() == expectedContactType) // Removed !contact.isVerified()
-                .findFirst()
-                .orElseThrow(() -> {
-                    log.error("No contact of type {} found for user {}", expectedContactType, actionCode.getUser().getId());
-                    return new IllegalStateException("No matching contact found for the action code."); // Adjusted message
-                });
     }
 
     private void sendConfirmationEmail(UserContact userContact) {

@@ -3,6 +3,7 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.entities.FullAuditEntity;
 
 @Entity
 @NoArgsConstructor
@@ -10,7 +11,7 @@ import pt.estga.file.entities.MediaFile;
 @Getter
 @Setter
 @Builder
-public class Monument extends AuditableContentEntity {
+public class Monument extends FullAuditEntity {
 
     @Id
     @GeneratedValue

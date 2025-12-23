@@ -3,6 +3,7 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.entities.FullAuditEntity;
 import pt.estga.shared.utils.DoubleListConverter;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Mark extends AuditableContentEntity {
+public class Mark extends FullAuditEntity {
 
     @Id
     @GeneratedValue

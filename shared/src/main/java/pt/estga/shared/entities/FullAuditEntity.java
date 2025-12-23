@@ -24,9 +24,9 @@ public abstract class FullAuditEntity {
 
     @CreatedBy
     @Column(updatable = false)
-    private Long createdBy;
+    private Long createdById;
 
     @LastModifiedBy
-    private Long modifiedBy;
+    private Long modifiedById;
 
 }

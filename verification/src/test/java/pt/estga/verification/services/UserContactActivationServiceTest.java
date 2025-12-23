@@ -36,7 +36,6 @@ class UserContactActivationServiceTest {
     @InjectMocks
     private UserContactActivationService userContactActivationService;
 
-    private User testUser;
     private UserContact emailContact;
     private UserContact phoneContact;
     private ActionCode emailActionCode;
@@ -44,7 +43,7 @@ class UserContactActivationServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
+        User testUser = User.builder()
                 .id(1L)
                 .firstName("John")
                 .username("john.doe")
@@ -66,20 +65,17 @@ class UserContactActivationServiceTest {
                 .verified(false)
                 .build();
 
-        List<UserContact> contacts = new ArrayList<>();
-        contacts.add(emailContact);
-        contacts.add(phoneContact);
-        testUser.setContacts(contacts);
-
         emailActionCode = ActionCode.builder()
                 .code("EMAILCODE")
                 .user(testUser)
+                .userContact(emailContact)
                 .type(ActionCodeType.EMAIL_VERIFICATION)
                 .build();
 
         phoneActionCode = ActionCode.builder()
                 .code("PHONECODE")
                 .user(testUser)
+                .userContact(phoneContact)
                 .type(ActionCodeType.PHONE_VERIFICATION)
                 .build();
     }
@@ -115,7 +111,6 @@ class UserContactActivationServiceTest {
     @Test
     void activateUserContact_shouldConsumeCode_whenContactAlreadyVerified() {
         emailContact.setVerified(true);
-        testUser.setContacts(Collections.singletonList(emailContact));
 
         Optional<String> result = userContactActivationService.activateUserContact(emailActionCode);
 
@@ -127,28 +122,12 @@ class UserContactActivationServiceTest {
 
     @Test
     void activateUserContact_shouldThrowIllegalStateException_whenNoMatchingContactFound() {
-        // Set contacts to an empty list or a list that doesn't contain the expected type
-        testUser.setContacts(Collections.emptyList()); // No email contact for the action code
+        emailActionCode.setUserContact(null);
 
         IllegalStateException thrown = assertThrows(IllegalStateException.class,
                 () -> userContactActivationService.activateUserContact(emailActionCode));
 
-        assertEquals("No matching contact found for the action code.", thrown.getMessage());
-        verifyNoInteractions(userContactRepository, actionCodeService, emailService);
-    }
-
-    @Test
-    void activateUserContact_shouldThrowIllegalArgumentException_forUnsupportedActionCodeType() {
-        ActionCode unsupportedActionCode = ActionCode.builder()
-                .code("UNSUPPORTED")
-                .user(testUser)
-                .type(ActionCodeType.RESET_PASSWORD)
-                .build();
-
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
-                () -> userContactActivationService.activateUserContact(unsupportedActionCode));
-
-        assertEquals("Unsupported action code type for contact activation: RESET_PASSWORD", thrown.getMessage());
+        assertEquals("ActionCode has no associated UserContact.", thrown.getMessage());
         verifyNoInteractions(userContactRepository, actionCodeService, emailService);
     }
 

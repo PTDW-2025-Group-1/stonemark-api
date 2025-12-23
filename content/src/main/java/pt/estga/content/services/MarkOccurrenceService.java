@@ -15,6 +15,8 @@ public interface MarkOccurrenceService {
 
     Optional<MarkOccurrence> findById(Long id);
 
+    Optional<MarkOccurrence> findByIdWithRelationships(Long id);
+
     Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable);
 
     List<MarkOccurrence> findLatest(int limit);

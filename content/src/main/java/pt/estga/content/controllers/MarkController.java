@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkUpdateDto;
@@ -29,22 +28,22 @@ public class MarkController {
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::markToMarkDto);
+        return service.findAll(pageable).map(mapper::toDto);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<MarkDto> getMark(@PathVariable Long id) {
         return service.findById(id)
-                .map(mapper::markToMarkDto)
+                .map(mapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
-        Mark mark = mapper.markUpdateDtoToMark(markDto);
+        Mark mark = mapper.updateDtoToEntity(markDto);
         mark.setId(id);
-        return mapper.markToMarkDto(service.update(mark));
+        return mapper.toDto(service.update(mark));
     }
 
     @DeleteMapping("/{id}")

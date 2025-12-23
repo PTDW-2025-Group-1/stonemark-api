@@ -8,7 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.shared.exceptions.InvalidGoogleTokenException;
 import pt.estga.user.dtos.LinkedProviderDto;
 import pt.estga.user.entities.User;
+import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.Provider;
+import pt.estga.user.repositories.UserIdentityRepository;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -22,19 +24,21 @@ public class AccountSocialService {
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final UserIdentityService userIdentityService;
     private final TelegramAccountLinkerService telegramAccountLinkerService;
+    private final UserIdentityRepository userIdentityRepository;
 
     @Transactional
     public void unlinkSocialAccount(User user, Provider provider) {
 
         User managedUser = userService
-                .findByIdWithIdentities(user.getId())
+                .findById(user.getId())
                 .orElseThrow();
 
         boolean hasPassword =
                 managedUser.getPassword() != null &&
                         !managedUser.getPassword().isBlank();
 
-        boolean isLastProvider = managedUser.getIdentities().size() <= 1;
+        List<UserIdentity> identities = userIdentityRepository.findByUser(managedUser);
+        boolean isLastProvider = identities.size() <= 1;
 
         if (!hasPassword && isLastProvider) {
             throw new IllegalStateException(
@@ -42,21 +46,17 @@ public class AccountSocialService {
             );
         }
 
-        boolean removed = managedUser.getIdentities()
-                .removeIf(identity -> identity.getProvider() == provider);
-
-        if (!removed) {
-            throw new IllegalStateException("Provider not linked to user.");
-        }
-
+        userIdentityService.deleteByUserAndProvider(managedUser, provider);
     }
 
     public List<LinkedProviderDto> getLinkedProviders(User user) {
         User managedUser = userService
-                .findByIdWithIdentities(user.getId())
+                .findById(user.getId())
                 .orElseThrow();
 
-        return managedUser.getIdentities().stream()
+        List<UserIdentity> identities = userIdentityRepository.findByUser(managedUser);
+
+        return identities.stream()
                 .map(identity -> new LinkedProviderDto(identity.getProvider()))
                 .toList();
     }

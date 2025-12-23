@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkDto;
+import pt.estga.content.dtos.MarkOccurrenceDetailedDto;
 import pt.estga.content.dtos.MarkOccurrenceDto;
+import pt.estga.content.dtos.MarkOccurrenceListDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkMapper;
@@ -31,38 +33,38 @@ public class MarkOccurrenceController {
     private final MonumentMapper monumentMapper;
 
     @GetMapping
-    public Page<MarkOccurrenceDto> getMarkOccurrences(Pageable pageable) {
+    public Page<MarkOccurrenceListDto> getMarkOccurrences(Pageable pageable) {
         return service.findAll(pageable)
-                .map(mapper::toDto);
+                .map(mapper::toListDto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MarkOccurrenceDto> getMarkOccurrence(@PathVariable Long id) {
-        return service.findById(id)
-                .map(mapper::toDto)
+    public ResponseEntity<MarkOccurrenceDetailedDto> getMarkOccurrence(@PathVariable Long id) {
+        return service.findByIdWithRelationships(id)
+                .map(mapper::toDetailedDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by-mark/{markId}")
-    public Page<MarkOccurrenceDto> getOccurrencesByMark(
+    public Page<MarkOccurrenceListDto> getOccurrencesByMark(
             @PathVariable Long markId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findByMarkId(markId, pageable)
-                .map(mapper::toDto);
+                .map(mapper::toListDto);
     }
 
     @GetMapping("/latest")
-    public List<MarkOccurrenceDto> getLatestMarkOccurrences(
+    public List<MarkOccurrenceListDto> getLatestMarkOccurrences(
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
         return service.findLatest(safeLimit)
                 .stream()
-                .map(mapper::toDto)
+                .map(mapper::toListDto)
                 .toList();
     }
 
@@ -77,21 +79,21 @@ public class MarkOccurrenceController {
     }
 
     @GetMapping("/by-monument/{monumentId}")
-    public Page<MarkOccurrenceDto> getOccurrencesByMonument(
+    public Page<MarkOccurrenceListDto> getOccurrencesByMonument(
             @PathVariable Long monumentId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findByMonumentId(monumentId, pageable)
-                .map(mapper::toDto);
+                .map(mapper::toListDto);
     }
 
     @GetMapping("/filters/marks-by-monument")
     public List<MarkDto> getAvailableMarksByMonument(@RequestParam Long monumentId) {
         return service.findAvailableMarksByMonumentId(monumentId)
                 .stream()
-                .map(markMapper::markToMarkDto)
+                .map(markMapper::toDto)
                 .toList();
     }
 
@@ -104,7 +106,7 @@ public class MarkOccurrenceController {
     }
 
     @GetMapping("/filter-by-mark-and-monument")
-    public Page<MarkOccurrenceDto> filterByMarkAndMonument(
+    public Page<MarkOccurrenceListDto> filterByMarkAndMonument(
             @RequestParam Long markId,
             @RequestParam Long monumentId,
             @RequestParam(defaultValue = "0") int page,
@@ -112,7 +114,7 @@ public class MarkOccurrenceController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findByMarkIdAndMonumentId(markId, monumentId, pageable)
-                .map(mapper::toDto);
+                .map(mapper::toListDto);
     }
 
     @PostMapping

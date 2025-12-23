@@ -3,15 +3,12 @@ package pt.estga.proposals.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.enums.SubmissionSource;
 import pt.estga.shared.utils.DoubleListConverter;
-import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,19 +19,11 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class MarkOccurrenceProposal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    private MediaFile originalMediaFile;
-
-    @Convert(converter = DoubleListConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private List<Double> embedding;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Mark existingMark;
@@ -48,28 +37,34 @@ public class MarkOccurrenceProposal {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private ProposedMonument proposedMonument;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    private MediaFile originalMediaFile;
+
+    @Convert(converter = DoubleListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<Double> embedding;
+
     private String userNotes;
 
     @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
 
-    @Enumerated(EnumType.STRING)
-    private ProposalStatus status;
-
     private Integer priority;
-
-    @CreatedBy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(updatable = false)
-    protected User createdBy;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    protected Instant createdAt;
 
     private Double latitude;
     private Double longitude;
 
+    @Enumerated(EnumType.STRING)
+    private ProposalStatus status;
+
     @Builder.Default
     private boolean isSubmitted = false;
+
+    @CreatedBy
+    @Column(updatable = false)
+    protected Long submittedById;
+
+    @Column(updatable = false)
+    private Instant submittedAt;
+
 }

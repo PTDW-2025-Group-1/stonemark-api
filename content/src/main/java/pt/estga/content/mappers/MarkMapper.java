@@ -11,9 +11,9 @@ import pt.estga.file.mappers.MediaFileMapper;
 public interface MarkMapper {
 
     @Mapping(source = "cover.id", target = "coverId")
-    MarkDto markToMarkDto(Mark mark);
+    MarkDto toDto(Mark mark);
 
     @Mapping(source = "coverId", target = "cover.id")
-    Mark markUpdateDtoToMark(MarkUpdateDto markDto);
+    Mark updateDtoToEntity(MarkUpdateDto markDto);
 
 }

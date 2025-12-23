@@ -34,8 +34,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     @Transactional
     public UserIdentity createAndAssociate(User user, Provider provider, String identityValue) {
         // Verify that the user doesn't have an identity with the given provider yet
-        boolean identityExists = user.getIdentities().stream()
-                .anyMatch(identity -> identity.getProvider() == provider);
+        boolean identityExists = userIdentityRepository.findByUserAndProvider(user, provider).isPresent();
 
         if (identityExists) {
             throw new IllegalStateException("User already has an identity with provider " + provider);
@@ -46,8 +45,6 @@ public class UserIdentityServiceImpl implements UserIdentityService {
                 .value(identityValue)
                 .user(user)
                 .build();
-
-        user.getIdentities().add(identity);
 
         return userIdentityRepository.save(identity);
     }

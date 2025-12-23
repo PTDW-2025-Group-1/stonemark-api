@@ -24,8 +24,6 @@ import pt.estga.user.services.UserService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static pt.estga.auth.services.AuthenticationServiceSpringImpl.getAuthenticationResponseDto;
@@ -84,16 +82,18 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                     .tfaMethod(TfaMethod.NONE)
                                     .password(null)
                                     .build();
+                            
+                            User createdUser = userService.create(newUser);
+                            
                             UserContact primaryEmail = UserContact.builder()
                                     .type(ContactType.EMAIL)
                                     .value(email)
                                     .primaryContact(true)
                                     .verified(true)
-                                    .user(newUser)
+                                    .user(createdUser)
                                     .build();
+                            userContactService.create(primaryEmail);
 
-                            newUser.setContacts(new ArrayList<>(List.of(primaryEmail)));
-                            User createdUser = userService.create(newUser);
                             userIdentityService.createAndAssociate(createdUser, Provider.GOOGLE, googleId);
                             return createdUser;
                         }));

@@ -26,7 +26,6 @@ import pt.estga.user.services.UserService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -74,17 +73,7 @@ class SocialAuthenticationServiceTest {
                 .role(Role.USER)
                 .enabled(true)
                 .tfaMethod(TfaMethod.NONE)
-                .identities(new ArrayList<>())
-                .contacts(new ArrayList<>())
                 .build();
-        UserContact primaryEmail = UserContact.builder()
-                .type(ContactType.EMAIL)
-                .value(USER_EMAIL)
-                .primaryContact(true)
-                .verified(true)
-                .user(user)
-                .build();
-        user.getContacts().add(primaryEmail);
         return user;
     }
 
@@ -140,7 +129,13 @@ class SocialAuthenticationServiceTest {
     @Test
     void authenticateWithGoogle_shouldLinkToExistingUser_whenEmailExists() throws GeneralSecurityException, IOException {
         User existingUser = createTestUser();
-        UserContact existingUserContact = existingUser.getContacts().getFirst();
+        UserContact existingUserContact = UserContact.builder()
+                .type(ContactType.EMAIL)
+                .value(USER_EMAIL)
+                .primaryContact(true)
+                .verified(true)
+                .user(existingUser)
+                .build();
         UserIdentity newIdentity = UserIdentity.builder().provider(Provider.GOOGLE).value(GOOGLE_ID).user(existingUser).build();
 
         when(googleIdTokenVerifier.verify(GOOGLE_TOKEN)).thenReturn(googleIdToken);

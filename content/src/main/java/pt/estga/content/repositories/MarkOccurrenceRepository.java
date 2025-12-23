@@ -2,6 +2,7 @@ package pt.estga.content.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,7 @@ import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, Long> {
@@ -30,4 +32,8 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     long countByMonumentId(Long monumentId);
 
     long countByMarkId(Long markId);
+
+    @EntityGraph(attributePaths = {"monument", "proposer"})
+    @Query("SELECT m FROM MarkOccurrence m WHERE m.id = :id")
+    Optional<MarkOccurrence> findByIdWithRelationships(@Param("id") Long id);
 }
