@@ -40,7 +40,7 @@ public class MarkOccurrenceController {
 
     @GetMapping("/{id}")
     public ResponseEntity<MarkOccurrenceDetailedDto> getMarkOccurrence(@PathVariable Long id) {
-        return service.findByIdWithRelationships(id)
+        return service.findByIdWithMonument(id)
                 .map(mapper::toDetailedDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

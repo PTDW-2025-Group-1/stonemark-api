@@ -3,6 +3,7 @@ package pt.estga.user.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import pt.estga.file.entities.MediaFile;
 import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 
@@ -26,6 +27,9 @@ public class User {
     private String lastName;
     private String username;
     private String password;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private MediaFile photo;
 
     @Enumerated(EnumType.STRING)
     private Role role;

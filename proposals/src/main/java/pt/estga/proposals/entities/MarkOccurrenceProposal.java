@@ -62,7 +62,7 @@ public class MarkOccurrenceProposal {
 
     @CreatedBy
     @Column(updatable = false)
-    protected Long submittedById;
+    private Long submittedById;
 
     @Column(updatable = false)
     private Instant submittedAt;

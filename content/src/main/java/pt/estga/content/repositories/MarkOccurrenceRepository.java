@@ -33,7 +33,7 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
 
     long countByMarkId(Long markId);
 
-    @EntityGraph(attributePaths = {"monument", "proposer"})
+    @EntityGraph(attributePaths = {"monument"})
     @Query("SELECT m FROM MarkOccurrence m WHERE m.id = :id")
-    Optional<MarkOccurrence> findByIdWithRelationships(@Param("id") Long id);
+    Optional<MarkOccurrence> findByIdWithMonument(@Param("id") Long id);
 }

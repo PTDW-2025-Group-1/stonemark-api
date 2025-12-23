@@ -7,6 +7,6 @@ public record MarkOccurrenceDetailedDto(
     Long markId,
     MonumentDto monument,
     Long coverId,
-    String proposer,
+    Long proposerId,
     Instant createdAt
 ) { }

@@ -14,6 +14,10 @@ import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.entities.ProposedMonument;
 import pt.estga.proposals.enums.ProposalStatus;
 import pt.estga.proposals.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +27,10 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     private final MonumentRepository monumentRepository;
     private final MarkRepository markRepository;
     private final MarkOccurrenceRepository markOccurrenceRepository;
+    private final UserService userService;
 
+    // Todo: should create decision record
+    // decision record should have creation listener and some procedures
     @Override
     @Transactional
     public MarkOccurrenceProposal approve(Long proposalId) {
@@ -33,12 +40,16 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
 
         Monument monument = resolveMonument(proposal);
         Mark mark = resolveMark(proposal);
+        User proposer = Optional.ofNullable(proposal.getSubmittedById())
+                .flatMap(userService::findById)
+                .orElse(null);
 
         MarkOccurrence occurrence = MarkOccurrence.builder()
                 .monument(monument)
                 .mark(mark)
                 .cover(proposal.getOriginalMediaFile())
                 .embedding(proposal.getEmbedding())
+                .proposer(proposer)
                 .build();
         markOccurrenceRepository.save(occurrence);
 

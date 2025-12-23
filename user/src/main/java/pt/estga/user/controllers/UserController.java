@@ -14,6 +14,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.user.dtos.UserPublicDto;
 import pt.estga.user.enums.Role;
 import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.UserDto;
@@ -53,6 +54,16 @@ public class UserController {
             @PathVariable Long id) {
         return service.findById(id)
                 .map(mapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/public")
+    public ResponseEntity<UserPublicDto> publicGetById(
+            @Parameter(description = "ID of the user to be retrieved", required = true)
+            @PathVariable Long id) {
+        return service.findById(id)
+                .map(mapper::toPublicDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

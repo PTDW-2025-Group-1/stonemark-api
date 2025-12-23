@@ -1,8 +1,10 @@
 package pt.estga.user.mappers;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import pt.estga.user.dtos.ProfileUpdateRequestDto;
+import pt.estga.user.dtos.UserPublicDto;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;
 
@@ -10,6 +12,9 @@ import pt.estga.user.entities.User;
 public interface UserMapper {
 
     UserDto toDto(User user);
+
+    @Mapping(target = "photoId", source = "photo.id")
+    UserPublicDto toPublicDto(User user);
 
     User toEntity(UserDto dto);
 
