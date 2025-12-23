@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import pt.estga.security.entities.RefreshToken;
 import pt.estga.security.repositories.RefreshTokenRepository;
-import pt.estga.user.repositories.UserRepository;
-import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +19,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private long refreshTokenExpiration;
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
 
     @Override
     public Optional<RefreshToken> findByToken(String token) {
@@ -35,22 +32,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public RefreshToken createToken(String username, String tokenValue) {
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    RefreshToken refreshToken = RefreshToken.builder()
-                            .user(user)
-                            .token(tokenValue)
-                            .expiresAt(Instant.now().plus(refreshTokenExpiration, ChronoUnit.MILLIS))
-                            .build();
-                    return refreshTokenRepository.save(refreshToken);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public RefreshToken createToken(Long userId, String tokenValue) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .userId(userId)
+                .token(tokenValue)
+                .expiresAt(Instant.now().plus(refreshTokenExpiration, ChronoUnit.MILLIS))
+                .build();
+        return refreshTokenRepository.save(refreshToken);
     }
 
     @Override
-    public void revokeAllByUser(User user) {
-        List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUser(user);
+    public void revokeAllByUserId(Long userId) {
+        List<RefreshToken> refreshTokens = refreshTokenRepository.findAllByUserId(userId);
         refreshTokens.forEach(t -> t.setRevoked(true));
         refreshTokenRepository.saveAll(refreshTokens);
     }
@@ -62,7 +55,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public List<RefreshToken> findAllValidByUser(User user) {
-        return refreshTokenRepository.findAllByUser(user);
+    public List<RefreshToken> findAllValidByUserId(Long userId) {
+        return refreshTokenRepository.findAllByUserId(userId);
     }
 }

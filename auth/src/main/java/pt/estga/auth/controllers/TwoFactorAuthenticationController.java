@@ -20,9 +20,11 @@ import pt.estga.auth.dtos.TfaSetupResponseDto;
 import pt.estga.auth.dtos.TfaVerificationRequestDto;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TotpService;
+import pt.estga.security.models.UserPrincipal;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.TfaMethod;
+import pt.estga.user.services.UserService;
 
 import java.util.Map;
 
@@ -35,6 +37,7 @@ public class TwoFactorAuthenticationController {
 
     private final TotpService totpService;
     private final TwoFactorAuthenticationService twoFactorAuthenticationService;
+    private final UserService userService;
 
     @Operation(summary = "Setup TOTP 2FA",
                description = "Initiates the setup process for Time-based One-Time Password (TOTP) 2FA, returning a QR code URI and secret.")
@@ -43,7 +46,8 @@ public class TwoFactorAuthenticationController {
                     content = @Content(schema = @Schema(implementation = TfaSetupResponseDto.class)))
     })
     @PostMapping("/setup/totp")
-    public ResponseEntity<TfaSetupResponseDto> setupTotp(@AuthenticationPrincipal User user) {
+    public ResponseEntity<TfaSetupResponseDto> setupTotp(@AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         TfaSetupResponseDto response = totpService.setupTotpForUser(user);
         return ResponseEntity.ok(response);
     }
@@ -58,11 +62,12 @@ public class TwoFactorAuthenticationController {
     })
     @PostMapping("/enable/totp")
     public ResponseEntity<?> enableTotp(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody(description = "Request body containing the TOTP code for verification.",
                          required = true,
                          content = @Content(schema = @Schema(implementation = TfaVerificationRequestDto.class)))
             @Valid @org.springframework.web.bind.annotation.RequestBody TfaVerificationRequestDto request) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         if (user.getTfaSecret() == null || !totpService.isCodeValid(user.getTfaSecret(), request.code())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Invalid 2FA code."));
         }
@@ -80,11 +85,12 @@ public class TwoFactorAuthenticationController {
     })
     @PostMapping("/disable")
     public ResponseEntity<?> disableTfa(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody(description = "Request body containing the 2FA code for verification.",
                          required = true,
                          content = @Content(schema = @Schema(implementation = TfaVerificationRequestDto.class)))
             @Valid @org.springframework.web.bind.annotation.RequestBody TfaVerificationRequestDto request) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         if (user.getTfaMethod() == TfaMethod.NONE) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("Two-Factor Authentication is not enabled."));
         }
@@ -106,11 +112,12 @@ public class TwoFactorAuthenticationController {
     })
     @PostMapping("/method")
     public ResponseEntity<?> setTfaMethod(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody(description = "Request body containing the desired 2FA method.",
                          required = true,
                          content = @Content(schema = @Schema(implementation = SetTfaMethodRequestDto.class)))
             @Valid @org.springframework.web.bind.annotation.RequestBody SetTfaMethodRequestDto request) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         if (request.tfaMethod() == TfaMethod.TOTP && user.getTfaSecret() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponseDto("TOTP secret not set. Please set up TOTP first."));
         }
@@ -127,7 +134,8 @@ public class TwoFactorAuthenticationController {
                     content = @Content(schema = @Schema(implementation = MessageResponseDto.class)))
     })
     @PostMapping("/contact/request-code")
-    public ResponseEntity<?> requestContactTfaCode(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> requestContactTfaCode(@AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         try {
             twoFactorAuthenticationService.requestTfaContactCode(user);
             return ResponseEntity.ok(new MessageResponseDto("2FA code sent to your primary contact method."));
@@ -138,7 +146,8 @@ public class TwoFactorAuthenticationController {
 
     @Operation(summary = "Get 2FA status")
     @GetMapping("/status")
-    public ResponseEntity<?> getTfaStatus(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getTfaStatus(@AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         return ResponseEntity.ok(Map.of(
                 "enabled", user.getTfaMethod() != TfaMethod.NONE,
                 "method", user.getTfaMethod()
@@ -156,11 +165,12 @@ public class TwoFactorAuthenticationController {
     })
     @PostMapping("/contact/verify-code")
     public ResponseEntity<?> verifyContactTfaCode(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody(description = "Request body containing the 2FA code received via contact method.",
                          required = true,
                          content = @Content(schema = @Schema(implementation = TfaContactVerificationRequestDto.class)))
             @Valid @org.springframework.web.bind.annotation.RequestBody TfaContactVerificationRequestDto request) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         try {
             if (twoFactorAuthenticationService.verifyTfaContactCode(user, request.code())) {
                 return ResponseEntity.ok(new MessageResponseDto("2FA code verified successfully."));

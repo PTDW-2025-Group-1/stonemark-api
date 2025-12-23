@@ -75,6 +75,7 @@ class AuthenticationServiceTest {
         user.setPassword("password");
         user.setUsername("user228");
         user.setRole(Role.USER);
+        user.setTfaMethod(TfaMethod.NONE);
 
         userContact = new UserContact();
         userContact.setUser(user);
@@ -85,8 +86,8 @@ class AuthenticationServiceTest {
     void register_shouldCreateUserAndReturnAuthResponse_whenGivenValidData() {
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
         when(userService.create(any(User.class))).thenReturn(user);
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(user.getUsername())).thenReturn("refreshToken");
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(user.getId())).thenReturn("refreshToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.register(user);
 
@@ -119,8 +120,8 @@ class AuthenticationServiceTest {
         user.setTfaMethod(TfaMethod.NONE);
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(user.getUsername())).thenReturn("refreshToken");
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(user.getId())).thenReturn("refreshToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", null);
 
@@ -197,8 +198,8 @@ class AuthenticationServiceTest {
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
         when(totpService.isCodeValid("secret", "123456")).thenReturn(true);
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(user.getUsername())).thenReturn("refreshToken");
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(user.getId())).thenReturn("refreshToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "123456");
 
@@ -214,8 +215,8 @@ class AuthenticationServiceTest {
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
         when(twoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(user.getUsername())).thenReturn("refreshToken");
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(user.getId())).thenReturn("refreshToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "123456");
 
@@ -231,8 +232,8 @@ class AuthenticationServiceTest {
 
         when(userContactService.findByValue("test@example.com")).thenReturn(Optional.of(userContact));
         when(twoFactorAuthenticationService.verifyCode(user, "123456", ActionCodeType.TWO_FACTOR)).thenReturn(true);
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(user.getUsername())).thenReturn("refreshToken");
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(user.getId())).thenReturn("refreshToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.authenticate("test@example.com", "password", "123456");
 
@@ -283,12 +284,13 @@ class AuthenticationServiceTest {
     void refreshToken_shouldReturnNewAccessToken_whenRefreshTokenIsValid() {
         String refreshTokenString = "validRefreshToken";
         RefreshToken refreshToken = new RefreshToken();
-        refreshToken.setUser(user);
+        refreshToken.setUserId(user.getId());
         refreshToken.setToken(refreshTokenString);
 
         when(refreshTokenService.findByToken(refreshTokenString)).thenReturn(Optional.of(refreshToken));
-        when(jwtService.isTokenValid(refreshTokenString, user.getUsername())).thenReturn(true);
-        when(jwtService.generateAccessToken(user.getUsername())).thenReturn("newAccessToken");
+        when(jwtService.isTokenValid(refreshTokenString, user.getId())).thenReturn(true);
+        when(userService.findById(user.getId())).thenReturn(Optional.of(user));
+        when(jwtService.generateAccessToken(user.getId())).thenReturn("newAccessToken");
 
         Optional<AuthenticationResponseDto> response = authenticationService.refreshToken(refreshTokenString);
 
@@ -299,7 +301,7 @@ class AuthenticationServiceTest {
         assertFalse(response.get().tfaCodeSent());
         assertEquals(user.getRole().name(), response.get().role());
         verify(accessTokenService).revokeAllByRefreshToken(refreshToken);
-        verify(accessTokenService).createToken(user.getUsername(), "newAccessToken", refreshToken);
+        verify(accessTokenService).createToken(user.getId(), "newAccessToken", refreshToken);
     }
 
     @Test
@@ -317,7 +319,7 @@ class AuthenticationServiceTest {
     void logoutFromAllDevices_shouldRevokeAllTokensForUser() {
         authenticationService.logoutFromAllDevices(user);
 
-        verify(refreshTokenService).revokeAllByUser(user);
-        verify(accessTokenService).revokeAllByUser(user);
+        verify(refreshTokenService).revokeAllByUserId(user.getId());
+        verify(accessTokenService).revokeAllByUserId(user.getId());
     }
 }

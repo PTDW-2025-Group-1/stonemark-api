@@ -40,9 +40,20 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String extractUsername(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = extractAllClaims(token);
-        return claims == null ? null : extractClaim(token, Claims::getSubject);
+        if (claims == null) {
+            return null;
+        }
+        String subject = claims.getSubject();
+        if (subject == null) {
+            return null;
+        }
+        try {
+            return Long.parseLong(subject);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @Override
@@ -52,26 +63,26 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateAccessToken(String username) {
+    public String generateAccessToken(Long userId) {
         Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, username, accessTokenExpiration);
+        return buildToken(extraClaims, userId, accessTokenExpiration);
     }
 
     @Override
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(Long userId) {
         Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, username, refreshTokenExpiration);
+        return buildToken(extraClaims, userId, refreshTokenExpiration);
     }
 
     private String buildToken(
             Map<String, Object> extraClaims,
-            String username,
+            Long userId,
             long expiration
     ) {
         long current = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(username)
+                .subject(userId.toString())
                 .issuedAt(new Date(current))
                 .expiration(new Date(current + expiration))
                 .signWith(getSigningKey())
@@ -79,12 +90,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public Boolean isTokenValid(String token, String username) {
-        if (username == null) {
+    public Boolean isTokenValid(String token, Long userId) {
+        if (userId == null) {
             return false;
         }
-        final String extractedUsername = extractUsername(token);
-        return extractedUsername != null && (extractedUsername.equals(username)) && !isTokenExpired(token);
+        final Long extractedUserId = getUserIdFromToken(token);
+        return extractedUserId != null && (extractedUserId.equals(userId)) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

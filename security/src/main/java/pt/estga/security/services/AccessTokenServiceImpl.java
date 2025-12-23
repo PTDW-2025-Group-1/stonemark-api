@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.security.entities.AccessToken;
 import pt.estga.security.entities.RefreshToken;
 import pt.estga.security.repositories.AccessTokenRepository;
-import pt.estga.user.repositories.UserRepository;
-import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -23,7 +21,6 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     private long accessTokenExpiration;
 
     private final AccessTokenRepository accessTokenRepository;
-    private final UserRepository userRepository;
 
     @Override
     public Optional<AccessToken> findByToken(String token) {
@@ -57,24 +54,22 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
-    public AccessToken createToken(String username, String tokenValue, RefreshToken refreshToken) {
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    AccessToken accessToken = AccessToken.builder()
-                            .user(user)
-                            .token(tokenValue)
-                            .refreshToken(refreshToken)
-                            .expiresAt(Instant.now().plus(accessTokenExpiration, ChronoUnit.MILLIS))
-                            .build();
-                    return accessTokenRepository.save(accessToken);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public AccessToken createToken(Long userId, String tokenValue, RefreshToken refreshToken) {
+        AccessToken accessToken = AccessToken.builder()
+                .userId(userId)
+                .token(tokenValue)
+                .refreshToken(refreshToken)
+                .expiresAt(Instant.now().plus(accessTokenExpiration, ChronoUnit.MILLIS))
+                .build();
+        return accessTokenRepository.save(accessToken);
     }
 
     @Override
-    public void revokeAllByUser(User user) {
-        List<AccessToken> accessTokens = accessTokenRepository.findAllByUser(user);
-        accessTokens.forEach(t -> t.setRevoked(true));
-        accessTokenRepository.saveAll(accessTokens);
+    public void revokeAllByUserId(Long userId) {
+        List<AccessToken> accessTokens = accessTokenRepository.findAllByUserId(userId);
+        if (!accessTokens.isEmpty()) {
+            accessTokens.forEach(t -> t.setRevoked(true));
+            accessTokenRepository.saveAll(accessTokens);
+        }
     }
 }

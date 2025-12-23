@@ -82,11 +82,11 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
         }
 
-        var refreshTokenString = jwtService.generateRefreshToken(user.getUsername());
-        var accessTokenString = jwtService.generateAccessToken(user.getUsername());
+        var refreshTokenString = jwtService.generateRefreshToken(user.getId());
+        var accessTokenString = jwtService.generateAccessToken(user.getId());
 
-        var refreshToken = refreshTokenService.createToken(user.getUsername(), refreshTokenString);
-        accessTokenService.createToken(user.getUsername(), accessTokenString, refreshToken);
+        var refreshToken = refreshTokenService.createToken(user.getId(), refreshTokenString);
+        accessTokenService.createToken(user.getId(), accessTokenString, refreshToken);
 
         return Optional.of(new AuthenticationResponseDto(accessTokenString, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, tfaCodeSent));
     }
@@ -153,22 +153,21 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public Optional<AuthenticationResponseDto> refreshToken(String refreshTokenString) {
         return refreshTokenService.findByToken(refreshTokenString)
                 .filter(token -> !token.isRevoked())
-                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUser().getUsername()))
-                .map(refreshToken -> {
-                    User user = refreshToken.getUser();
+                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUserId()))
+                .flatMap(refreshToken -> userService.findById(refreshToken.getUserId())
+                        .map(user -> {
+                            accessTokenService.revokeAllByRefreshToken(refreshToken);
 
-                    accessTokenService.revokeAllByRefreshToken(refreshToken);
+                            String newAccessToken = jwtService.generateAccessToken(user.getId());
+                            accessTokenService.createToken(user.getId(), newAccessToken, refreshToken);
 
-                    String newAccessToken = jwtService.generateAccessToken(user.getUsername());
-                    accessTokenService.createToken(user.getUsername(), newAccessToken, refreshToken);
-
-                    return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, false);
-                });
+                            return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, false);
+                        }));
     }
 
     @Override
     public void logoutFromAllDevices(User user) {
-        refreshTokenService.revokeAllByUser(user);
-        accessTokenService.revokeAllByUser(user);
+        refreshTokenService.revokeAllByUserId(user.getId());
+        accessTokenService.revokeAllByUserId(user.getId());
     }
 }

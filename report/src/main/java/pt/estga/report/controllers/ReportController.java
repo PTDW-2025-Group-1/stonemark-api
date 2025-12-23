@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +11,9 @@ import pt.estga.report.dtos.ReportRequestDto;
 import pt.estga.report.dtos.ReportResponseDto;
 import pt.estga.report.enums.ReportStatus;
 import pt.estga.report.services.ReportService;
+import pt.estga.security.models.UserPrincipal;
 import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
 
 @RestController
 @RequestMapping("/api/v1/reports")
@@ -21,12 +22,14 @@ import pt.estga.user.entities.User;
 public class ReportController {
 
     private final ReportService service;
+    private final UserService userService;
 
     @PostMapping
     public ReportResponseDto createReport(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody ReportRequestDto dto
     ) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         return service.createReport(user, dto);
     }
 

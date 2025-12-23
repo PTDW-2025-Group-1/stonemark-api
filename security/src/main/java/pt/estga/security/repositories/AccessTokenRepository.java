@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pt.estga.security.entities.AccessToken;
 import pt.estga.security.entities.RefreshToken;
-import pt.estga.user.entities.User;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,7 +16,7 @@ public interface AccessTokenRepository extends JpaRepository<AccessToken, Long> 
 
     Optional<AccessToken> findByToken(String token);
 
-    @Query("SELECT t FROM AccessToken t JOIN FETCH t.user WHERE t.token = :token")
+    @Query("SELECT t FROM AccessToken t JOIN FETCH t.userId WHERE t.token = :token")
     Optional<AccessToken> findByTokenWithUser(String token);
 
     @Query("SELECT t FROM AccessToken t JOIN FETCH t.refreshToken WHERE t.token = :token")
@@ -27,7 +26,7 @@ public interface AccessTokenRepository extends JpaRepository<AccessToken, Long> 
     @Query("UPDATE AccessToken t SET t.isRevoked = true WHERE t.refreshToken = :refreshToken")
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
-    List<AccessToken> findAllByUser(User user);
+    List<AccessToken> findAllByUserId(Long userId);
 
     List<AccessToken> findAllByUserIdAndIsRevokedFalse(Long userId);
 

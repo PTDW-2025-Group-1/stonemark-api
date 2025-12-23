@@ -1,14 +1,9 @@
-package pt.estga.auth.services;
-
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.security.services.JwtService;
 import pt.estga.security.services.JwtServiceImpl;
 
-import java.util.Collections;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,56 +11,55 @@ import static org.junit.jupiter.api.Assertions.*;
 class JwtServiceTest {
 
     private JwtService jwtService;
-    private User user;
+    private final Long userId = 123L;
     private final String secretKey = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     private final long accessTokenExpiration = 1000 * 60 * 24; // 24 hours
     private final long refreshTokenExpiration = 1000 * 60 * 24 * 7; // 7 days
 
     @BeforeEach
     void setUp() {
-        user = new User("testuser", "password", Collections.emptyList());
         jwtService = new JwtServiceImpl(secretKey, accessTokenExpiration, refreshTokenExpiration);
         ((JwtServiceImpl) jwtService).init(); // Manually call PostConstruct
     }
 
     @Test
-    void extractUsername_shouldReturnCorrectUsername() {
-        String token = jwtService.generateAccessToken(user.getUsername());
-        String username = jwtService.extractUsername(token);
-        assertEquals("testuser", username);
+    void extractUserId_shouldReturnCorrectUserId() {
+        String token = jwtService.generateAccessToken(userId);
+        Long extractedUserId = jwtService.getUserIdFromToken(token);
+        assertEquals(userId, extractedUserId);
     }
 
     @Test
-    void extractUsername_shouldReturnNullForInvalidToken() {
+    void getUserId_FromToken_shouldReturnNullForInvalidToken() {
         String invalidToken = "invalid.token.string";
-        String username = jwtService.extractUsername(invalidToken);
-        assertNull(username);
+        Long extractedUserId = jwtService.getUserIdFromToken(invalidToken);
+        assertNull(extractedUserId);
     }
 
     @Test
     void generateAccessToken_shouldReturnValidToken() {
-        String token = jwtService.generateAccessToken(user.getUsername());
+        String token = jwtService.generateAccessToken(userId);
         assertNotNull(token);
-        assertTrue(jwtService.isTokenValid(token, user.getUsername()));
+        assertTrue(jwtService.isTokenValid(token, userId));
     }
 
     @Test
     void generateRefreshToken_shouldReturnValidToken() {
-        String token = jwtService.generateRefreshToken(user.getUsername());
+        String token = jwtService.generateRefreshToken(userId);
         assertNotNull(token);
-        assertTrue(jwtService.isTokenValid(token, user.getUsername()));
+        assertTrue(jwtService.isTokenValid(token, userId));
     }
 
     @Test
     void isTokenValid_shouldReturnTrueForValidToken() {
-        String token = jwtService.generateAccessToken(user.getUsername());
-        assertTrue(jwtService.isTokenValid(token, user.getUsername()));
+        String token = jwtService.generateAccessToken(userId);
+        assertTrue(jwtService.isTokenValid(token, userId));
     }
 
     @Test
     void isTokenValid_shouldReturnFalseForInvalidToken() {
         String invalidToken = "invalid.token.string";
-        assertFalse(jwtService.isTokenValid(invalidToken, user.getUsername()));
+        assertFalse(jwtService.isTokenValid(invalidToken, userId));
     }
 
     @Test
@@ -73,18 +67,18 @@ class JwtServiceTest {
         long shortExpiration = 10; // 10 milliseconds
         JwtService shortLivedJwtService = new JwtServiceImpl(secretKey, shortExpiration, refreshTokenExpiration);
         ((JwtServiceImpl) shortLivedJwtService).init(); // Manually call PostConstruct
-        String token = shortLivedJwtService.generateAccessToken(user.getUsername());
+        String token = shortLivedJwtService.generateAccessToken(userId);
 
         Thread.sleep(50); // Wait for the token to expire
 
-        assertFalse(shortLivedJwtService.isTokenValid(token, user.getUsername()));
+        assertFalse(shortLivedJwtService.isTokenValid(token, userId));
     }
 
     @Test
     void isTokenValid_shouldReturnFalseForDifferentUser() {
-        String token = jwtService.generateAccessToken(user.getUsername());
-        UserDetails otherUser = new User("otheruser", "password", Collections.emptyList());
-        assertFalse(jwtService.isTokenValid(token, otherUser.getUsername()));
+        String token = jwtService.generateAccessToken(userId);
+        Long otherUserId = 456L;
+        assertFalse(jwtService.isTokenValid(token, otherUserId));
     }
 
     @Test
@@ -92,21 +86,21 @@ class JwtServiceTest {
         String otherSecretKey = "505E635266556A586E3272357538782F413F4428472B4B6250645367566B5971";
         JwtService otherJwtService = new JwtServiceImpl(otherSecretKey, accessTokenExpiration, refreshTokenExpiration);
         ((JwtServiceImpl) otherJwtService).init();
-        String token = otherJwtService.generateAccessToken(user.getUsername());
-        assertFalse(jwtService.isTokenValid(token, user.getUsername()));
+        String token = otherJwtService.generateAccessToken(userId);
+        assertFalse(jwtService.isTokenValid(token, userId));
     }
 
     @Test
-    void isTokenValid_shouldReturnFalseForNullUserDetails() {
-        String token = jwtService.generateAccessToken(user.getUsername());
+    void isTokenValid_shouldReturnFalseForNullUserId() {
+        String token = jwtService.generateAccessToken(userId);
         assertFalse(jwtService.isTokenValid(token, null));
     }
 
     @Test
     void extractClaim_shouldReturnCorrectClaim() {
-        String token = jwtService.generateAccessToken(user.getUsername());
-        String username = jwtService.extractClaim(token, Claims::getSubject);
-        assertEquals("testuser", username);
+        String token = jwtService.generateAccessToken(userId);
+        String subject = jwtService.extractClaim(token, Claims::getSubject);
+        assertEquals(userId.toString(), subject);
 
         Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
         assertNotNull(expiration);
@@ -115,12 +109,12 @@ class JwtServiceTest {
 
     @Test
     void extractAllClaims_shouldReturnAllClaims() {
-        String token = jwtService.generateAccessToken(user.getUsername());
-        String username = jwtService.extractClaim(token, Claims::getSubject);
+        String token = jwtService.generateAccessToken(userId);
+        String subject = jwtService.extractClaim(token, Claims::getSubject);
         Date issuedAt = jwtService.extractClaim(token, Claims::getIssuedAt);
         Date expiration = jwtService.extractClaim(token, Claims::getExpiration);
 
-        assertEquals("testuser", username);
+        assertEquals(userId.toString(), subject);
         assertNotNull(issuedAt);
         assertNotNull(expiration);
     }

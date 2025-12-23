@@ -1,7 +1,6 @@
 package pt.estga.security.services;
 
 import pt.estga.security.entities.RefreshToken;
-import pt.estga.user.entities.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,11 +11,11 @@ public interface RefreshTokenService {
 
     void revokeToken(RefreshToken token);
 
-    RefreshToken createToken(String username, String tokenValue);
+    RefreshToken createToken(Long userId, String tokenValue);
 
-    List<RefreshToken> findAllValidByUser(User user);
+    List<RefreshToken> findAllValidByUserId(Long user);
 
-    void revokeAllByUser(User user);
+    void revokeAllByUserId(Long user);
 
     void revokeAll(List<RefreshToken> tokens);
 

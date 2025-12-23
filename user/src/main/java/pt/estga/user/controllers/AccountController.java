@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.security.models.UserPrincipal;
 import pt.estga.shared.dtos.MessageResponseDto;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
@@ -40,9 +41,9 @@ public class AccountController {
                             schema = @Schema(implementation = UserDto.class)))
     })
     @GetMapping("/profile")
-    public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal User connectedUser) {
+    public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal UserPrincipal principal) {
         User user = userService
-                .findByIdWithContacts(connectedUser.getId())
+                .findByIdWithContacts(principal.getId())
                 .orElseThrow();
         return ResponseEntity.ok(mapper.toDto(user));
     }
@@ -53,8 +54,9 @@ public class AccountController {
             description = "Returns information about available authentication methods."
     )
     public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus(
-            @AuthenticationPrincipal User user
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         return ResponseEntity.ok(accountService.getSecurityStatus(user));
     }
 
@@ -67,10 +69,11 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Invalid profile data provided")
     })
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(
+    public ResponseEntity<MessageResponseDto> updateProfile(
             @Parameter(description = "Updated profile information", required = true)
             @Valid @RequestBody ProfileUpdateRequestDto request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         mapper.update(user, request);
         userService.update(user);
         return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
@@ -84,11 +87,12 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Invalid password change request")
     })
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(
+    public ResponseEntity<MessageResponseDto> changePassword(
             @Parameter(description = "Password change request details", required = true)
             @Valid @RequestBody PasswordChangeRequestDto request,
-            @AuthenticationPrincipal User connectedUser) {
-        passwordService.changePassword(connectedUser, request);
+            @AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
+        passwordService.changePassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been changed successfully."));
     }
 
@@ -100,11 +104,12 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Invalid password set request")
     })
     @PostMapping("/set-password")
-    public ResponseEntity<?> setPassword(
+    public ResponseEntity<MessageResponseDto> setPassword(
             @Parameter(description = "Password set request details", required = true)
             @Valid @RequestBody PasswordSetRequestDto request,
-            @AuthenticationPrincipal User connectedUser) {
-        passwordService.setPassword(connectedUser, request);
+            @AuthenticationPrincipal UserPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
+        passwordService.setPassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
     }
 }

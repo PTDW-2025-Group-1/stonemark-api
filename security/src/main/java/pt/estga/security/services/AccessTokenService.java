@@ -2,7 +2,6 @@ package pt.estga.security.services;
 
 import pt.estga.security.entities.AccessToken;
 import pt.estga.security.entities.RefreshToken;
-import pt.estga.user.entities.User;
 
 import java.util.Optional;
 
@@ -18,8 +17,8 @@ public interface AccessTokenService {
 
     void revokeAllByRefreshToken(RefreshToken refreshToken);
 
-    AccessToken createToken(String username, String tokenValue, RefreshToken refreshToken);
+    AccessToken createToken(Long userId, String tokenValue, RefreshToken refreshToken);
 
-    void revokeAllByUser(User user);
+    void revokeAllByUserId(Long userId);
 
 }

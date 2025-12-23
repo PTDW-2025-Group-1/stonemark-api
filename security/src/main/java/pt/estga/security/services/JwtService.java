@@ -6,14 +6,14 @@ import java.util.function.Function;
 
 public interface JwtService {
 
-    String extractUsername(String token);
+    Long getUserIdFromToken(String token);
 
     <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
 
-    String generateAccessToken(String username);
+    String generateAccessToken(Long userId);
 
-    String generateRefreshToken(String username);
+    String generateRefreshToken(Long userId);
 
-    Boolean isTokenValid(String token, String username);
+    Boolean isTokenValid(String token, Long userId);
 
 }

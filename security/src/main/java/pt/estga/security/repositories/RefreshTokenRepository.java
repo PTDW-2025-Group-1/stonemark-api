@@ -3,7 +3,6 @@ package pt.estga.security.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pt.estga.security.entities.RefreshToken;
-import pt.estga.user.entities.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +12,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     Optional<RefreshToken> findByToken(String token);
 
-    List<RefreshToken> findAllByUser(User user);
+    List<RefreshToken> findAllByUserId(Long userId);
 
 }
