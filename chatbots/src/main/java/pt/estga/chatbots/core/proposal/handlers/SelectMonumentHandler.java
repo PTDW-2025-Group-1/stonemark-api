@@ -33,11 +33,8 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         String callbackData = input.getCallbackData();
         
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MONUMENT_PREFIX)) {
-            // Check if it's the "Propose New Monument" action which might be handled here or by another handler
-            // But typically this handler expects a monument selection.
-            // If the user sends text or invalid callback, we prompt them again.
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please select a monument from the list.").build())
+                    .uiComponent(Menu.builder().title("Please select a monument from the list. 🏛️").build())
                     .build());
         }
 
@@ -61,7 +58,7 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         }
 
         List<Button> proposeNewRow = new ArrayList<>();
-        proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
+        proposeNewRow.add(Button.builder().text("Propose New Mark 🆕").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
         markButtons.add(proposeNewRow);
 
         Menu markSelectionMenu = Menu.builder()

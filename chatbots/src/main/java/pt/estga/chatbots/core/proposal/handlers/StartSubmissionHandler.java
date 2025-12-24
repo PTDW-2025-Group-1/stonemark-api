@@ -34,12 +34,10 @@ public class StartSubmissionHandler implements ConversationStateHandler {
                 context.setCurrentState(ConversationState.AWAITING_PROPOSAL_ACTION);
 
                 Menu confirmationMenu = Menu.builder()
-                        .title("You have an incomplete submission. What would you like to do?")
+                        .title("You have an incomplete submission.\nWhat would you like to do?")
                         .buttons(List.of(
-                                List.of(
-                                        Button.builder().text("Continue Submission").callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build(),
-                                        Button.builder().text("Start New (Deletes Old)").callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build()
-                                )
+                                List.of(Button.builder().text("Continue Submission ➡️").callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
+                                List.of(Button.builder().text("Start New (Deletes Old) 🗑️").callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
                         ))
                         .build();
                 return Collections.singletonList(BotResponse.builder().uiComponent(confirmationMenu).build());
@@ -47,7 +45,7 @@ public class StartSubmissionHandler implements ConversationStateHandler {
 
             context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please send a clear photo of the mark.").build())
+                    .uiComponent(Menu.builder().title("Please send a clear photo of the mark. 📸").build())
                     .build());
         }
         return null;

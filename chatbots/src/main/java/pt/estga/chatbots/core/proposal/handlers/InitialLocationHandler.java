@@ -24,7 +24,7 @@ public class InitialLocationHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getLocation() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("I was expecting a location. Please share your location to continue.").build())
+                    .uiComponent(Menu.builder().title("I was expecting a location. Please share your location to continue. 📍").build())
                     .build());
         }
 

@@ -9,6 +9,7 @@ import pt.estga.proposals.dtos.UpdateProposalStatusRequestDto;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposals.services.MarkOccurrenceProposalManagementService;
+import pt.estga.shared.dtos.MessageResponseDto;
 
 @RestController
 @RequestMapping("/api/v1/proposals/mark-occurrences/management")
@@ -20,16 +21,16 @@ public class ProposalManagementController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @PutMapping("/{proposalId}/status")
-    public ResponseEntity<MarkOccurrenceProposalDto> updateStatus(
+    public ResponseEntity<MessageResponseDto> updateStatus(
             @PathVariable Long proposalId,
             @RequestBody UpdateProposalStatusRequestDto request) {
 
-        MarkOccurrenceProposal proposal = switch (request.status()) {
+        switch (request.status()) {
             case APPROVED -> markOccurrenceProposalManagementService.approve(proposalId);
             case REJECTED -> markOccurrenceProposalManagementService.reject(proposalId);
             case PENDING -> markOccurrenceProposalManagementService.pending(proposalId);
-        };
+        }
 
-        return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
+        return ResponseEntity.ok(new MessageResponseDto("Proposal status updated successfully"));
     }
 }

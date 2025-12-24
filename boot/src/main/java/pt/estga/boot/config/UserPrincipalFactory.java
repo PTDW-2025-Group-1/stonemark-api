@@ -19,7 +19,7 @@ public class UserPrincipalFactory {
                 .password(user.getPassword())
                 .authorities(getAuthorities(user.getRole()))
                 .enabled(user.isEnabled())
-                .accountNonLocked(user.isAccountLocked())
+                .accountNonLocked(!user.isAccountLocked())
                 .build();
     }
 

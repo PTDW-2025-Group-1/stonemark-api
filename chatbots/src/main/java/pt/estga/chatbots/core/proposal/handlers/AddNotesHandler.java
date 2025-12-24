@@ -34,7 +34,7 @@ public class AddNotesHandler implements ConversationStateHandler {
         context.setCurrentState(ConversationState.START);
 
         List<BotResponse> responses = new ArrayList<>();
-        responses.add(BotResponse.builder().text("Thank you for your submission!").build());
+        responses.add(BotResponse.builder().text("Thank you for your submission! 🎉").build());
         responses.addAll(optionsMessageHandler.handle(context, input));
 
         return responses;

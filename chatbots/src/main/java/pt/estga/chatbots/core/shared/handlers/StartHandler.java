@@ -32,14 +32,14 @@ public class StartHandler implements ConversationStateHandler {
         if (input.getText() != null && input.getText().startsWith("/start")) {
             context.setCurrentState(ConversationState.START);
 
-            String welcomeMessage = "Welcome!";
+            String welcomeMessage = "Welcome! 👋";
             try {
                 Optional<User> userOptional = userIdentityService
                         .findByProviderAndValue(Provider.valueOf(input.getPlatform()), input.getUserId())
                         .map(UserIdentity::getUser);
 
                 if (userOptional.isPresent()) {
-                    welcomeMessage = "Welcome back, " + userOptional.get().getFirstName() + "!";
+                    welcomeMessage = "Welcome back, " + userOptional.get().getFirstName() + "! 👋";
                 } else {
                     log.warn("User not found for platform {} and userId {}", input.getPlatform(), input.getUserId());
                 }

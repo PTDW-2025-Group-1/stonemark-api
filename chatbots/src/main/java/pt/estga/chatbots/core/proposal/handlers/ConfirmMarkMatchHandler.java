@@ -32,7 +32,7 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
         String[] callbackDataParts = input.getCallbackData().split(":");
         if (callbackDataParts.length < 2) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Invalid selection. Please try again.").build())
+                    .uiComponent(Menu.builder().title("Invalid selection. Please try again. ⚠️").build())
                     .build());
         }
 
@@ -43,12 +43,12 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
             proposalFlowService.selectMark(context.getProposal().getId(), markId);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please provide the location.").build())
+                    .uiComponent(Menu.builder().title("Please provide the location. 📍").build())
                     .build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Understood. Please provide additional details for this new mark.").build())
+                    .uiComponent(Menu.builder().title("Understood. Please provide additional details for this new mark. 📝").build())
                     .build());
         }
     }

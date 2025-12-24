@@ -55,9 +55,9 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
             case ProposalCallbackData.SUBMISSION_LOOP_CONTINUE:
                 context.setCurrentState(ConversationState.AWAITING_NOTES);
                 Menu notesMenu = Menu.builder()
-                        .title("Please add any notes for this proposal, or you can skip this step.")
+                        .title("Please add any notes for this proposal. 📝")
                         .buttons(List.of(
-                                List.of(Button.builder().text("Skip").callbackData(ProposalCallbackData.SKIP_NOTES).build())
+                                List.of(Button.builder().text("Skip ➡️").callbackData(ProposalCallbackData.SKIP_NOTES).build())
                         ))
                         .build();
                 return Collections.singletonList(BotResponse.builder().uiComponent(notesMenu).build());
@@ -71,10 +71,10 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
         Menu menu = Menu.builder()
                 .title("Review your submission. What would you like to do next?")
                 .buttons(List.of(
-                        List.of(Button.builder().text("Change Mark").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CHANGE_MARK).build()),
-                        List.of(Button.builder().text("Change Monument").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CHANGE_MONUMENT).build()),
-                        List.of(Button.builder().text("Discard Submission").callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
-                        List.of(Button.builder().text("Continue to Submit").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
+                        List.of(Button.builder().text("Change Mark 🔄").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CHANGE_MARK).build()),
+                        List.of(Button.builder().text("Change Monument 🏛️").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CHANGE_MONUMENT).build()),
+                        List.of(Button.builder().text("Discard Submission 🗑️").callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
+                        List.of(Button.builder().text("Continue to Submit ➡️").callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -82,10 +82,10 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
 
     private List<BotResponse> showConfirmation(MarkOccurrenceProposal proposal) {
         Menu menu = Menu.builder()
-                .title("Are you sure you want to discard this submission?")
+                .title("Are you sure you want to discard this submission? ⚠️")
                 .buttons(List.of(
-                        List.of(Button.builder().text("Yes, Discard").callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
-                        List.of(Button.builder().text("No, Go Back").callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
+                        List.of(Button.builder().text("Yes, Discard 🗑️").callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
+                        List.of(Button.builder().text("No, Go Back 🔙").callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());

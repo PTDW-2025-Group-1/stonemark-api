@@ -10,7 +10,8 @@ import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.models.ui.PhotoGallery;
+import pt.estga.chatbots.core.shared.models.ui.PhotoItem;
+import pt.estga.chatbots.core.shared.models.ui.TextMessage;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
@@ -59,15 +60,18 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
 
             // 1. First response: The Photo (if available)
             if (mediaId != null) {
-                 PhotoGallery gallery = PhotoGallery.builder()
-                    .title("I found a mark that looks similar:")
-                    .photos(List.of(PhotoGallery.PhotoItem.builder()
+                 // Send a text message first as title
+                 responses.add(BotResponse.builder()
+                         .uiComponent(TextMessage.builder().text("I found a mark that looks similar:").build())
+                         .build());
+
+                 // Send the photo item
+                 PhotoItem photoItem = PhotoItem.builder()
                             .mediaFileId(mediaId)
                             .caption("Mark #" + mark.getId())
                             .callbackData("noop") 
-                            .build()))
-                    .build();
-                 responses.add(BotResponse.builder().uiComponent(gallery).build());
+                            .build();
+                 responses.add(BotResponse.builder().uiComponent(photoItem).build());
             }
 
             // 2. Second response: The Question and Buttons
@@ -91,8 +95,12 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
     @Override
     public List<BotResponse> processMultipleMatches(ConversationContext context, MarkOccurrenceProposal proposal, List<String> markIds) {
         context.setCurrentState(ConversationState.AWAITING_MARK_SELECTION);
+        List<BotResponse> responses = new ArrayList<>();
 
-        List<PhotoGallery.PhotoItem> photoItems = new ArrayList<>();
+        responses.add(BotResponse.builder()
+                .uiComponent(TextMessage.builder().text("I found some marks that might match. Please select one or propose a new one:").build())
+                .build());
+
         for (String markId : markIds) {
             Optional<Mark> markOptional = markService.findWithCoverById(Long.valueOf(markId));
             markOptional.ifPresent(mark -> {
@@ -103,26 +111,24 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
 
                 String caption = "Mark " + mark.getId();
 
-                photoItems.add(PhotoGallery.PhotoItem.builder()
+                PhotoItem photoItem = PhotoItem.builder()
                         .mediaFileId(mediaId)
                         .caption(caption)
                         .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId())
-                        .build());
+                        .build();
+                responses.add(BotResponse.builder().uiComponent(photoItem).build());
             });
         }
 
-        List<Button> proposeNewRow = new ArrayList<>();
-        proposeNewRow.add(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
-
-        PhotoGallery gallery = PhotoGallery.builder()
-                .title("I found some marks that might match. Please select one or propose a new one:")
-                .photos(photoItems)
-                .additionalButtons(List.of(proposeNewRow))
+        Menu proposeNewMenu = Menu.builder()
+                .title("If none of above options match")
+                .buttons(List.of(
+                        List.of(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())
+                ))
                 .build();
+        responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
 
-        return Collections.singletonList(BotResponse.builder()
-                .uiComponent(gallery)
-                .build());
+        return responses;
     }
 
     private List<BotResponse> handleNoMarksFound(ConversationContext context) {

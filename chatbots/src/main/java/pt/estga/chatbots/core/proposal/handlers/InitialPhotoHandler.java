@@ -25,7 +25,7 @@ public class InitialPhotoHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getFileData() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("I was expecting a photo. Please upload an image to continue.").build())
+                    .uiComponent(Menu.builder().title("I was expecting a photo. Please upload an image to continue. 📸").build())
                     .build());
         }
 
@@ -35,11 +35,11 @@ public class InitialPhotoHandler implements ConversationStateHandler {
             context.setProposal(proposal);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Thank you. Now, please provide the location of the mark.").build())
+                    .uiComponent(Menu.builder().title("Thank you. Now, please provide the location of the mark. 📍").build())
                     .build());
         } catch (IOException e) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing photo. Please try again.").build())
+                    .uiComponent(Menu.builder().title("Error processing photo. Please try again. ⚠️").build())
                     .build());
         }
     }

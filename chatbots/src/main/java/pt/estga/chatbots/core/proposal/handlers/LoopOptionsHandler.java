@@ -37,11 +37,11 @@ public class LoopOptionsHandler implements ConversationStateHandler {
         switch (callbackData) {
             case ProposalCallbackData.LOOP_REDO_LOCATION:
                 context.setCurrentState(ConversationState.AWAITING_LOCATION);
-                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please send the new location.").build()).build());
+                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please send the new location. 📍").build()).build());
 
             case ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD:
                 context.setCurrentState(ConversationState.AWAITING_REUPLOAD_PHOTO);
-                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please upload a new image.").build()).build());
+                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please upload a new image. 📸").build()).build());
 
             case ProposalCallbackData.LOOP_CONTINUE:
                 try {
@@ -50,7 +50,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
                     return markProcessorService.processMarkSuggestions(context, updatedProposal);
                 } catch (IOException e) {
                     return Collections.singletonList(BotResponse.builder()
-                            .uiComponent(Menu.builder().title("Error processing submission.").build())
+                            .uiComponent(Menu.builder().title("Error processing submission. ⚠️").build())
                             .build());
                 }
 
@@ -63,9 +63,9 @@ public class LoopOptionsHandler implements ConversationStateHandler {
         Menu menu = Menu.builder()
                 .title("What would you like to do next?")
                 .buttons(List.of(
-                        List.of(Button.builder().text("Change Location").callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
-                        List.of(Button.builder().text("Change Photo").callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
-                        List.of(Button.builder().text("Continue").callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
+                        List.of(Button.builder().text("Change Location 📍").callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
+                        List.of(Button.builder().text("Change Photo 📸").callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
+                        List.of(Button.builder().text("Continue ➡️").callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());

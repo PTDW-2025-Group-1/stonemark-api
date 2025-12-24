@@ -36,7 +36,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         
         if (callbackDataParts.length < 2) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Invalid selection. Please try again.").build())
+                    .uiComponent(Menu.builder().title("Invalid selection. Please try again. ⚠️").build())
                     .build());
         }
 
@@ -51,7 +51,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Understood. Please provide the name of the new monument.").build())
+                    .uiComponent(Menu.builder().title("Understood. Please provide the name of the new monument. 🏛️").build())
                     .build());
         }
     }

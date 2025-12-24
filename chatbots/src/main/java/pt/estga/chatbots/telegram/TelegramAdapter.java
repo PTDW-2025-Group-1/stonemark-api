@@ -22,6 +22,7 @@ import pt.estga.chatbots.core.shared.models.ui.ContactRequest;
 import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.models.ui.PhotoGallery;
+import pt.estga.chatbots.core.shared.models.ui.PhotoItem;
 import pt.estga.chatbots.core.shared.models.ui.TextMessage;
 import pt.estga.chatbots.core.shared.models.ui.UIComponent;
 import pt.estga.chatbots.telegram.services.TelegramFileService;
@@ -147,6 +148,8 @@ public class TelegramAdapter {
                 methods.add(renderContactRequest(String.valueOf(chatId), (ContactRequest) uiComponent));
             } else if (uiComponent instanceof PhotoGallery) {
                 methods.addAll(renderPhotoGallery(String.valueOf(chatId), (PhotoGallery) uiComponent));
+            } else if (uiComponent instanceof PhotoItem) {
+                methods.addAll(renderPhotoItem(String.valueOf(chatId), (PhotoItem) uiComponent));
             } else if (uiComponent instanceof TextMessage) {
                 methods.add(new SendMessage(String.valueOf(chatId), ((TextMessage) uiComponent).getText()));
             }
@@ -183,63 +186,48 @@ public class TelegramAdapter {
         }
 
         if (gallery.getPhotos() != null) {
-            for (PhotoGallery.PhotoItem item : gallery.getPhotos()) {
-                // Only add a button if callbackData is not "noop"
-                InlineKeyboardMarkup markup = null;
-                if (item.getCallbackData() != null && !"noop".equals(item.getCallbackData())) {
-                    markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
-                }
-                
-                if (item.getMediaFileId() != null) {
-                    InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
-                    if (inputFile != null) {
-                        SendPhoto photo = new SendPhoto();
-                        photo.setChatId(chatId);
-                        photo.setCaption(item.getCaption());
-                        photo.setPhoto(inputFile);
-                        if (markup != null) {
-                            photo.setReplyMarkup(markup);
-                        }
-                        methods.add(photo);
-                    } else {
-                        // Fallback if image loading fails
-                        SendMessage message = new SendMessage(chatId, item.getCaption() + " (Image unavailable)");
-                        if (markup != null) {
-                            message.setReplyMarkup(markup);
-                        }
-                        methods.add(message);
-                    }
-                } else {
-                    SendMessage message = new SendMessage(chatId, item.getCaption());
-                    if (markup != null) {
-                        message.setReplyMarkup(markup);
-                    }
-                    methods.add(message);
-                }
+            for (PhotoItem item : gallery.getPhotos()) {
+                methods.addAll(renderPhotoItem(chatId, item));
             }
         }
 
-        if (gallery.getAdditionalButtons() != null && !gallery.getAdditionalButtons().isEmpty()) {
-            // Use the custom text if provided, otherwise fallback to "Or:" or "Please choose:"
-            String messageText;
-            if (gallery.getAdditionalButtonsText() != null) {
-                messageText = gallery.getAdditionalButtonsText();
-            } else {
-                // Default logic
-                boolean isSingleMatchView = gallery.getPhotos() != null && gallery.getPhotos().size() == 1 
-                                            && "noop".equals(gallery.getPhotos().getFirst().getCallbackData());
-                if (gallery.getPhotos() != null && !gallery.getPhotos().isEmpty() && !isSingleMatchView) {
-                    messageText = "Or:";
-                } else {
-                    messageText = "Please choose:";
+        return methods;
+    }
+
+    private List<PartialBotApiMethod<?>> renderPhotoItem(String chatId, PhotoItem item) {
+        List<PartialBotApiMethod<?>> methods = new ArrayList<>();
+        
+        // Only add a button if callbackData is not "noop"
+        InlineKeyboardMarkup markup = null;
+        if (item.getCallbackData() != null && !"noop".equals(item.getCallbackData())) {
+            markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
+        }
+        
+        if (item.getMediaFileId() != null) {
+            InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
+            if (inputFile != null) {
+                SendPhoto photo = new SendPhoto();
+                photo.setChatId(chatId);
+                photo.setCaption(item.getCaption());
+                photo.setPhoto(inputFile);
+                if (markup != null) {
+                    photo.setReplyMarkup(markup);
                 }
+                methods.add(photo);
+            } else {
+                SendMessage message = new SendMessage(chatId, item.getCaption() + " (Image unavailable)");
+                if (markup != null) {
+                    message.setReplyMarkup(markup);
+                }
+                methods.add(message);
             }
-            
-            SendMessage message = new SendMessage(chatId, messageText);
-            message.setReplyMarkup(createInlineKeyboardMarkup(gallery.getAdditionalButtons()));
+        } else {
+            SendMessage message = new SendMessage(chatId, item.getCaption());
+            if (markup != null) {
+                message.setReplyMarkup(markup);
+            }
             methods.add(message);
         }
-
         return methods;
     }
 
