@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InitialPhotoHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -28,7 +28,8 @@ public class InitialPhotoHandler implements ConversationStateHandler {
         }
 
         try {
-            MarkOccurrenceProposal proposal = proposalFlowService.initiate(context.getDomainUserId(), input.getFileData(), input.getFileName(), null, null);
+            MarkOccurrenceProposal proposal = proposalFlowService.startProposal(context.getDomainUserId());
+            proposal = proposalFlowService.addPhoto(proposal.getId(), input.getFileData(), input.getFileName());
             context.setProposal(proposal);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()

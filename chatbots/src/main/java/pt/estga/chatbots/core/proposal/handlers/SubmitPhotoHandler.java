@@ -8,7 +8,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SubmitPhotoHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final LoopOptionsHandler loopOptionsHandler;
 
     @Override
@@ -28,7 +28,7 @@ public class SubmitPhotoHandler implements ConversationStateHandler {
         }
 
         try {
-            proposalFlowService.updatePhoto(context.getProposal().getId(), input.getFileData(), input.getFileName());
+            proposalFlowService.addPhoto(context.getProposal().getId(), input.getFileData(), input.getFileName());
             context.setCurrentState(ConversationState.LOOP_OPTIONS);
             return loopOptionsHandler.handle(context, BotInput.builder().build());
         } catch (IOException e) {

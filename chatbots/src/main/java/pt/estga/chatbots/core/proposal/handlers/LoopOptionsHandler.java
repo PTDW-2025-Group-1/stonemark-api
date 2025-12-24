@@ -12,7 +12,7 @@ import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LoopOptionsHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final MarkProcessorService markProcessorService;
 
     @Override
@@ -45,7 +45,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
 
             case ProposalCallbackData.LOOP_CONTINUE:
                 try {
-                    MarkOccurrenceProposal updatedProposal = proposalFlowService.analyzeMedia(proposal.getId());
+                    MarkOccurrenceProposal updatedProposal = proposalFlowService.analyzePhoto(proposal.getId());
                     context.setProposal(updatedProposal);
                     return markProcessorService.processMarkSuggestions(context, updatedProposal);
                 } catch (IOException e) {

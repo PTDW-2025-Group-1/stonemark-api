@@ -9,6 +9,8 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.entities.ProposedMark;
 import pt.estga.proposals.events.ProposalSubmittedEvent;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +30,7 @@ public class MarkOccurrenceProposalSubmissionServiceImpl implements MarkOccurren
                 });
 
         proposal.setSubmitted(true);
+        proposal.setSubmittedAt(Instant.now());
 
         // Ensure embedding is propagated to ProposedMark if it exists and hasn't been set yet
         ProposedMark proposedMark = proposal.getProposedMark();

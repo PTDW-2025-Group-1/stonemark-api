@@ -7,7 +7,7 @@ import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InitialLocationHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final LoopOptionsHandler loopOptionsHandler;
 
     @Override
@@ -24,7 +24,7 @@ public class InitialLocationHandler implements ConversationStateHandler {
             return null;
         }
 
-        proposalFlowService.addLocationToProposal(
+        proposalFlowService.addLocation(
                 context.getProposal().getId(),
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()

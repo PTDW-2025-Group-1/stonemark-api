@@ -8,7 +8,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.List;
 
@@ -16,17 +16,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final SubmissionLoopHandler submissionLoopHandler;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         var proposal = context.getProposal();
-        MarkOccurrenceProposal updatedProposal = proposalFlowService.proposeMonument(
+        MarkOccurrenceProposal updatedProposal = proposalFlowService.createMonument(
                 proposal.getId(),
-                input.getText(),
-                proposal.getLatitude(),
-                proposal.getLongitude()
+                input.getText()
         );
         context.setProposal(updatedProposal);
         context.setCurrentState(ConversationState.SUBMISSION_LOOP_OPTIONS);

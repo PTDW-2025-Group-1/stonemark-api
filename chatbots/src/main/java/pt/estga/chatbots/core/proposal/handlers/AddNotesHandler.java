@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.handlers.OptionsMessageHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
 
 import java.util.ArrayList;
@@ -19,14 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AddNotesHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final MarkOccurrenceProposalSubmissionService submissionService;
     private final OptionsMessageHandler optionsMessageHandler;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
-            proposalFlowService.addNotesToProposal(context.getProposal().getId(), input.getText());
+            proposalFlowService.addNotes(context.getProposal().getId(), input.getText());
         }
 
         submissionService.submit(context.getProposal().getId());

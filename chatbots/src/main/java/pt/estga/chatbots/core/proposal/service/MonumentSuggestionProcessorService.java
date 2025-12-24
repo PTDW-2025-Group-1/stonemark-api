@@ -13,7 +13,7 @@ import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class MonumentSuggestionProcessorService {
 
     private final MonumentService monumentService;
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
 
     public List<BotResponse> processMonumentSuggestions(ConversationContext context, MarkOccurrenceProposal updatedProposal) {
         context.setCurrentState(ConversationState.WAITING_FOR_MONUMENT_CONFIRMATION);

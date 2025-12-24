@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {

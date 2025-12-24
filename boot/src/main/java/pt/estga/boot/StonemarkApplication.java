@@ -15,10 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 		"pt.estga.boot", "pt.estga.file", "pt.estga.chatbots", "pt.estga.content",
 		"pt.estga.shared", "pt.estga.user", "pt.estga.verification"
 })
-//@ComponentScan(basePackages = "pt.estga")
-//@EntityScan(basePackages = "pt.estga")
-//@EnableJpaRepositories(basePackages = "pt.estga")
-// Todo: eliminate all other configurations
 public class StonemarkApplication {
 
 	public static void main(String[] args) {

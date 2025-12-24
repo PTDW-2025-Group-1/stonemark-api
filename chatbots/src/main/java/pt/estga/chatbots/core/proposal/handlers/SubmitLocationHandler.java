@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.List;
 @Slf4j
 public class SubmitLocationHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final LoopOptionsHandler loopOptionsHandler;
 
     @Override
@@ -32,7 +32,7 @@ public class SubmitLocationHandler implements ConversationStateHandler {
         }
 
         log.info("Handling location submission for proposal ID: {}", context.getProposal().getId());
-        proposalFlowService.addLocationToProposal(
+        proposalFlowService.addLocation(
                 context.getProposal().getId(),
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()

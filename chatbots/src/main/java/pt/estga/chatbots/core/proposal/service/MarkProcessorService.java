@@ -13,7 +13,7 @@ import pt.estga.chatbots.core.shared.models.ui.PhotoGallery;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import java.util.Optional;
 public class MarkProcessorService {
 
     private final MarkService markService;
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
 
     public List<BotResponse> processMarkSuggestions(ConversationContext context, MarkOccurrenceProposal proposal) {
         List<String> suggestedMarkIds = proposalFlowService.getSuggestedMarkIds(proposal.getId());

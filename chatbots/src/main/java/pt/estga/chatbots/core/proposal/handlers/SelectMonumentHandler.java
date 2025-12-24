@@ -13,7 +13,7 @@ import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalFlowService;
+import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class SelectMonumentHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalFlowService proposalFlowService;
+    private final ChatbotProposalFlowService proposalFlowService;
     private final MarkService markService;
 
     @Override
