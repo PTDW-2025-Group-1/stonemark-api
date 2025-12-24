@@ -9,7 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.util.Collections;
@@ -21,13 +21,13 @@ public class InitialLocationHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final LoopOptionsHandler loopOptionsHandler;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getLocation() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.EXPECTING_LOCATION_ERROR)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.EXPECTING_LOCATION_ERROR)).build())
                     .build());
         }
 

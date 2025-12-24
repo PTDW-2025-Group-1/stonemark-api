@@ -11,7 +11,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
 
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class StartSubmissionHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalService proposalService;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -37,10 +37,10 @@ public class StartSubmissionHandler implements ConversationStateHandler {
                 context.setCurrentState(ConversationState.AWAITING_PROPOSAL_ACTION);
 
                 Menu confirmationMenu = Menu.builder()
-                        .titleNode(parser.parse(Messages.DISCARD_CONFIRMATION_TITLE))
+                        .titleNode(textService.get(Messages.INCOMPLETE_SUBMISSION_TITLE))
                         .buttons(List.of(
-                                List.of(Button.builder().textNode(parser.parse(Messages.CONTINUE_SUBMISSION_BTN)).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
-                                List.of(Button.builder().textNode(parser.parse(Messages.START_NEW_SUBMISSION_BTN)).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
+                                List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_SUBMISSION_BTN)).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
+                                List.of(Button.builder().textNode(textService.get(Messages.START_NEW_SUBMISSION_BTN)).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
                         ))
                         .build();
                 return Collections.singletonList(BotResponse.builder().uiComponent(confirmationMenu).build());
@@ -48,7 +48,7 @@ public class StartSubmissionHandler implements ConversationStateHandler {
 
             context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.SEND_PHOTO_PROMPT)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.SEND_PHOTO_PROMPT)).build())
                     .build());
         }
         return null;

@@ -11,7 +11,7 @@ import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -24,13 +24,13 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final SubmissionLoopHandler submissionLoopHandler;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.CONFIRM_MONUMENT_MATCH_PROMPT)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.CONFIRM_MONUMENT_MATCH_PROMPT)).build())
                     .build());
         }
 
@@ -39,7 +39,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         
         if (callbackDataParts.length < 2) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.INVALID_SELECTION)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.INVALID_SELECTION)).build())
                     .build());
         }
 
@@ -54,7 +54,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT)).build())
                     .build());
         }
     }

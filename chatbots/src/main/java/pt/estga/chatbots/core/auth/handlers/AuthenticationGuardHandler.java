@@ -11,7 +11,7 @@ import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.services.AuthService;
 import pt.estga.chatbots.core.shared.services.AuthServiceFactory;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.chatbots.core.verification.VerificationCallbackData;
 
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.List;
 public class AuthenticationGuardHandler {
 
     private final AuthServiceFactory authServiceFactory;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     public boolean isAuthenticated(BotInput input) {
         AuthService authService = authServiceFactory.getAuthService(input.getPlatform());
@@ -32,9 +32,9 @@ public class AuthenticationGuardHandler {
     public List<BotResponse> requireVerification(ConversationContext context) {
         context.setCurrentState(ConversationState.START);
         Menu verificationMenu = Menu.builder()
-                .titleNode(parser.parse(Messages.AUTH_REQUIRED_TITLE))
+                .titleNode(textService.get(Messages.AUTH_REQUIRED_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(parser.parse(Messages.VERIFY_ACCOUNT_BTN)).callbackData(VerificationCallbackData.START_VERIFICATION).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.VERIFY_ACCOUNT_BTN)).callbackData(VerificationCallbackData.START_VERIFICATION).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(verificationMenu).build());

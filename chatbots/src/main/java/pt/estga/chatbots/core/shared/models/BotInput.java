@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 import pt.estga.shared.models.Location;
 
+import java.util.Locale;
+
 @Data
 @Builder
 public class BotInput {
@@ -15,6 +17,7 @@ public class BotInput {
     private byte[] fileData;
     private String fileName;
     private Location location;
+    private Locale locale;
     private String callbackData;
 
     public enum InputType {

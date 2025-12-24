@@ -72,7 +72,6 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
                  PhotoItem photoItem = PhotoItem.builder()
                             .mediaFileId(mediaId)
                             .captionNode(parser.parse("Mark #" + mark.getId()))
-                            .callbackData("noop") 
                             .build();
                  responses.add(BotResponse.builder().uiComponent(photoItem).build());
             }

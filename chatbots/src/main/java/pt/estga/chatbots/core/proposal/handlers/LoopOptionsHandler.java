@@ -14,6 +14,7 @@ import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
@@ -29,7 +30,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final MarkProcessorService markProcessorService;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -45,13 +46,13 @@ public class LoopOptionsHandler implements ConversationStateHandler {
                 context.setCurrentState(ConversationState.AWAITING_LOCATION);
                 return Collections.singletonList(BotResponse.builder()
                         .uiComponent(LocationRequest.builder()
-                                .messageNode(parser.parse(Messages.SEND_NEW_LOCATION_PROMPT)).build())
+                                .messageNode(textService.get(Messages.SEND_NEW_LOCATION_PROMPT)).build())
                         .build());
 
             case ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD:
                 context.setCurrentState(ConversationState.AWAITING_REUPLOAD_PHOTO);
                 return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder()
-                        .titleNode(parser.parse(Messages.UPLOAD_NEW_IMAGE_PROMPT)).build()).build());
+                        .titleNode(textService.get(Messages.UPLOAD_NEW_IMAGE_PROMPT)).build()).build());
 
             case ProposalCallbackData.LOOP_CONTINUE:
                 try {
@@ -60,7 +61,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
                     return markProcessorService.processMarkSuggestions(context, updatedProposal);
                 } catch (IOException e) {
                     return Collections.singletonList(BotResponse.builder()
-                            .uiComponent(Menu.builder().titleNode(parser.parse(Messages.ERROR_PROCESSING_SUBMISSION)).build())
+                            .uiComponent(Menu.builder().titleNode(textService.get(Messages.ERROR_PROCESSING_SUBMISSION)).build())
                             .build());
                 }
 
@@ -71,11 +72,11 @@ public class LoopOptionsHandler implements ConversationStateHandler {
 
     private List<BotResponse> showOptions(MarkOccurrenceProposal proposal) {
         Menu menu = Menu.builder()
-                .titleNode(parser.parse(Messages.LOOP_OPTIONS_TITLE))
+                .titleNode(textService.get(Messages.LOOP_OPTIONS_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(parser.parse(Messages.CHANGE_LOCATION_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
-                        List.of(Button.builder().textNode(parser.parse(Messages.CHANGE_PHOTO_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
-                        List.of(Button.builder().textNode(parser.parse(Messages.CONTINUE_BTN)).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_LOCATION_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_PHOTO_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_BTN)).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());

@@ -3,79 +3,81 @@ package pt.estga.chatbots.core.shared;
 public class Messages {
 
     // General
-    public static final String WELCOME = "Welcome! 👋";
-    public static final String WELCOME_BACK = "Welcome back, %s! 👋";
-    public static final String ERROR_GENERIC = "An error occurred. Please try again. ⚠️";
-    public static final String ERROR_PROCESSING_PHOTO = "Error processing photo. Please try again. ⚠️";
-    public static final String ERROR_PROCESSING_SUBMISSION = "Error processing submission. ⚠️";
-    public static final String INVALID_SELECTION = "Invalid selection. Please try again. ⚠️";
+    public static final String WELCOME = "welcome";
+    public static final String WELCOME_BACK = "welcome_back";
+    public static final String ERROR_GENERIC = "error_generic";
+    public static final String ERROR_PROCESSING_PHOTO = "error_processing_photo";
+    public static final String ERROR_PROCESSING_SUBMISSION = "error_processing_submission";
+    public static final String INVALID_SELECTION = "invalid_selection";
 
     // Proposal Flow
-    public static final String INCOMPLETE_SUBMISSION_TITLE = "You have an incomplete submission. What would you like to do?";
-    public static final String CONTINUE_SUBMISSION_BTN = "Continue Submission ➡️";
-    public static final String START_NEW_SUBMISSION_BTN = "Start New (Deletes Old) 🗑️";
+    public static final String INCOMPLETE_SUBMISSION_TITLE = "incomplete_submission_title";
+    public static final String CONTINUE_SUBMISSION_BTN = "continue_submission_btn";
+    public static final String START_NEW_SUBMISSION_BTN = "start_new_submission_btn";
     
-    public static final String SEND_PHOTO_PROMPT = "Please send a clear photo of the mark. 📸";
-    public static final String EXPECTING_PHOTO_ERROR = "I was expecting a photo. Please upload an image to continue. 📸";
+    public static final String SEND_PHOTO_PROMPT = "send_photo_prompt";
+    public static final String EXPECTING_PHOTO_ERROR = "expecting_photo_error";
     
-    public static final String PROVIDE_LOCATION_PROMPT = "Thank you. Now, please provide the location of the mark. 📍";
-    public static final String LOCATION_REQUEST_MESSAGE = "Please provide the location.\n\nTap the button to send your **current location**, or use the attachment menu (📎) to **pick a location on the map**. 📍";
-    public static final String EXPECTING_LOCATION_ERROR = "I was expecting a location. Please share your location to continue. 📍";
+    public static final String PROVIDE_LOCATION_PROMPT = "provide_location_prompt";
+    public static final String LOCATION_REQUEST_MESSAGE = "location_request_message";
+    public static final String EXPECTING_LOCATION_ERROR = "expecting_location_error";
     
-    public static final String LOOP_OPTIONS_TITLE = "What would you like to do next?";
-    public static final String CHANGE_LOCATION_BTN = "Change Location 📍";
-    public static final String CHANGE_PHOTO_BTN = "Change Photo 📸";
-    public static final String CONTINUE_BTN = "Continue ➡️";
-    public static final String SEND_NEW_LOCATION_PROMPT = "Please send the new location.\n\nTap the button to send your **current location**, or use the attachment menu (📎) to **pick a location on the map**. 📍";
-    public static final String UPLOAD_NEW_IMAGE_PROMPT = "Please upload a new image. 📸";
+    public static final String LOOP_OPTIONS_TITLE = "loop_options_title";
+    public static final String CHANGE_LOCATION_BTN = "change_location_btn";
+    public static final String CHANGE_PHOTO_BTN = "change_photo_btn";
+    public static final String CONTINUE_BTN = "continue_btn";
+    public static final String SEND_NEW_LOCATION_PROMPT = "send_new_location_prompt";
+    public static final String UPLOAD_NEW_IMAGE_PROMPT = "upload_new_image_prompt";
 
-    public static final String SELECT_MARK_PROMPT = "Please select a mark from the list or propose a new one. 🔍";
-    public static final String FOUND_MARKS_TITLE = "I found some marks that might match. Please select one or propose a new one: 🔍";
-    public static final String FOUND_SINGLE_MARK_TITLE = "I found a mark that looks similar:";
-    public static final String MATCH_CONFIRMATION_TITLE = "Does it match with the one that you uploaded?";
-    public static final String CONFIRM_MARK_MATCH_PROMPT = "Please confirm if the mark matches by clicking Yes or No.";
-    public static final String PROPOSE_NEW_MARK_BTN = "Propose New Mark 🆕";
-    public static final String NO_MARKS_FOUND_PROMPT = "No existing marks found. Please enter the details for this new mark, or skip.";
-    public static final String SKIP_BTN = "Skip ➡️";
-    public static final String SKIP_MARK_DETAILS_BTN = "Skip";
+    public static final String SELECT_MARK_PROMPT = "select_mark_prompt";
+    public static final String FOUND_MARKS_TITLE = "found_marks_title";
+    public static final String FOUND_SINGLE_MARK_TITLE = "found_single_mark_title";
+    public static final String MATCH_CONFIRMATION_TITLE = "match_confirmation_title";
+    public static final String CONFIRM_MARK_MATCH_PROMPT = "confirm_mark_match_prompt";
+    public static final String PROPOSE_NEW_MARK_BTN = "propose_new_mark_btn";
+    public static final String NO_MARKS_FOUND_PROMPT = "no_marks_found_prompt";
+    public static final String SKIP_BTN = "skip_btn";
+    public static final String SKIP_MARK_DETAILS_BTN = "skip_mark_details_btn";
     
-    public static final String PROVIDE_NEW_MARK_DETAILS_PROMPT = "Understood. Please provide additional details for this new mark. 📝";
+    public static final String PROVIDE_NEW_MARK_DETAILS_PROMPT = "provide_new_mark_details_prompt";
 
-    public static final String SELECT_MONUMENT_PROMPT = "Please select a monument from the list. 🏛️";
-    public static final String CONFIRM_MONUMENT_MATCH_PROMPT = "Please confirm if the monument matches by clicking Yes or No.";
-    public static final String MONUMENT_CONFIRMATION_TITLE = "Was this photo taken at %s?";
-    public static final String NO_MONUMENTS_FOUND_PROMPT = "No nearby monuments found. Please enter the monument name.";
-    public static final String PROVIDE_NEW_MONUMENT_NAME_PROMPT = "Understood. Please provide the name of the new monument. 🏛️";
+    public static final String SELECT_MONUMENT_PROMPT = "select_monument_prompt";
+    public static final String CONFIRM_MONUMENT_MATCH_PROMPT = "confirm_monument_match_prompt";
+    public static final String MONUMENT_CONFIRMATION_TITLE = "monument_confirmation_title";
+    public static final String NO_MONUMENTS_FOUND_PROMPT = "no_monuments_found_prompt";
+    public static final String PROVIDE_NEW_MONUMENT_NAME_PROMPT = "provide_new_monument_name_prompt";
     
-    public static final String SUBMISSION_LOOP_TITLE = "Review your submission. What would you like to do next?";
-    public static final String CHANGE_MARK_BTN = "Change Mark 🔄";
-    public static final String CHANGE_MONUMENT_BTN = "Change Monument 🏛️";
-    public static final String DISCARD_SUBMISSION_BTN = "Discard Submission 🗑️";
-    public static final String CONTINUE_TO_SUBMIT_BTN = "Continue to Submit ➡️";
+    public static final String SUBMISSION_LOOP_TITLE = "submission_loop_title";
+    public static final String CHANGE_MARK_BTN = "change_mark_btn";
+    public static final String CHANGE_MONUMENT_BTN = "change_monument_btn";
+    public static final String DISCARD_SUBMISSION_BTN = "discard_submission_btn";
+    public static final String CONTINUE_TO_SUBMIT_BTN = "continue_to_submit_btn";
     
-    public static final String DISCARD_CONFIRMATION_TITLE = "Are you sure you want to discard this submission? ⚠️";
-    public static final String YES_DISCARD_BTN = "Yes, Discard 🗑️";
-    public static final String NO_GO_BACK_BTN = "No, Go Back 🔙";
+    public static final String DISCARD_CONFIRMATION_TITLE = "discard_confirmation_title";
+    public static final String YES_DISCARD_BTN = "yes_discard_btn";
+    public static final String NO_GO_BACK_BTN = "no_go_back_btn";
     
-    public static final String ADD_NOTES_PROMPT = "Please add any notes for this proposal. 📝";
-    public static final String SUBMISSION_SUCCESS = "Thank you for your submission! 🎉";
-    
-    public static final String YES_BTN = "✅ Yes";
-    public static final String NO_BTN = "❌ No";
+    public static final String ADD_NOTES_PROMPT = "add_notes_prompt";
+    public static final String SUBMISSION_SUCCESS = "submission_success";
+
+    public static final String SELECT_BTN = "select_btn";
+
+    public static final String YES_BTN = "yes_btn";
+    public static final String NO_BTN = "no_btn";
 
     // Authentication & Verification
-    public static final String AUTH_REQUIRED_TITLE = "To use this chatbot, you need to verify your account. 🔒";
-    public static final String VERIFY_ACCOUNT_BTN = "Verify Account 🔐";
-    public static final String SHARE_PHONE_NUMBER_PROMPT = "To begin, please share your phone number. 📱";
-    public static final String VERIFICATION_SUCCESS = "Thank you, %s! Your account is now verified. ✅";
-    public static final String VERIFICATION_SUCCESS_CODE = "Thank you, %s! Your account has been successfully verified. ✅";
-    public static final String USER_NOT_FOUND_ERROR = "Sorry, we couldn't find an account associated with that phone number. Please try again or contact support. ⚠️";
-    public static final String VERIFICATION_ERROR_GENERIC = "An unexpected error occurred. Please start the verification process again. ⚠️";
-    public static final String INVALID_CODE_ERROR = "That code is invalid or has expired. Please try again. ⚠️";
+    public static final String AUTH_REQUIRED_TITLE = "auth_required_title";
+    public static final String VERIFY_ACCOUNT_BTN = "verify_account_btn";
+    public static final String SHARE_PHONE_NUMBER_PROMPT = "share_phone_number_prompt";
+    public static final String VERIFICATION_SUCCESS = "verification_success";
+    public static final String VERIFICATION_SUCCESS_CODE = "verification_success_code";
+    public static final String USER_NOT_FOUND_ERROR = "user_not_found_error";
+    public static final String VERIFICATION_ERROR_GENERIC = "verification_error_generic";
+    public static final String INVALID_CODE_ERROR = "invalid_code_error";
     
-    public static final String ENTER_VERIFICATION_CODE_PROMPT = "Please enter the verification code from the website. 🔢";
-    public static final String SHARE_CONTACT_PROMPT = "Please share your contact information to verify your account. 📱";
-    public static final String ENTER_CODE_AFTER_CONTACT_PROMPT = "Thank you. Now, please enter the verification code from the website. 🔢";
+    public static final String ENTER_VERIFICATION_CODE_PROMPT = "enter_verification_code_prompt";
+    public static final String SHARE_CONTACT_PROMPT = "share_contact_prompt";
+    public static final String ENTER_CODE_AFTER_CONTACT_PROMPT = "enter_code_after_contact_prompt";
 
     private Messages() {}
 }
