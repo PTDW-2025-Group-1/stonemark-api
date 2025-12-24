@@ -13,7 +13,7 @@ import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.models.ui.PhotoItem;
 import pt.estga.chatbots.core.shared.models.ui.TextMessage;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
+import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
@@ -31,7 +31,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
 
     private final MarkService markService;
     private final ChatbotProposalFlowService proposalFlowService;
-    private final TextTemplateParser parser;
+    private final UiTextService textService;
 
     public List<BotResponse> processMarkSuggestions(ConversationContext context, MarkOccurrenceProposal proposal) {
         List<String> suggestedMarkIds = proposalFlowService.getSuggestedMarkIds(proposal.getId());
@@ -65,24 +65,24 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
             if (mediaId != null) {
                  // Send a text message first as title
                  responses.add(BotResponse.builder()
-                         .uiComponent(TextMessage.builder().textNode(parser.parse(Messages.FOUND_SINGLE_MARK_TITLE)).build())
+                         .uiComponent(TextMessage.builder().textNode(textService.get(Messages.FOUND_SINGLE_MARK_TITLE)).build())
                          .build());
 
                  // Send the photo item
                  PhotoItem photoItem = PhotoItem.builder()
                             .mediaFileId(mediaId)
-                            .captionNode(parser.parse("Mark #" + mark.getId()))
+                            .captionNode(textService.get("Mark #" + mark.getId()))
                             .build();
                  responses.add(BotResponse.builder().uiComponent(photoItem).build());
             }
 
             // 2. Second response: The Question and Buttons
             Menu confirmationMenu = Menu.builder()
-                    .titleNode(parser.parse(Messages.MATCH_CONFIRMATION_TITLE))
+                    .titleNode(textService.get(Messages.MATCH_CONFIRMATION_TITLE))
                     .buttons(List.of(
                             List.of(
-                                    Button.builder().textNode(parser.parse(Messages.YES_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
-                                    Button.builder().textNode(parser.parse(Messages.NO_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
+                                    Button.builder().textNode(textService.get(Messages.YES_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
+                                    Button.builder().textNode(textService.get(Messages.NO_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                             )
                     ))
                     .build();
@@ -100,7 +100,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
         List<BotResponse> responses = new ArrayList<>();
 
         responses.add(BotResponse.builder()
-                .uiComponent(TextMessage.builder().textNode(parser.parse(Messages.FOUND_MARKS_TITLE)).build())
+                .uiComponent(TextMessage.builder().textNode(textService.get(Messages.FOUND_MARKS_TITLE)).build())
                 .build());
 
         for (String markId : markIds) {
@@ -115,7 +115,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
 
                 PhotoItem photoItem = PhotoItem.builder()
                         .mediaFileId(mediaId)
-                        .captionNode(parser.parse(caption))
+                        .captionNode(textService.get(caption))
                         .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId())
                         .build();
                 responses.add(BotResponse.builder().uiComponent(photoItem).build());
@@ -123,9 +123,9 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
         }
 
         Menu proposeNewMenu = Menu.builder()
-                .titleNode(parser.parse("If none of above options match"))
+                .titleNode(textService.get("If none of above options match"))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(parser.parse(Messages.PROPOSE_NEW_MARK_BTN)).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.PROPOSE_NEW_MARK_BTN)).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())
                 ))
                 .build();
         responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
@@ -136,9 +136,9 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
     private List<BotResponse> handleNoMarksFound(ConversationContext context) {
         context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
         Menu menu = Menu.builder()
-                .titleNode(parser.parse(Messages.NO_MARKS_FOUND_PROMPT))
+                .titleNode(textService.get(Messages.NO_MARKS_FOUND_PROMPT))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(parser.parse(Messages.SKIP_MARK_DETAILS_BTN)).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.SKIP_MARK_DETAILS_BTN)).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder()

@@ -9,25 +9,25 @@ public class Messages {
     public static final String ERROR_PROCESSING_PHOTO = "error_processing_photo";
     public static final String ERROR_PROCESSING_SUBMISSION = "error_processing_submission";
     public static final String INVALID_SELECTION = "invalid_selection";
+    public static final String FALLBACK_UNHANDLED_INPUT = "fallback_unhandled_input";
+    public static final String HELP_OPTIONS_TITLE = "help_options_title";
 
     // Proposal Flow
+    public static final String PROPOSE_MARK_BTN = "propose_mark_btn";
     public static final String INCOMPLETE_SUBMISSION_TITLE = "incomplete_submission_title";
     public static final String CONTINUE_SUBMISSION_BTN = "continue_submission_btn";
     public static final String START_NEW_SUBMISSION_BTN = "start_new_submission_btn";
     
-    public static final String SEND_PHOTO_PROMPT = "send_photo_prompt";
+    public static final String REQUEST_PHOTO_PROMPT = "request_photo_prompt";
     public static final String EXPECTING_PHOTO_ERROR = "expecting_photo_error";
     
-    public static final String PROVIDE_LOCATION_PROMPT = "provide_location_prompt";
-    public static final String LOCATION_REQUEST_MESSAGE = "location_request_message";
+    public static final String REQUEST_LOCATION_PROMPT = "request_location_prompt";
     public static final String EXPECTING_LOCATION_ERROR = "expecting_location_error";
     
     public static final String LOOP_OPTIONS_TITLE = "loop_options_title";
     public static final String CHANGE_LOCATION_BTN = "change_location_btn";
     public static final String CHANGE_PHOTO_BTN = "change_photo_btn";
     public static final String CONTINUE_BTN = "continue_btn";
-    public static final String SEND_NEW_LOCATION_PROMPT = "send_new_location_prompt";
-    public static final String UPLOAD_NEW_IMAGE_PROMPT = "upload_new_image_prompt";
 
     public static final String SELECT_MARK_PROMPT = "select_mark_prompt";
     public static final String FOUND_MARKS_TITLE = "found_marks_title";

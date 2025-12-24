@@ -48,7 +48,7 @@ public class StartSubmissionHandler implements ConversationStateHandler {
 
             context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.SEND_PHOTO_PROMPT)).build())
+                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.REQUEST_PHOTO_PROMPT)).build())
                     .build());
         }
         return null;

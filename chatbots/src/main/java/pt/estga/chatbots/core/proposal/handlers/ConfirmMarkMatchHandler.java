@@ -3,14 +3,14 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.proposal.service.ProposalNavigationService;
 import pt.estga.chatbots.core.shared.Messages;
+import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
-import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
@@ -23,6 +23,8 @@ import java.util.List;
 public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
+    private final ProposalNavigationService navigationService;
+    private final LoopOptionsHandler loopOptionsHandler;
     private final UiTextService textService;
 
     @Override
@@ -35,7 +37,7 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
         String[] callbackDataParts = input.getCallbackData().split(":");
         if (callbackDataParts.length < 2) {
-             return Collections.singletonList(BotResponse.builder()
+            return Collections.singletonList(BotResponse.builder()
                     .uiComponent(Menu.builder().titleNode(textService.get(Messages.INVALID_SELECTION)).build())
                     .build());
         }
@@ -45,11 +47,13 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
         if (matches) {
             Long markId = Long.valueOf(callbackDataParts[2]);
             proposalFlowService.selectMark(context.getProposal().getId(), markId);
-            context.setCurrentState(ConversationState.AWAITING_LOCATION);
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(LocationRequest.builder().
-                            messageNode(textService.get(Messages.LOCATION_REQUEST_MESSAGE)).build())
-                    .build());
+            
+            List<BotResponse> responses = navigationService.navigate(context);
+            if (responses != null) {
+                return responses;
+            }
+            // If navigation returns null, it means we are ready for the loop options
+            return loopOptionsHandler.handle(context, BotInput.builder().build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
             return Collections.singletonList(BotResponse.builder()

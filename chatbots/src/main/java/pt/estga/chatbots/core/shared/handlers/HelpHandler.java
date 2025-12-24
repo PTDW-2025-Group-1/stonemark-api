@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.auth.handlers.AuthenticationGuardHandler;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -31,7 +32,7 @@ public class HelpHandler implements ConversationStateHandler {
             }
 
             // Reuse the options menu logic but with a custom title
-            return optionsMessageHandler.handle(context, input, "Here are the available options:");
+            return optionsMessageHandler.handle(context, input, Messages.HELP_OPTIONS_TITLE);
         }
         return null; // Not handled
     }

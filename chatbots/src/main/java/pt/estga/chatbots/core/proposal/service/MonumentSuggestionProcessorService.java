@@ -12,7 +12,6 @@ import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.services.UiTextService;
-import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
@@ -47,7 +46,7 @@ public class MonumentSuggestionProcessorService {
             Monument monument = monumentOptional.get();
             log.info("Suggesting monument '{}' for proposal ID: {}", monument.getName(), updatedProposal.getId());
             Menu monumentConfirmationMenu = Menu.builder()
-                    .titleNode(uiTextService.get(String.format(Messages.MONUMENT_CONFIRMATION_TITLE, monument.getName())))
+                    .titleNode(uiTextService.get(Messages.MONUMENT_CONFIRMATION_TITLE, monument.getName()))
                     .buttons(List.of(
                             List.of(
                                     Button.builder().textNode(uiTextService.get(Messages.YES_BTN)).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
