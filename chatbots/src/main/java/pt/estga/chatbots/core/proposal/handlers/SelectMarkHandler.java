@@ -9,9 +9,11 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.proposal.service.MonumentSuggestionProcessorService;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -23,8 +25,15 @@ public class SelectMarkHandler implements ConversationStateHandler {
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        MarkOccurrenceProposal proposal = context.getProposal();
         String callbackData = input.getCallbackData();
+
+        if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
+            return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please select a mark from the list or propose a new one.").build())
+                    .build());
+        }
+
+        MarkOccurrenceProposal proposal = context.getProposal();
         Long markId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MARK_PREFIX.length()));
         proposal = proposalFlowService.selectMark(proposal.getId(), markId);
         context.setProposal(proposal);

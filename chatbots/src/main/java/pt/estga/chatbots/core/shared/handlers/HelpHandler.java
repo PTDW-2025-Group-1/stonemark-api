@@ -1,32 +1,43 @@
 package pt.estga.chatbots.core.shared.handlers;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.auth.handlers.AuthenticationGuardHandler;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.chatbots.core.shared.models.ui.Menu;
 
-import java.util.Collections;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
+@Order(2)
 public class HelpHandler implements ConversationStateHandler {
+
+    private final OptionsMessageHandler optionsMessageHandler;
+    private final AuthenticationGuardHandler authenticationGuard;
+
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getText() != null && input.getText().startsWith("/help")) {
-            String helpText = "You can start a new submission by sending a photo. " +
-                    "Use /start to restart the conversation at any time.";
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title(helpText).build())
-                    .build());
+            // Reset state to START so the user isn't stuck
+            context.setCurrentState(ConversationState.START);
+
+            if (!authenticationGuard.isAuthenticated(input)) {
+                return authenticationGuard.requireVerification(context);
+            }
+
+            // Reuse the options menu logic but with a custom title
+            return optionsMessageHandler.handle(context, input, "Here are the available options:");
         }
         return null; // Not handled
     }
 
     @Override
     public ConversationState canHandle() {
-        return null;
+        return null; // Global handler
     }
 }

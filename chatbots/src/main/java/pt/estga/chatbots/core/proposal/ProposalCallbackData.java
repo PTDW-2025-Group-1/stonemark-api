@@ -12,6 +12,7 @@ public final class ProposalCallbackData {
     public static final String SELECT_MONUMENT_PREFIX = "select_monument:";
     public static final String SELECT_MARK_PREFIX = "select_mark:";
     public static final String CONFIRM_MONUMENT_PREFIX = "confirm_monument:";
+    public static final String CONFIRM_MARK_PREFIX = "confirm_mark:"; // Added this line
     public static final String LOOP_REDO_LOCATION = "loop_redo_location";
     public static final String LOOP_REDO_IMAGE_UPLOAD = "loop_redo_image_upload";
     public static final String LOOP_CONTINUE = "loop_continue";

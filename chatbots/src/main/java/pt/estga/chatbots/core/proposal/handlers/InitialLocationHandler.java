@@ -7,8 +7,10 @@ import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -21,7 +23,9 @@ public class InitialLocationHandler implements ConversationStateHandler {
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getLocation() == null) {
-            return null;
+            return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("I was expecting a location. Please share your location to continue.").build())
+                    .build());
         }
 
         proposalFlowService.addLocation(

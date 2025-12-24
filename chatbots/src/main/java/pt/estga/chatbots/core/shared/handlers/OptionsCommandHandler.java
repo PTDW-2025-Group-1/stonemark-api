@@ -1,6 +1,7 @@
 package pt.estga.chatbots.core.shared.handlers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.auth.handlers.AuthenticationGuardHandler;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Order(1)
 public class OptionsCommandHandler implements ConversationStateHandler {
 
     private final OptionsMessageHandler optionsMessageHandler;
@@ -34,6 +36,6 @@ public class OptionsCommandHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return null;
+        return null; // Global handler
     }
 }

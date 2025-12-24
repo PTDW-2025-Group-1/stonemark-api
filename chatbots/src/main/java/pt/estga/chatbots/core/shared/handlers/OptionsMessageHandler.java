@@ -23,17 +23,27 @@ public class OptionsMessageHandler {
     private final AuthServiceFactory authServiceFactory;
 
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
+        return handle(context, input, null);
+    }
+
+    public List<BotResponse> handle(ConversationContext context, BotInput input, String customMessage) {
         AuthService authService = authServiceFactory.getAuthService(input.getPlatform());
         boolean isAuthenticated = authService.isAuthenticated(input.getUserId());
 
         List<Button> buttons = new ArrayList<>();
         String title;
 
-        if (isAuthenticated) {
+        if (customMessage != null) {
+            title = customMessage;
+        } else if (isAuthenticated) {
             title = "What would you like to do?";
-            buttons.add(Button.builder().text("Propose a mason's mark").callbackData(ProposalCallbackData.START_SUBMISSION).build());
         } else {
             title = "To use this chatbot, you need to verify your account.";
+        }
+
+        if (isAuthenticated) {
+            buttons.add(Button.builder().text("Propose a mason's mark").callbackData(ProposalCallbackData.START_SUBMISSION).build());
+        } else {
             buttons.add(Button.builder().text("Verify Account").callbackData(VerificationCallbackData.START_VERIFICATION).build());
         }
 

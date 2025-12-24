@@ -24,7 +24,9 @@ public class InitialPhotoHandler implements ConversationStateHandler {
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getFileData() == null) {
-            return null;
+            return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("I was expecting a photo. Please upload an image to continue.").build())
+                    .build());
         }
 
         try {
@@ -37,7 +39,7 @@ public class InitialPhotoHandler implements ConversationStateHandler {
                     .build());
         } catch (IOException e) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing photo.").build())
+                    .uiComponent(Menu.builder().title("Error processing photo. Please try again.").build())
                     .build());
         }
     }

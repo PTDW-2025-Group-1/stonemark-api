@@ -11,12 +11,14 @@ public class PhotoGallery implements UIComponent {
     private String title;
     private List<PhotoItem> photos;
     private List<List<Button>> additionalButtons;
-    
+    private String additionalButtonsText;
+
     @Data
     @Builder
     public static class PhotoItem {
         private Long mediaFileId;
         private String caption;
         private String callbackData;
+        private String buttonText;
     }
 }

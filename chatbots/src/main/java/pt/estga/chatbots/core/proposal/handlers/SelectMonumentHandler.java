@@ -30,8 +30,18 @@ public class SelectMonumentHandler implements ConversationStateHandler {
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        var proposal = context.getProposal();
         String callbackData = input.getCallbackData();
+        
+        if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MONUMENT_PREFIX)) {
+            // Check if it's the "Propose New Monument" action which might be handled here or by another handler
+            // But typically this handler expects a monument selection.
+            // If the user sends text or invalid callback, we prompt them again.
+             return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please select a monument from the list.").build())
+                    .build());
+        }
+
+        var proposal = context.getProposal();
         Long monumentId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MONUMENT_PREFIX.length()));
         MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposal.getId(), monumentId);
         context.setProposal(updatedProposal);

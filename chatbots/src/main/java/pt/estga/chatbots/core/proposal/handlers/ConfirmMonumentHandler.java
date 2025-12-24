@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.proposal.ProposalCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -24,8 +25,21 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
+        if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
+            return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Please confirm if the monument matches by clicking Yes or No.").build())
+                    .build());
+        }
+
         Long proposalId = context.getProposal().getId();
         String[] callbackDataParts = input.getCallbackData().split(":");
+        
+        if (callbackDataParts.length < 2) {
+             return Collections.singletonList(BotResponse.builder()
+                    .uiComponent(Menu.builder().title("Invalid selection. Please try again.").build())
+                    .build());
+        }
+
         boolean confirmed = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackDataParts[1]);
 
         if (confirmed) {

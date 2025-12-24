@@ -184,7 +184,11 @@ public class TelegramAdapter {
 
         if (gallery.getPhotos() != null) {
             for (PhotoGallery.PhotoItem item : gallery.getPhotos()) {
-                InlineKeyboardMarkup markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
+                // Only add a button if callbackData is not "noop"
+                InlineKeyboardMarkup markup = null;
+                if (item.getCallbackData() != null && !"noop".equals(item.getCallbackData())) {
+                    markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
+                }
                 
                 if (item.getMediaFileId() != null) {
                     InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
@@ -193,24 +197,45 @@ public class TelegramAdapter {
                         photo.setChatId(chatId);
                         photo.setCaption(item.getCaption());
                         photo.setPhoto(inputFile);
-                        photo.setReplyMarkup(markup);
+                        if (markup != null) {
+                            photo.setReplyMarkup(markup);
+                        }
                         methods.add(photo);
                     } else {
                         // Fallback if image loading fails
                         SendMessage message = new SendMessage(chatId, item.getCaption() + " (Image unavailable)");
-                        message.setReplyMarkup(markup);
+                        if (markup != null) {
+                            message.setReplyMarkup(markup);
+                        }
                         methods.add(message);
                     }
                 } else {
                     SendMessage message = new SendMessage(chatId, item.getCaption());
-                    message.setReplyMarkup(markup);
+                    if (markup != null) {
+                        message.setReplyMarkup(markup);
+                    }
                     methods.add(message);
                 }
             }
         }
 
         if (gallery.getAdditionalButtons() != null && !gallery.getAdditionalButtons().isEmpty()) {
-            SendMessage message = new SendMessage(chatId, "Or:");
+            // Use the custom text if provided, otherwise fallback to "Or:" or "Please choose:"
+            String messageText;
+            if (gallery.getAdditionalButtonsText() != null) {
+                messageText = gallery.getAdditionalButtonsText();
+            } else {
+                // Default logic
+                boolean isSingleMatchView = gallery.getPhotos() != null && gallery.getPhotos().size() == 1 
+                                            && "noop".equals(gallery.getPhotos().getFirst().getCallbackData());
+                if (gallery.getPhotos() != null && !gallery.getPhotos().isEmpty() && !isSingleMatchView) {
+                    messageText = "Or:";
+                } else {
+                    messageText = "Please choose:";
+                }
+            }
+            
+            SendMessage message = new SendMessage(chatId, messageText);
             message.setReplyMarkup(createInlineKeyboardMarkup(gallery.getAdditionalButtons()));
             methods.add(message);
         }

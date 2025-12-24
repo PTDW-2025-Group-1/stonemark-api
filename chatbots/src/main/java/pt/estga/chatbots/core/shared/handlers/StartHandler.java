@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.shared.handlers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Order(2)
 public class StartHandler implements ConversationStateHandler {
 
     private final OptionsMessageHandler optionsMessageHandler;
@@ -56,6 +58,6 @@ public class StartHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return null;
+        return null; // Global handler
     }
 }
