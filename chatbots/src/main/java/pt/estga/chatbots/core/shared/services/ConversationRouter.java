@@ -1,4 +1,4 @@
-package pt.estga.chatbots.core.shared;
+package pt.estga.chatbots.core.shared.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;

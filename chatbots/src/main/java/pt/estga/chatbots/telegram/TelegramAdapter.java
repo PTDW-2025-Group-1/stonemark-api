@@ -21,11 +21,11 @@ import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.ContactRequest;
 import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.models.ui.PhotoGallery;
 import pt.estga.chatbots.core.shared.models.ui.PhotoItem;
 import pt.estga.chatbots.core.shared.models.ui.TextMessage;
 import pt.estga.chatbots.core.shared.models.ui.UIComponent;
 import pt.estga.chatbots.telegram.services.TelegramFileService;
+import pt.estga.chatbots.telegram.services.TelegramTextService;
 import pt.estga.shared.models.Location;
 
 import java.io.File;
@@ -42,6 +42,7 @@ import java.util.Optional;
 public class TelegramAdapter {
 
     private final TelegramFileService fileService;
+    private final TelegramTextService textService;
 
     public BotInput toBotInput(Update update) {
         if (update.hasMessage()) {
@@ -139,19 +140,27 @@ public class TelegramAdapter {
         if (uiComponent instanceof Menu) {
             methods.add(renderMenu(String.valueOf(chatId), (Menu) uiComponent, response.getText()));
         } else {
-            if (response.getText() != null) {
+            if (response.getTextNode() != null) {
+                methods.add(new SendMessage(
+                        String.valueOf(chatId),
+                        textService.render(response.getTextNode())
+                ));
+            } else if (response.getText() != null) {
                 methods.add(new SendMessage(String.valueOf(chatId), response.getText()));
             }
             if (uiComponent instanceof LocationRequest) {
                 methods.add(renderLocationRequest(String.valueOf(chatId), (LocationRequest) uiComponent));
             } else if (uiComponent instanceof ContactRequest) {
                 methods.add(renderContactRequest(String.valueOf(chatId), (ContactRequest) uiComponent));
-            } else if (uiComponent instanceof PhotoGallery) {
-                methods.addAll(renderPhotoGallery(String.valueOf(chatId), (PhotoGallery) uiComponent));
             } else if (uiComponent instanceof PhotoItem) {
                 methods.addAll(renderPhotoItem(String.valueOf(chatId), (PhotoItem) uiComponent));
             } else if (uiComponent instanceof TextMessage) {
-                methods.add(new SendMessage(String.valueOf(chatId), ((TextMessage) uiComponent).getText()));
+                TextMessage textMessage = (TextMessage) uiComponent;
+                if (textMessage.getTextNode() != null) {
+                    methods.add(new SendMessage(String.valueOf(chatId), textService.render(textMessage.getTextNode())));
+                } else {
+                    methods.add(new SendMessage(String.valueOf(chatId), textMessage.getText()));
+                }
             }
         }
         return methods;
@@ -167,31 +176,27 @@ public class TelegramAdapter {
     }
 
     private SendMessage renderLocationRequest(String chatId, LocationRequest locationRequest) {
-        SendMessage message = new SendMessage(chatId, locationRequest.getMessage());
+        String messageText;
+        if (locationRequest.getMessageNode() != null) {
+            messageText = textService.render(locationRequest.getMessageNode());
+        } else {
+            messageText = locationRequest.getMessage();
+        }
+        SendMessage message = new SendMessage(chatId, messageText);
         message.setReplyMarkup(createReplyKeyboardMarkup("Send my location", true, false));
         return message;
     }
 
     private SendMessage renderContactRequest(String chatId, ContactRequest contactRequest) {
-        SendMessage message = new SendMessage(chatId, contactRequest.getMessage());
+        String messageText;
+        if (contactRequest.getMessageNode() != null) {
+            messageText = textService.render(contactRequest.getMessageNode());
+        } else {
+            messageText = contactRequest.getMessage();
+        }
+        SendMessage message = new SendMessage(chatId, messageText);
         message.setReplyMarkup(createReplyKeyboardMarkup("Share my phone number", false, true));
         return message;
-    }
-
-    private List<PartialBotApiMethod<?>> renderPhotoGallery(String chatId, PhotoGallery gallery) {
-        List<PartialBotApiMethod<?>> methods = new ArrayList<>();
-
-        if (gallery.getTitle() != null) {
-            methods.add(new SendMessage(chatId, gallery.getTitle()));
-        }
-
-        if (gallery.getPhotos() != null) {
-            for (PhotoItem item : gallery.getPhotos()) {
-                methods.addAll(renderPhotoItem(chatId, item));
-            }
-        }
-
-        return methods;
     }
 
     private List<PartialBotApiMethod<?>> renderPhotoItem(String chatId, PhotoItem item) {
@@ -203,26 +208,33 @@ public class TelegramAdapter {
             markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
         }
         
+        String caption;
+        if (item.getCaptionNode() != null) {
+            caption = textService.render(item.getCaptionNode());
+        } else {
+            caption = item.getCaption();
+        }
+
         if (item.getMediaFileId() != null) {
             InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
             if (inputFile != null) {
                 SendPhoto photo = new SendPhoto();
                 photo.setChatId(chatId);
-                photo.setCaption(item.getCaption());
+                photo.setCaption(caption);
                 photo.setPhoto(inputFile);
                 if (markup != null) {
                     photo.setReplyMarkup(markup);
                 }
                 methods.add(photo);
             } else {
-                SendMessage message = new SendMessage(chatId, item.getCaption() + " (Image unavailable)");
+                SendMessage message = new SendMessage(chatId, caption + " (Image unavailable)");
                 if (markup != null) {
                     message.setReplyMarkup(markup);
                 }
                 methods.add(message);
             }
         } else {
-            SendMessage message = new SendMessage(chatId, item.getCaption());
+            SendMessage message = new SendMessage(chatId, caption);
             if (markup != null) {
                 message.setReplyMarkup(markup);
             }
