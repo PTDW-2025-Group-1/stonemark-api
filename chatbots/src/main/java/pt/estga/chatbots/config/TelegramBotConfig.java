@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
 import pt.estga.chatbots.core.shared.services.BotConversationService;
 import pt.estga.chatbots.telegram.StonemarkTelegramBot;
 import pt.estga.chatbots.telegram.TelegramAdapter;
@@ -30,6 +31,7 @@ public class TelegramBotConfig {
 
     /**
      * Creates a dedicated Executor for Bot tasks to ensure isolation and scalability.
+     * Wrapped in DelegatingSecurityContextExecutor to propagate SecurityContext to async threads.
      */
     @Bean(name = "botTaskExecutor")
     public Executor botTaskExecutor() {
@@ -39,7 +41,7 @@ public class TelegramBotConfig {
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("BotAsync-");
         executor.initialize();
-        return executor;
+        return new DelegatingSecurityContextExecutor(executor);
     }
 
     /**

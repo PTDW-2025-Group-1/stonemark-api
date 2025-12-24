@@ -55,6 +55,6 @@ public class StartSubmissionHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.START;
+        return null;
     }
 }

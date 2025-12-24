@@ -1,17 +1,20 @@
 package pt.estga.shared.utils;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import pt.estga.shared.models.AuthenticatedPrincipal;
+import pt.estga.shared.models.ServiceAccountPrincipal;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public final class SecurityUtils {
 
-    private SecurityUtils() {
-        // Private constructor to prevent instantiation
-    }
+    private SecurityUtils() {}
 
     /**
      * Retrieves the ID of the currently authenticated user from the SecurityContext.
@@ -21,9 +24,8 @@ public final class SecurityUtils {
     public static Optional<Long> getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || 
-            !authentication.isAuthenticated() || 
-            authentication instanceof AnonymousAuthenticationToken) {
+        if (!authentication.isAuthenticated() ||
+                authentication instanceof AnonymousAuthenticationToken) {
             return Optional.empty();
         }
 

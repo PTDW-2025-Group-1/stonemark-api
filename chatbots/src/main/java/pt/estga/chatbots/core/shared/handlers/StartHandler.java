@@ -56,6 +56,6 @@ public class StartHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.START;
+        return null;
     }
 }

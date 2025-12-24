@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
-import pt.estga.chatbots.core.shared.context.ConversationState;
-import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.services.AuthService;
 import pt.estga.chatbots.core.shared.services.AuthServiceFactory;
 import pt.estga.chatbots.core.shared.models.BotInput;
@@ -20,11 +18,10 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OptionsMessageHandler implements ConversationStateHandler {
+public class OptionsMessageHandler {
 
     private final AuthServiceFactory authServiceFactory;
 
-    @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         AuthService authService = authServiceFactory.getAuthService(input.getPlatform());
         boolean isAuthenticated = authService.isAuthenticated(input.getUserId());
@@ -48,12 +45,5 @@ public class OptionsMessageHandler implements ConversationStateHandler {
         return Collections.singletonList(BotResponse.builder()
                 .uiComponent(mainMenu)
                 .build());
-    }
-
-    @Override
-    public ConversationState canHandle() {
-        // This handler can be triggered from multiple states, so we don't define one.
-        // It will be called directly by other handlers.
-        return null;
     }
 }

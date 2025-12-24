@@ -1,9 +1,8 @@
-package pt.estga.security.models;
+package pt.estga.shared.models;
 
 import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import pt.estga.shared.models.AuthenticatedPrincipal;
 
 import java.util.Collection;
 
@@ -16,22 +15,6 @@ public class UserPrincipal implements UserDetails, AuthenticatedPrincipal {
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
     private final boolean accountNonLocked;
-
-    public UserPrincipal(
-            Long id,
-            String username,
-            String password,
-            Collection<? extends GrantedAuthority> authorities,
-            boolean enabled,
-            boolean accountNonLocked
-    ) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.authorities = authorities;
-        this.enabled = enabled;
-        this.accountNonLocked = accountNonLocked;
-    }
 
     @Override
     public Long getId() {
