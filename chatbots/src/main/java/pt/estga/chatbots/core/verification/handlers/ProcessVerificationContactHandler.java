@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.verification.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -30,7 +31,7 @@ public class ProcessVerificationContactHandler implements ConversationStateHandl
         context.setCurrentState(ConversationState.AWAITING_VERIFICATION_CODE);
 
         return Collections.singletonList(BotResponse.builder()
-                .uiComponent(Menu.builder().title("Thank you. Now, please enter the verification code from the website.").build())
+                .uiComponent(Menu.builder().title(Messages.ENTER_CODE_AFTER_CONTACT_PROMPT).build())
                 .build());
     }
 

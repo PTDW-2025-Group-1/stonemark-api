@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
@@ -62,7 +63,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
             if (mediaId != null) {
                  // Send a text message first as title
                  responses.add(BotResponse.builder()
-                         .uiComponent(TextMessage.builder().text("I found a mark that looks similar:").build())
+                         .uiComponent(TextMessage.builder().text(Messages.FOUND_SINGLE_MARK_TITLE).build())
                          .build());
 
                  // Send the photo item
@@ -76,11 +77,11 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
 
             // 2. Second response: The Question and Buttons
             Menu confirmationMenu = Menu.builder()
-                    .title("Does it match with the one that you uploaded?")
+                    .title(Messages.MATCH_CONFIRMATION_TITLE)
                     .buttons(List.of(
                             List.of(
-                                    Button.builder().text("✅ Yes").callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
-                                    Button.builder().text("❌ No").callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
+                                    Button.builder().text(Messages.YES_BTN).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
+                                    Button.builder().text(Messages.NO_BTN).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                             )
                     ))
                     .build();
@@ -98,7 +99,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
         List<BotResponse> responses = new ArrayList<>();
 
         responses.add(BotResponse.builder()
-                .uiComponent(TextMessage.builder().text("I found some marks that might match. Please select one or propose a new one:").build())
+                .uiComponent(TextMessage.builder().text(Messages.FOUND_MARKS_TITLE).build())
                 .build());
 
         for (String markId : markIds) {
@@ -123,7 +124,7 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
         Menu proposeNewMenu = Menu.builder()
                 .title("If none of above options match")
                 .buttons(List.of(
-                        List.of(Button.builder().text("Propose New Mark").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())
+                        List.of(Button.builder().text(Messages.PROPOSE_NEW_MARK_BTN).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())
                 ))
                 .build();
         responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
@@ -134,9 +135,9 @@ public class MarkProcessorService implements SingleMarkMatchProcessor, MultipleM
     private List<BotResponse> handleNoMarksFound(ConversationContext context) {
         context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
         Menu menu = Menu.builder()
-                .title("No existing marks found. Please enter the details for this new mark, or skip.")
+                .title(Messages.NO_MARKS_FOUND_PROMPT)
                 .buttons(List.of(
-                        List.of(Button.builder().text("Skip").callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())
+                        List.of(Button.builder().text(Messages.SKIP_MARK_DETAILS_BTN).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder()

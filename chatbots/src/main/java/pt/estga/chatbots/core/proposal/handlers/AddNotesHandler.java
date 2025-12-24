@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -34,7 +35,7 @@ public class AddNotesHandler implements ConversationStateHandler {
         context.setCurrentState(ConversationState.START);
 
         List<BotResponse> responses = new ArrayList<>();
-        responses.add(BotResponse.builder().text("Thank you for your submission! 🎉").build());
+        responses.add(BotResponse.builder().text(Messages.SUBMISSION_SUCCESS).build());
         responses.addAll(optionsMessageHandler.handle(context, input));
 
         return responses;

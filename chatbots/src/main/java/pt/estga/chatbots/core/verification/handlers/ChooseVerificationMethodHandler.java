@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.verification.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -29,14 +30,14 @@ public class ChooseVerificationMethodHandler implements ConversationStateHandler
         if (callbackData.equals(VerificationCallbackData.CHOOSE_VERIFY_WITH_CODE)) {
             context.setCurrentState(ConversationState.AWAITING_VERIFICATION_CODE);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please enter the verification code from the website.").build())
+                    .uiComponent(Menu.builder().title(Messages.ENTER_VERIFICATION_CODE_PROMPT).build())
                     .build());
         }
 
         if (callbackData.equals(VerificationCallbackData.CHOOSE_VERIFY_WITH_PHONE)) {
             context.setCurrentState(ConversationState.AWAITING_CONTACT);
             ContactRequest contactRequest = ContactRequest.builder()
-                    .message("Please share your contact information to verify your account.")
+                    .message(Messages.SHARE_CONTACT_PROMPT)
                     .build();
             return Collections.singletonList(BotResponse.builder()
                     .uiComponent(contactRequest)

@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -24,7 +25,7 @@ public class InitialLocationHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getLocation() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("I was expecting a location. Please share your location to continue. 📍").build())
+                    .uiComponent(Menu.builder().title(Messages.EXPECTING_LOCATION_ERROR).build())
                     .build());
         }
 

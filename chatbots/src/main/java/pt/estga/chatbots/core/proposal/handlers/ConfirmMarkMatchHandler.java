@@ -3,12 +3,14 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -25,14 +27,14 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MARK_PREFIX)) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please confirm if the mark matches by clicking Yes or No.").build())
+                    .uiComponent(Menu.builder().title(Messages.CONFIRM_MARK_MATCH_PROMPT).build())
                     .build());
         }
 
         String[] callbackDataParts = input.getCallbackData().split(":");
         if (callbackDataParts.length < 2) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Invalid selection. Please try again. ⚠️").build())
+                    .uiComponent(Menu.builder().title(Messages.INVALID_SELECTION).build())
                     .build());
         }
 
@@ -43,12 +45,12 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
             proposalFlowService.selectMark(context.getProposal().getId(), markId);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please provide the location. 📍").build())
+                    .uiComponent(LocationRequest.builder().message(Messages.LOCATION_REQUEST_MESSAGE).build())
                     .build());
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Understood. Please provide additional details for this new mark. 📝").build())
+                    .uiComponent(Menu.builder().title(Messages.PROVIDE_NEW_MARK_DETAILS_PROMPT).build())
                     .build());
         }
     }

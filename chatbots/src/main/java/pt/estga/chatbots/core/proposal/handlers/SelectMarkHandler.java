@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -29,7 +30,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
 
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please select a mark from the list or propose a new one.").build())
+                    .uiComponent(Menu.builder().title(Messages.SELECT_MARK_PROMPT).build())
                     .build());
         }
 

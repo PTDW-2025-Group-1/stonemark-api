@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.verification.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -23,7 +24,7 @@ public class StartVerificationHandler implements ConversationStateHandler {
             context.setCurrentState(ConversationState.AWAITING_CONTACT);
             
             ContactRequest contactRequest = ContactRequest.builder()
-                    .message("To begin, please share your phone number.")
+                    .message(Messages.SHARE_PHONE_NUMBER_PROMPT)
                     .build();
 
             return Collections.singletonList(BotResponse.builder()

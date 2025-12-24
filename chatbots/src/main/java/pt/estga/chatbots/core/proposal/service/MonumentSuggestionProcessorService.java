@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
@@ -43,11 +44,11 @@ public class MonumentSuggestionProcessorService {
             Monument monument = monumentOptional.get();
             log.info("Suggesting monument '{}' for proposal ID: {}", monument.getName(), updatedProposal.getId());
             Menu monumentConfirmationMenu = Menu.builder()
-                    .title("Was this photo taken at " + monument.getName() + "?")
+                    .title(String.format(Messages.MONUMENT_CONFIRMATION_TITLE, monument.getName()))
                     .buttons(List.of(
                             List.of(
-                                    Button.builder().text("✅ Yes").callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
-                                    Button.builder().text("❌ No").callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_NO).build()
+                                    Button.builder().text(Messages.YES_BTN).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
+                                    Button.builder().text(Messages.NO_BTN).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                             )
                     ))
                     .build();
@@ -55,7 +56,7 @@ public class MonumentSuggestionProcessorService {
         } else {
             log.error("Monument with ID {} not found for proposal ID: {}", suggestedMonumentIds.getFirst(), updatedProposal.getId());
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing monument suggestions.").build())
+                    .uiComponent(Menu.builder().title(Messages.ERROR_GENERIC).build())
                     .build());
         }
     }
@@ -63,7 +64,7 @@ public class MonumentSuggestionProcessorService {
     private List<BotResponse> handleNoMonumentsFound(ConversationContext context) {
         context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
         return Collections.singletonList(BotResponse.builder()
-                .uiComponent(Menu.builder().title("No nearby monuments found. Please enter the monument name.").build())
+                .uiComponent(Menu.builder().title(Messages.NO_MONUMENTS_FOUND_PROMPT).build())
                 .build());
     }
 }

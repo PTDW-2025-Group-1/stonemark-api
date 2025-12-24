@@ -2,6 +2,7 @@ package pt.estga.chatbots.core.auth.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.models.BotInput;
@@ -29,9 +30,9 @@ public class AuthenticationGuardHandler {
     public List<BotResponse> requireVerification(ConversationContext context) {
         context.setCurrentState(ConversationState.START);
         Menu verificationMenu = Menu.builder()
-                .title("To use this chatbot, you need to verify your account.")
+                .title(Messages.AUTH_REQUIRED_TITLE)
                 .buttons(List.of(
-                        List.of(Button.builder().text("Verify Account").callbackData(VerificationCallbackData.START_VERIFICATION).build())
+                        List.of(Button.builder().text(Messages.VERIFY_ACCOUNT_BTN).callbackData(VerificationCallbackData.START_VERIFICATION).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(verificationMenu).build());

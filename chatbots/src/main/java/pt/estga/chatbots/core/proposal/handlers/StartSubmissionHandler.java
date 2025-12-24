@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -34,10 +35,10 @@ public class StartSubmissionHandler implements ConversationStateHandler {
                 context.setCurrentState(ConversationState.AWAITING_PROPOSAL_ACTION);
 
                 Menu confirmationMenu = Menu.builder()
-                        .title("You have an incomplete submission.\nWhat would you like to do?")
+                        .title(Messages.INCOMPLETE_SUBMISSION_TITLE)
                         .buttons(List.of(
-                                List.of(Button.builder().text("Continue Submission ➡️").callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
-                                List.of(Button.builder().text("Start New (Deletes Old) 🗑️").callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
+                                List.of(Button.builder().text(Messages.CONTINUE_SUBMISSION_BTN).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
+                                List.of(Button.builder().text(Messages.START_NEW_SUBMISSION_BTN).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
                         ))
                         .build();
                 return Collections.singletonList(BotResponse.builder().uiComponent(confirmationMenu).build());
@@ -45,7 +46,7 @@ public class StartSubmissionHandler implements ConversationStateHandler {
 
             context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please send a clear photo of the mark. 📸").build())
+                    .uiComponent(Menu.builder().title(Messages.SEND_PHOTO_PROMPT).build())
                     .build());
         }
         return null;

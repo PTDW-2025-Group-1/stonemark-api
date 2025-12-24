@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -34,7 +35,7 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MONUMENT_PREFIX)) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please select a monument from the list. 🏛️").build())
+                    .uiComponent(Menu.builder().title(Messages.SELECT_MONUMENT_PROMPT).build())
                     .build());
         }
 
@@ -58,11 +59,11 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         }
 
         List<Button> proposeNewRow = new ArrayList<>();
-        proposeNewRow.add(Button.builder().text("Propose New Mark 🆕").callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
+        proposeNewRow.add(Button.builder().text(Messages.PROPOSE_NEW_MARK_BTN).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
         markButtons.add(proposeNewRow);
 
         Menu markSelectionMenu = Menu.builder()
-                .title("I found some marks that might match. Please select one or propose a new one:")
+                .title(Messages.FOUND_MARKS_TITLE)
                 .buttons(markButtons)
                 .build();
 

@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -27,7 +28,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Please confirm if the monument matches by clicking Yes or No.").build())
+                    .uiComponent(Menu.builder().title(Messages.CONFIRM_MONUMENT_MATCH_PROMPT).build())
                     .build());
         }
 
@@ -36,7 +37,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         
         if (callbackDataParts.length < 2) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Invalid selection. Please try again. ⚠️").build())
+                    .uiComponent(Menu.builder().title(Messages.INVALID_SELECTION).build())
                     .build());
         }
 
@@ -51,7 +52,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
         } else {
             context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Understood. Please provide the name of the new monument. 🏛️").build())
+                    .uiComponent(Menu.builder().title(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT).build())
                     .build());
         }
     }

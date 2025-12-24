@@ -2,11 +2,13 @@ package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
@@ -25,7 +27,7 @@ public class InitialPhotoHandler implements ConversationStateHandler {
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getFileData() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("I was expecting a photo. Please upload an image to continue. 📸").build())
+                    .uiComponent(Menu.builder().title(Messages.EXPECTING_PHOTO_ERROR).build())
                     .build());
         }
 
@@ -35,11 +37,11 @@ public class InitialPhotoHandler implements ConversationStateHandler {
             context.setProposal(proposal);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Thank you. Now, please provide the location of the mark. 📍").build())
+                    .uiComponent(LocationRequest.builder().message(Messages.LOCATION_REQUEST_MESSAGE).build())
                     .build());
         } catch (IOException e) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing photo. Please try again. ⚠️").build())
+                    .uiComponent(Menu.builder().title(Messages.ERROR_PROCESSING_PHOTO).build())
                     .build());
         }
     }

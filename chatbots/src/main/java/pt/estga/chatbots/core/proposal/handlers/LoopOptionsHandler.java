@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
+import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
@@ -10,6 +11,7 @@ import pt.estga.chatbots.core.proposal.service.MarkProcessorService;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
+import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
@@ -37,11 +39,11 @@ public class LoopOptionsHandler implements ConversationStateHandler {
         switch (callbackData) {
             case ProposalCallbackData.LOOP_REDO_LOCATION:
                 context.setCurrentState(ConversationState.AWAITING_LOCATION);
-                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please send the new location. 📍").build()).build());
+                return Collections.singletonList(BotResponse.builder().uiComponent(LocationRequest.builder().message(Messages.SEND_NEW_LOCATION_PROMPT).build()).build());
 
             case ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD:
                 context.setCurrentState(ConversationState.AWAITING_REUPLOAD_PHOTO);
-                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title("Please upload a new image. 📸").build()).build());
+                return Collections.singletonList(BotResponse.builder().uiComponent(Menu.builder().title(Messages.UPLOAD_NEW_IMAGE_PROMPT).build()).build());
 
             case ProposalCallbackData.LOOP_CONTINUE:
                 try {
@@ -50,7 +52,7 @@ public class LoopOptionsHandler implements ConversationStateHandler {
                     return markProcessorService.processMarkSuggestions(context, updatedProposal);
                 } catch (IOException e) {
                     return Collections.singletonList(BotResponse.builder()
-                            .uiComponent(Menu.builder().title("Error processing submission. ⚠️").build())
+                            .uiComponent(Menu.builder().title(Messages.ERROR_PROCESSING_SUBMISSION).build())
                             .build());
                 }
 
@@ -61,11 +63,11 @@ public class LoopOptionsHandler implements ConversationStateHandler {
 
     private List<BotResponse> showOptions(MarkOccurrenceProposal proposal) {
         Menu menu = Menu.builder()
-                .title("What would you like to do next?")
+                .title(Messages.LOOP_OPTIONS_TITLE)
                 .buttons(List.of(
-                        List.of(Button.builder().text("Change Location 📍").callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
-                        List.of(Button.builder().text("Change Photo 📸").callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
-                        List.of(Button.builder().text("Continue ➡️").callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
+                        List.of(Button.builder().text(Messages.CHANGE_LOCATION_BTN).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
+                        List.of(Button.builder().text(Messages.CHANGE_PHOTO_BTN).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
+                        List.of(Button.builder().text(Messages.CONTINUE_BTN).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
