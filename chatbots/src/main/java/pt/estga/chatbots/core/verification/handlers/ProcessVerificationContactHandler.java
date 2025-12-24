@@ -10,6 +10,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class ProcessVerificationContactHandler implements ConversationStateHandler {
+
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -31,7 +34,7 @@ public class ProcessVerificationContactHandler implements ConversationStateHandl
         context.setCurrentState(ConversationState.AWAITING_VERIFICATION_CODE);
 
         return Collections.singletonList(BotResponse.builder()
-                .uiComponent(Menu.builder().title(Messages.ENTER_CODE_AFTER_CONTACT_PROMPT).build())
+                .uiComponent(Menu.builder().titleNode(parser.parse(Messages.ENTER_CODE_AFTER_CONTACT_PROMPT)).build())
                 .build());
     }
 

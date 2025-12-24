@@ -12,6 +12,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
 
@@ -24,6 +25,7 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
 
     private final StartHandler startHandler;
     private final MarkOccurrenceProposalService proposalService;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -46,9 +48,9 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
             case ProposalCallbackData.SUBMISSION_LOOP_CONTINUE:
                 context.setCurrentState(ConversationState.AWAITING_NOTES);
                 Menu notesMenu = Menu.builder()
-                        .title(Messages.ADD_NOTES_PROMPT)
+                        .titleNode(parser.parse(Messages.ADD_NOTES_PROMPT))
                         .buttons(List.of(
-                                List.of(Button.builder().text(Messages.SKIP_BTN).callbackData(ProposalCallbackData.SKIP_NOTES).build())
+                                List.of(Button.builder().textNode(parser.parse(Messages.SKIP_BTN)).callbackData(ProposalCallbackData.SKIP_NOTES).build())
                         ))
                         .build();
                 return Collections.singletonList(BotResponse.builder().uiComponent(notesMenu).build());
@@ -60,10 +62,10 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
 
     private List<BotResponse> showOptions(MarkOccurrenceProposal proposal) {
         Menu menu = Menu.builder()
-                .title(Messages.SUBMISSION_LOOP_TITLE)
+                .titleNode(parser.parse(Messages.SUBMISSION_LOOP_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().text(Messages.DISCARD_SUBMISSION_BTN).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
-                        List.of(Button.builder().text(Messages.CONTINUE_TO_SUBMIT_BTN).callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
+                        List.of(Button.builder().textNode(parser.parse(Messages.DISCARD_SUBMISSION_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
+                        List.of(Button.builder().textNode(parser.parse(Messages.CONTINUE_TO_SUBMIT_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -71,10 +73,10 @@ public class SubmissionLoopHandler implements ConversationStateHandler {
 
     private List<BotResponse> showConfirmation(MarkOccurrenceProposal proposal) {
         Menu menu = Menu.builder()
-                .title(Messages.DISCARD_CONFIRMATION_TITLE)
+                .titleNode(parser.parse(Messages.DISCARD_CONFIRMATION_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().text(Messages.YES_DISCARD_BTN).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
-                        List.of(Button.builder().text(Messages.NO_GO_BACK_BTN).callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
+                        List.of(Button.builder().textNode(parser.parse(Messages.YES_DISCARD_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
+                        List.of(Button.builder().textNode(parser.parse(Messages.NO_GO_BACK_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());

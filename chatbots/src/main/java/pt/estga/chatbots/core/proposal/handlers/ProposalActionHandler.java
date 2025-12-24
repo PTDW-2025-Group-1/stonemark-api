@@ -9,6 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
 
 import java.util.Collections;
@@ -20,6 +21,7 @@ public class ProposalActionHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalService proposalService;
     private final LoopOptionsHandler loopOptionsHandler;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -39,7 +41,7 @@ public class ProposalActionHandler implements ConversationStateHandler {
             context.setProposal(null);
             context.setCurrentState(ConversationState.WAITING_FOR_PHOTO);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Your previous submission has been deleted. Please send a clear photo of the mark to start a new one.").build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse("Your previous submission has been deleted. Please send a clear photo of the mark to start a new one.")).build())
                     .build());
         }
 

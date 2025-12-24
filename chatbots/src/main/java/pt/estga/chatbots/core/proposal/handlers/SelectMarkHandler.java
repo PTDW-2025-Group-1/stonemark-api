@@ -11,6 +11,7 @@ import pt.estga.chatbots.core.proposal.service.MonumentSuggestionProcessorServic
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -23,6 +24,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final MonumentSuggestionProcessorService monumentSuggestionProcessorService;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -30,7 +32,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
 
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title(Messages.SELECT_MARK_PROMPT).build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.SELECT_MARK_PROMPT)).build())
                     .build());
         }
 

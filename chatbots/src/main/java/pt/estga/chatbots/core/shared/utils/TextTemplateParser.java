@@ -1,11 +1,12 @@
-package pt.estga.chatbots.core.shared.services;
+package pt.estga.chatbots.core.shared.utils;
 
-import pt.estga.chatbots.core.shared.Messages;
+import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.shared.models.text.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class TextTemplateParser {
 
     public TextNode parse(String input) {

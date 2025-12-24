@@ -9,7 +9,6 @@ import java.util.List;
 @Data
 @Builder
 public class Menu implements UIComponent {
-    private String title;
     private TextNode titleNode;
     private List<List<Button>> buttons;
 }

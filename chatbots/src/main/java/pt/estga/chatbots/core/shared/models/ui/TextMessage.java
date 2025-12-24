@@ -9,6 +9,5 @@ import pt.estga.chatbots.core.shared.models.text.TextNode;
 @Builder
 @EqualsAndHashCode(callSuper = false)
 public class TextMessage implements UIComponent {
-    private String text;
     private TextNode textNode;
 }

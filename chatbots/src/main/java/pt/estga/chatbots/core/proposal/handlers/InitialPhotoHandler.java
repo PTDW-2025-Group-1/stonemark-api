@@ -10,6 +10,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -22,12 +23,13 @@ import java.util.List;
 public class InitialPhotoHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getFileData() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title(Messages.EXPECTING_PHOTO_ERROR).build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.EXPECTING_PHOTO_ERROR)).build())
                     .build());
         }
 
@@ -37,11 +39,11 @@ public class InitialPhotoHandler implements ConversationStateHandler {
             context.setProposal(proposal);
             context.setCurrentState(ConversationState.AWAITING_LOCATION);
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(LocationRequest.builder().message(Messages.LOCATION_REQUEST_MESSAGE).build())
+                    .uiComponent(LocationRequest.builder().messageNode(parser.parse(Messages.LOCATION_REQUEST_MESSAGE)).build())
                     .build());
         } catch (IOException e) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title(Messages.ERROR_PROCESSING_PHOTO).build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.ERROR_PROCESSING_PHOTO)).build())
                     .build());
         }
     }

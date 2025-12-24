@@ -9,6 +9,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.ContactRequest;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.chatbots.core.verification.VerificationCallbackData;
 
 import java.util.Collections;
@@ -18,13 +19,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StartVerificationHandler implements ConversationStateHandler {
 
+    private final TextTemplateParser parser;
+
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getCallbackData() != null && input.getCallbackData().equals(VerificationCallbackData.START_VERIFICATION)) {
             context.setCurrentState(ConversationState.AWAITING_CONTACT);
             
             ContactRequest contactRequest = ContactRequest.builder()
-                    .message(Messages.SHARE_PHONE_NUMBER_PROMPT)
+                    .messageNode(parser.parse(Messages.SHARE_PHONE_NUMBER_PROMPT))
                     .build();
 
             return Collections.singletonList(BotResponse.builder()

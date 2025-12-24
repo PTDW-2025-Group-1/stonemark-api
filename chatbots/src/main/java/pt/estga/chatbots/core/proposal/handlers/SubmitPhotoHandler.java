@@ -8,6 +8,7 @@ import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
 import java.io.IOException;
@@ -20,12 +21,13 @@ public class SubmitPhotoHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final LoopOptionsHandler loopOptionsHandler;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         if (input.getFileData() == null) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("I was expecting a photo. Please upload an image to continue.").build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse("I was expecting a photo. Please upload an image to continue.")).build())
                     .build());
         }
 
@@ -35,7 +37,7 @@ public class SubmitPhotoHandler implements ConversationStateHandler {
             return loopOptionsHandler.handle(context, BotInput.builder().build());
         } catch (IOException e) {
             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title("Error processing photo. Please try again.").build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse("Error processing photo. Please try again.")).build())
                     .build());
         }
     }

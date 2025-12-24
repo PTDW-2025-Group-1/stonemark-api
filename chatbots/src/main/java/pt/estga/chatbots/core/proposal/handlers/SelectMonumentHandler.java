@@ -11,6 +11,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.services.MarkService;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
@@ -28,6 +29,7 @@ public class SelectMonumentHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final MarkService markService;
+    private final TextTemplateParser parser;
 
     @Override
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
@@ -35,7 +37,7 @@ public class SelectMonumentHandler implements ConversationStateHandler {
         
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MONUMENT_PREFIX)) {
              return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().title(Messages.SELECT_MONUMENT_PROMPT).build())
+                    .uiComponent(Menu.builder().titleNode(parser.parse(Messages.SELECT_MONUMENT_PROMPT)).build())
                     .build());
         }
 
@@ -52,18 +54,19 @@ public class SelectMonumentHandler implements ConversationStateHandler {
             Optional<Mark> markOptional = markService.findById(Long.valueOf(markId));
             markOptional.ifPresent(mark -> {
                 List<Button> row = new ArrayList<>();
-                row.add(Button.builder().text(counter.getAndIncrement() + ". Mark #" + mark.getId())
+                String text = counter.getAndIncrement() + ". Mark #" + mark.getId();
+                row.add(Button.builder().textNode(parser.parse(text))
                         .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId()).build());
                 markButtons.add(row);
             });
         }
 
         List<Button> proposeNewRow = new ArrayList<>();
-        proposeNewRow.add(Button.builder().text(Messages.PROPOSE_NEW_MARK_BTN).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
+        proposeNewRow.add(Button.builder().textNode(parser.parse(Messages.PROPOSE_NEW_MARK_BTN)).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build());
         markButtons.add(proposeNewRow);
 
         Menu markSelectionMenu = Menu.builder()
-                .title(Messages.FOUND_MARKS_TITLE)
+                .titleNode(parser.parse(Messages.FOUND_MARKS_TITLE))
                 .buttons(markButtons)
                 .build();
 

@@ -10,6 +10,7 @@ import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.chatbots.core.verification.VerificationCallbackData;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.List;
 public class OptionsMessageHandler {
 
     private final AuthServiceFactory authServiceFactory;
+    private final TextTemplateParser parser;
 
     public List<BotResponse> handle(ConversationContext context, BotInput input) {
         return handle(context, input, null);
@@ -42,13 +44,13 @@ public class OptionsMessageHandler {
         }
 
         if (isAuthenticated) {
-            buttons.add(Button.builder().text("Propose a mason's mark").callbackData(ProposalCallbackData.START_SUBMISSION).build());
+            buttons.add(Button.builder().textNode(parser.parse("Propose a mason's mark")).callbackData(ProposalCallbackData.START_SUBMISSION).build());
         } else {
-            buttons.add(Button.builder().text("Verify Account").callbackData(VerificationCallbackData.START_VERIFICATION).build());
+            buttons.add(Button.builder().textNode(parser.parse("Verify Account")).callbackData(VerificationCallbackData.START_VERIFICATION).build());
         }
 
         Menu mainMenu = Menu.builder()
-                .title(title)
+                .titleNode(parser.parse(title))
                 .buttons(List.of(buttons))
                 .build();
 

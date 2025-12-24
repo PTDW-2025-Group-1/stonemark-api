@@ -24,6 +24,7 @@ import pt.estga.chatbots.core.shared.models.ui.Menu;
 import pt.estga.chatbots.core.shared.models.ui.PhotoItem;
 import pt.estga.chatbots.core.shared.models.ui.TextMessage;
 import pt.estga.chatbots.core.shared.models.ui.UIComponent;
+import pt.estga.chatbots.core.shared.utils.TextTemplateParser;
 import pt.estga.chatbots.telegram.services.TelegramFileService;
 import pt.estga.chatbots.telegram.services.TelegramTextService;
 import pt.estga.shared.models.Location;
@@ -43,17 +44,22 @@ public class TelegramAdapter {
 
     private final TelegramFileService fileService;
     private final TelegramTextService textService;
+    private final TextTemplateParser parser;
 
     public BotInput toBotInput(Update update) {
+        log.debug("Converting Update to BotInput: {}", update);
         if (update.hasMessage()) {
             var message = update.getMessage();
             long chatId = message.getChatId();
 
             if (message.hasDocument() && message.getDocument().getMimeType() != null && message.getDocument().getMimeType().startsWith("image/")) {
+                log.debug("Update contains an image document");
                 return createImageInput(chatId, message.getDocument());
             } else if (message.hasPhoto()) {
+                log.debug("Update contains a photo");
                 return createImageInput(chatId, message.getPhoto());
             } else if (message.hasText()) {
+                log.debug("Update contains text message: {}", message.getText());
                 return BotInput.builder()
                         .userId(String.valueOf(message.getFrom().getId()))
                         .chatId(chatId)
@@ -62,6 +68,7 @@ public class TelegramAdapter {
                         .text(message.getText())
                         .build();
             } else if (message.hasContact()) {
+                log.debug("Update contains contact: {}", message.getContact().getPhoneNumber());
                 return BotInput.builder()
                         .userId(String.valueOf(message.getFrom().getId()))
                         .chatId(chatId)
@@ -70,6 +77,7 @@ public class TelegramAdapter {
                         .text(message.getContact().getPhoneNumber())
                         .build();
             } else if (message.hasLocation()) {
+                log.debug("Update contains location: {}, {}", message.getLocation().getLatitude(), message.getLocation().getLongitude());
                 return BotInput.builder()
                         .userId(String.valueOf(message.getFrom().getId()))
                         .chatId(chatId)
@@ -82,6 +90,7 @@ public class TelegramAdapter {
                         .build();
             }
         } else if (update.hasCallbackQuery()) {
+            log.debug("Update contains callback query: {}", update.getCallbackQuery().getData());
             return BotInput.builder()
                     .userId(String.valueOf(update.getCallbackQuery().getFrom().getId()))
                     .chatId(update.getCallbackQuery().getMessage().getChatId())
@@ -90,6 +99,7 @@ public class TelegramAdapter {
                     .callbackData(update.getCallbackQuery().getData())
                     .build();
         }
+        log.warn("Update type not supported or empty: {}", update);
         return null;
     }
 
@@ -134,40 +144,43 @@ public class TelegramAdapter {
     }
 
     public List<PartialBotApiMethod<?>> toBotApiMethod(long chatId, BotResponse response) {
+        log.debug("Converting BotResponse to BotApiMethods for chat: {}", chatId);
         List<PartialBotApiMethod<?>> methods = new ArrayList<>();
         UIComponent uiComponent = response.getUiComponent();
 
         if (uiComponent instanceof Menu) {
+            log.debug("Rendering Menu component");
             methods.add(renderMenu(String.valueOf(chatId), (Menu) uiComponent, response.getText()));
         } else {
             if (response.getTextNode() != null) {
+                log.debug("Rendering text node response");
                 methods.add(new SendMessage(
                         String.valueOf(chatId),
                         textService.render(response.getTextNode())
                 ));
             } else if (response.getText() != null) {
+                log.debug("Rendering plain text response");
                 methods.add(new SendMessage(String.valueOf(chatId), response.getText()));
             }
             if (uiComponent instanceof LocationRequest) {
+                log.debug("Rendering LocationRequest component");
                 methods.add(renderLocationRequest(String.valueOf(chatId), (LocationRequest) uiComponent));
             } else if (uiComponent instanceof ContactRequest) {
+                log.debug("Rendering ContactRequest component");
                 methods.add(renderContactRequest(String.valueOf(chatId), (ContactRequest) uiComponent));
             } else if (uiComponent instanceof PhotoItem) {
+                log.debug("Rendering PhotoItem component");
                 methods.addAll(renderPhotoItem(String.valueOf(chatId), (PhotoItem) uiComponent));
-            } else if (uiComponent instanceof TextMessage) {
-                TextMessage textMessage = (TextMessage) uiComponent;
-                if (textMessage.getTextNode() != null) {
-                    methods.add(new SendMessage(String.valueOf(chatId), textService.render(textMessage.getTextNode())));
-                } else {
-                    methods.add(new SendMessage(String.valueOf(chatId), textMessage.getText()));
-                }
+            } else if (uiComponent instanceof TextMessage textMessage) {
+                log.debug("Rendering TextMessage component");
+                methods.add(new SendMessage(String.valueOf(chatId), textService.render(textMessage.getTextNode())));
             }
         }
         return methods;
     }
 
     private SendMessage renderMenu(String chatId, Menu menu, String text) {
-        String messageText = (text != null) ? text : menu.getTitle();
+        String messageText = (text != null) ? text : textService.render(menu.getTitleNode());
         SendMessage sendMessage = new SendMessage(chatId, messageText);
         if (menu.getButtons() != null && !menu.getButtons().isEmpty()) {
             sendMessage.setReplyMarkup(createInlineKeyboardMarkup(menu.getButtons()));
@@ -176,24 +189,15 @@ public class TelegramAdapter {
     }
 
     private SendMessage renderLocationRequest(String chatId, LocationRequest locationRequest) {
-        String messageText;
-        if (locationRequest.getMessageNode() != null) {
-            messageText = textService.render(locationRequest.getMessageNode());
-        } else {
-            messageText = locationRequest.getMessage();
-        }
+        log.debug("Parsed messageNode: {}", locationRequest.getMessageNode());
+        String messageText = textService.render(locationRequest.getMessageNode());
         SendMessage message = new SendMessage(chatId, messageText);
         message.setReplyMarkup(createReplyKeyboardMarkup("Send my location", true, false));
         return message;
     }
 
     private SendMessage renderContactRequest(String chatId, ContactRequest contactRequest) {
-        String messageText;
-        if (contactRequest.getMessageNode() != null) {
-            messageText = textService.render(contactRequest.getMessageNode());
-        } else {
-            messageText = contactRequest.getMessage();
-        }
+        String messageText = textService.render(contactRequest.getMessageNode());
         SendMessage message = new SendMessage(chatId, messageText);
         message.setReplyMarkup(createReplyKeyboardMarkup("Share my phone number", false, true));
         return message;
@@ -208,12 +212,7 @@ public class TelegramAdapter {
             markup = createSingleButtonInlineMarkup("Select", item.getCallbackData());
         }
         
-        String caption;
-        if (item.getCaptionNode() != null) {
-            caption = textService.render(item.getCaptionNode());
-        } else {
-            caption = item.getCaption();
-        }
+        String caption = textService.render(item.getCaptionNode());
 
         if (item.getMediaFileId() != null) {
             InputFile inputFile = fileService.createInputFileFromMediaId(item.getMediaFileId());
@@ -227,6 +226,7 @@ public class TelegramAdapter {
                 }
                 methods.add(photo);
             } else {
+                log.warn("Media file ID {} could not be resolved to an InputFile", item.getMediaFileId());
                 SendMessage message = new SendMessage(chatId, caption + " (Image unavailable)");
                 if (markup != null) {
                     message.setReplyMarkup(markup);
@@ -251,7 +251,7 @@ public class TelegramAdapter {
             List<InlineKeyboardButton> rowInline = new ArrayList<>();
             for (Button button : row) {
                 InlineKeyboardButton inlineButton = new InlineKeyboardButton();
-                inlineButton.setText(button.getText());
+                inlineButton.setText(textService.render(button.getTextNode()));
                 inlineButton.setCallbackData(button.getCallbackData());
                 rowInline.add(inlineButton);
             }
@@ -263,7 +263,7 @@ public class TelegramAdapter {
     }
 
     private InlineKeyboardMarkup createSingleButtonInlineMarkup(String text, String callbackData) {
-        return createInlineKeyboardMarkup(List.of(List.of(Button.builder().text(text).callbackData(callbackData).build())));
+        return createInlineKeyboardMarkup(List.of(List.of(Button.builder().textNode(parser.parse(text)).callbackData(callbackData).build())));
     }
 
     private ReplyKeyboardMarkup createReplyKeyboardMarkup(String buttonText, boolean requestLocation, boolean requestContact) {
