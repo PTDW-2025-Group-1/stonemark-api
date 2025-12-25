@@ -6,7 +6,7 @@ import pt.estga.chatbot.models.text.TextNode;
 
 @Data
 @Builder
-public class Button {
+public class Button implements UIComponent {
     private TextNode textNode;
     private String callbackData;
 }

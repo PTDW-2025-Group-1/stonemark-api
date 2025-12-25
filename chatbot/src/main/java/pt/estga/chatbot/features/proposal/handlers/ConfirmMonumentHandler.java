@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.SharedCallbackData;
+import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;

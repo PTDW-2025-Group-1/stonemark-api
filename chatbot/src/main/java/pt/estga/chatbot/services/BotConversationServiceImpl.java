@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.features.auth.AuthenticationGuard;
 import pt.estga.chatbot.features.auth.handlers.AuthenticationGuardHandler;
-import pt.estga.chatbot.SharedCallbackData;
+import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.handlers.StartHandler;

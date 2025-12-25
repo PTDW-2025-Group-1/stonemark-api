@@ -2,7 +2,7 @@ package pt.estga.chatbot.features.auth.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.Messages;
+import pt.estga.chatbot.constants.Messages;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.models.BotInput;

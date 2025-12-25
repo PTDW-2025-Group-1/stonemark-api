@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-import pt.estga.chatbot.models.text.TextNode;
+import pt.estga.chatbot.constants.Emojis;
+import pt.estga.chatbot.models.text.*;
 import pt.estga.chatbot.utils.TextTemplateParser;
 
+import java.text.MessageFormat;
+import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -18,18 +19,36 @@ public class UiTextService {
     private final MessageSource messageSource;
     private final TextTemplateParser parser;
 
-    // Pattern to match {emoji.something}
-    private static final Pattern EMOJI_PATTERN = Pattern.compile("\\{emoji\\.([a-zA-Z0-9_]+)}");
-
     public TextNode get(String key) {
         return get(key, (Object[]) null);
     }
 
     public TextNode get(String key, Object... args) {
-        Locale locale = LocaleContextHolder.getLocale();
-        String raw = messageSource.getMessage(key, args, locale);
-        raw = resolveEmojis(raw, locale);
-        return parser.parse(raw);
+        Object[] normalized = normalizeArgs(args);
+        String raw = messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+        TextNode ast = parser.parse(raw);
+        if (normalized != null && normalized.length > 0) {
+            ast = replacePlaceholders(ast, normalized);
+        }
+        return ast;
+    }
+
+    private Object[] normalizeArgs(Object[] args) {
+        if (args == null) return null;
+
+        Object[] result = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            if (arg instanceof Emojis emoji) {
+                result[i] = emoji; // keep as enum, to insert Emoji node later
+            } else {
+                // escape braces in plain text to avoid parser issues
+                result[i] = arg.toString()
+                        .replace("{", "\\{")
+                        .replace("}", "\\}");
+            }
+        }
+        return result;
     }
 
     public String raw(String key) {
@@ -38,20 +57,40 @@ public class UiTextService {
 
     public String raw(String key, Object... args) {
         Locale locale = LocaleContextHolder.getLocale();
-        String raw = messageSource.getMessage(key, args, locale);
-        return resolveEmojis(raw, locale);
+        String message = messageSource.getMessage(key, null, locale);
+
+        if (args != null && args.length > 0) {
+            return MessageFormat.format(message, args);
+        }
+
+        return message;
     }
 
-    private String resolveEmojis(String text, Locale locale) {
-        if (text == null) return null;
-        Matcher matcher = EMOJI_PATTERN.matcher(text);
-        StringBuilder sb = new StringBuilder();
-        while (matcher.find()) {
-            String emojiKey = "emoji." + matcher.group(1);
-            String emoji = messageSource.getMessage(emojiKey, null, "", locale);
-            matcher.appendReplacement(sb, Matcher.quoteReplacement(emoji != null ? emoji : ""));
+    private TextNode replacePlaceholders(TextNode node, Object[] args) {
+        if (node instanceof Placeholder p) {
+            Object arg = args[p.index()];
+            if (arg instanceof Emojis emoji) return new Emoji(emoji);
+            return new Plain(arg.toString());
+        } else if (node instanceof Container c) {
+            List<TextNode> children = c.children().stream()
+                    .map(child -> replacePlaceholders(child, args))
+                    .toList();
+            return new Container(children);
+        } else if (node instanceof Bold b) {
+            List<TextNode> children = b.children().stream()
+                    .map(child -> replacePlaceholders(child, args))
+                    .toList();
+            return new Bold(children);
+        } else if (node instanceof Italic i) {
+            List<TextNode> children = i.children().stream()
+                    .map(child -> replacePlaceholders(child, args))
+                    .toList();
+            return new Italic(children);
+        } else if (node instanceof Code code) {
+            return code;
+        } else {
+            return node; // Plain, NewLine, Emoji
         }
-        matcher.appendTail(sb);
-        return sb.toString();
     }
+
 }

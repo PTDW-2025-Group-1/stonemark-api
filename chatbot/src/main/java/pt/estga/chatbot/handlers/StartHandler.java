@@ -3,7 +3,8 @@ package pt.estga.chatbot.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.Messages;
+import pt.estga.chatbot.constants.Emojis;
+import pt.estga.chatbot.constants.Messages;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
@@ -41,11 +42,11 @@ public class StartHandler {
                     .map(UserIdentity::getUser);
 
             welcomeMessage = userOptional
-                    .map(user -> textService.get(Messages.WELCOME_BACK, user.getFirstName()))
-                    .orElse(textService.get(Messages.WELCOME));
+                    .map(user -> textService.get(Messages.WELCOME_BACK, user.getFirstName(), Emojis.WAVE))
+                    .orElse(textService.get(Messages.WELCOME, Emojis.WAVE));
         } catch (Exception e) {
             log.error("Error retrieving user for welcome message", e);
-            welcomeMessage = textService.get(Messages.WELCOME);
+            welcomeMessage = textService.get(Messages.WELCOME, Emojis.WAVE);
         }
 
         // 2. Build the main options menu using the factory

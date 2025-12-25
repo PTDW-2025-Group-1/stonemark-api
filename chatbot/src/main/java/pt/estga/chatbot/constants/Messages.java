@@ -1,4 +1,4 @@
-package pt.estga.chatbot;
+package pt.estga.chatbot.constants;
 
 public class Messages {
 
@@ -36,10 +36,11 @@ public class Messages {
     public static final String MATCH_CONFIRMATION_TITLE = "match_confirmation_title";
     public static final String CONFIRM_MARK_MATCH_PROMPT = "confirm_mark_match_prompt";
     public static final String PROPOSE_NEW_MARK_BTN = "propose_new_mark_btn";
+    public static final String MARK_CAPTION = "mark_caption";
+    public static final String IF_NONE_OF_ABOVE_OPTIONS_MATCH = "if_none_of_above_options_match";
     public static final String NO_MARKS_FOUND_PROMPT = "no_marks_found_prompt";
     public static final String SKIP_BTN = "skip_btn";
-    public static final String SKIP_MARK_DETAILS_BTN = "skip_mark_details_btn";
-    
+
     public static final String PROVIDE_NEW_MARK_DETAILS_PROMPT = "provide_new_mark_details_prompt";
 
     public static final String SELECT_MONUMENT_PROMPT = "select_monument_prompt";

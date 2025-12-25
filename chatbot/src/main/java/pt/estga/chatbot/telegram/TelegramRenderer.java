@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbot.models.text.*;
 import pt.estga.chatbot.services.TextRenderer;
 
+import java.util.List;
+
 @Component
 @Slf4j
 public class TelegramRenderer implements TextRenderer {
@@ -24,15 +26,18 @@ public class TelegramRenderer implements TextRenderer {
             case Bold b -> "*" + renderChildren(b.children(), escapeContent) + "*";
             case Italic i -> "_" + renderChildren(i.children(), escapeContent) + "_";
             case Code c -> "`" + escapeCode(c.text()) + "`";
+            case Emoji e -> e.emoji().toString();
+            case Placeholder p -> "{" + p.index() + "}";
             case NewLine ignored -> "\n";
             case Container c -> renderChildren(c.children(), escapeContent);
+            default -> throw new IllegalStateException("Unexpected value: " + node);
         };
     }
 
     private boolean containsFormatting(TextNode node) {
         if (node instanceof Bold || node instanceof Italic || node instanceof Code) {
             return true;
-        } else if (node instanceof Container(java.util.List<TextNode> children)) {
+        } else if (node instanceof Container(List<TextNode> children)) {
             for (TextNode child : children) {
                 if (containsFormatting(child)) return true;
             }

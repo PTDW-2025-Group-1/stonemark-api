@@ -1,4 +1,4 @@
-package pt.estga.chatbot;
+package pt.estga.chatbot.constants;
 
 public final class SharedCallbackData {
 

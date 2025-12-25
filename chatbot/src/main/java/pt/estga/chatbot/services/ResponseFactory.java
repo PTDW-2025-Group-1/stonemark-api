@@ -2,9 +2,10 @@ package pt.estga.chatbot.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pt.estga.chatbot.constants.Emojis;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.Messages;
-import pt.estga.chatbot.SharedCallbackData;
+import pt.estga.chatbot.constants.Messages;
+import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.CoreState;
@@ -52,7 +53,7 @@ public class ResponseFactory {
         // Special case for successful submission
         if (currentState == ProposalState.SUBMITTED && outcome == HandlerOutcome.SUCCESS) {
             List<BotResponse> responses = new ArrayList<>();
-            responses.add(buildSimpleMenuResponse(Messages.SUBMISSION_SUCCESS).getFirst());
+            responses.add(buildSimpleMenuResponse(Messages.SUBMISSION_SUCCESS, Emojis.TADA).getFirst());
             responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
             return responses;
         }
@@ -76,7 +77,7 @@ public class ResponseFactory {
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case AWAITING_NEW_MARK_DETAILS -> createNewMarkDetailsResponse();
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
-            case AWAITING_NEW_MONUMENT_NAME -> buildSimpleMenuResponse(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT);
+            case AWAITING_NEW_MONUMENT_NAME -> buildSimpleMenuResponse(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT, Emojis.MONUMENT);
             case SUBMISSION_LOOP_OPTIONS -> createSubmissionLoopResponse();
             case AWAITING_DISCARD_CONFIRMATION -> createDiscardConfirmationResponse();
             case AWAITING_NOTES -> createNotesResponse();
@@ -90,8 +91,8 @@ public class ResponseFactory {
     private List<BotResponse> handleVerificationState(VerificationState state) {
         return switch (state) {
             case AWAITING_VERIFICATION_METHOD -> createVerificationMethodResponse();
-            case AWAITING_CONTACT -> buildSimpleMenuResponse(Messages.SHARE_CONTACT_PROMPT);
-            case AWAITING_VERIFICATION_CODE -> buildSimpleMenuResponse(Messages.ENTER_VERIFICATION_CODE_PROMPT);
+            case AWAITING_CONTACT -> buildSimpleMenuResponse(Messages.SHARE_CONTACT_PROMPT, Emojis.PHONE);
+            case AWAITING_VERIFICATION_CODE -> buildSimpleMenuResponse(Messages.ENTER_VERIFICATION_CODE_PROMPT, Emojis.NUMBERS);
             default -> {
                 String messageKey = getEntryMessageForState(state);
                 yield buildSimpleMenuResponse(messageKey);
@@ -106,7 +107,7 @@ public class ResponseFactory {
     
     public List<BotResponse> createErrorResponse(ConversationContext context) {
         String messageKey = getFailureMessageForState(context.getCurrentState());
-        return buildSimpleMenuResponse(messageKey);
+        return buildSimpleMenuResponse(messageKey, Emojis.WARNING);
     }
 
     // ... (Helper methods for creating specific responses remain the same) ...
@@ -115,8 +116,8 @@ public class ResponseFactory {
         Menu menu = Menu.builder()
                 .titleNode(textService.get(Messages.INCOMPLETE_SUBMISSION_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_SUBMISSION_BTN)).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.START_NEW_SUBMISSION_BTN)).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_SUBMISSION_BTN, Emojis.ARROW_RIGHT)).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.START_NEW_SUBMISSION_BTN, Emojis.TRASH)).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -126,9 +127,9 @@ public class ResponseFactory {
         Menu menu = Menu.builder()
                 .titleNode(textService.get(Messages.LOOP_OPTIONS_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_LOCATION_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_PHOTO_BTN)).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_BTN)).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_LOCATION_BTN, Emojis.LOCATION)).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.CHANGE_PHOTO_BTN, Emojis.CAMERA)).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_BTN, Emojis.ARROW_RIGHT)).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -147,15 +148,15 @@ public class ResponseFactory {
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(Messages.FOUND_SINGLE_MARK_TITLE)).build()).build());
 
         if (mark.getCover() != null) {
-            PhotoItem photoItem = PhotoItem.builder().mediaFileId(mark.getCover().getId()).captionNode(textService.get("Mark #" + mark.getId())).build();
+            PhotoItem photoItem = PhotoItem.builder().mediaFileId(mark.getCover().getId()).captionNode(textService.get(Messages.MARK_CAPTION, mark.getId())).build();
             responses.add(BotResponse.builder().uiComponent(photoItem).build());
         }
 
         Menu confirmationMenu = Menu.builder()
                 .titleNode(textService.get(Messages.MATCH_CONFIRMATION_TITLE))
                 .buttons(List.of(List.of(
-                        Button.builder().textNode(textService.get(Messages.YES_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
-                        Button.builder().textNode(textService.get(Messages.NO_BTN)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
+                        Button.builder().textNode(textService.get(Messages.YES_BTN, Emojis.CHECK)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + mark.getId()).build(),
+                        Button.builder().textNode(textService.get(Messages.NO_BTN, Emojis.CROSS)).callbackData(ProposalCallbackData.CONFIRM_MARK_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                 ))).build();
         responses.add(BotResponse.builder().uiComponent(confirmationMenu).build());
 
@@ -164,13 +165,13 @@ public class ResponseFactory {
 
     private List<BotResponse> createMultipleMarkSelectionResponse(ConversationContext context) {
         List<BotResponse> responses = new ArrayList<>();
-        responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(Messages.FOUND_MARKS_TITLE)).build()).build());
+        responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(Messages.FOUND_MARKS_TITLE, Emojis.SEARCH)).build()).build());
 
         for (String markId : context.getSuggestedMarkIds()) {
             markService.findWithCoverById(Long.valueOf(markId)).ifPresent(mark -> {
                 PhotoItem photoItem = PhotoItem.builder()
                         .mediaFileId(mark.getCover() != null ? mark.getCover().getId() : null)
-                        .captionNode(textService.get("Mark " + mark.getId()))
+                        .captionNode(textService.get(Messages.MARK_CAPTION, mark.getId()))
                         .callbackData(ProposalCallbackData.SELECT_MARK_PREFIX + mark.getId())
                         .build();
                 responses.add(BotResponse.builder().uiComponent(photoItem).build());
@@ -178,8 +179,8 @@ public class ResponseFactory {
         }
 
         Menu proposeNewMenu = Menu.builder()
-                .titleNode(textService.get("If none of above options match"))
-                .buttons(List.of(List.of(Button.builder().textNode(textService.get(Messages.PROPOSE_NEW_MARK_BTN)).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())))
+                .titleNode(textService.get(Messages.IF_NONE_OF_ABOVE_OPTIONS_MATCH))
+                .buttons(List.of(List.of(Button.builder().textNode(textService.get(Messages.PROPOSE_NEW_MARK_BTN, Emojis.NEW)).callbackData(ProposalCallbackData.PROPOSE_NEW_MARK).build())))
                 .build();
         responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
 
@@ -188,8 +189,8 @@ public class ResponseFactory {
 
     private List<BotResponse> createNewMarkDetailsResponse() {
         Menu menu = Menu.builder()
-                .titleNode(textService.get(Messages.PROVIDE_NEW_MARK_DETAILS_PROMPT))
-                .buttons(List.of(List.of(Button.builder().textNode(textService.get(Messages.SKIP_MARK_DETAILS_BTN)).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())))
+                .titleNode(textService.get(Messages.PROVIDE_NEW_MARK_DETAILS_PROMPT, Emojis.MEMO))
+                .buttons(List.of(List.of(Button.builder().textNode(textService.get(Messages.SKIP_BTN, Emojis.ARROW_RIGHT)).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
@@ -209,8 +210,8 @@ public class ResponseFactory {
         Menu menu = Menu.builder()
                 .titleNode(textService.get(Messages.MONUMENT_CONFIRMATION_TITLE, monument.getName()))
                 .buttons(List.of(List.of(
-                        Button.builder().textNode(textService.get(Messages.YES_BTN)).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
-                        Button.builder().textNode(textService.get(Messages.NO_BTN)).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_NO).build()
+                        Button.builder().textNode(textService.get(Messages.YES_BTN, Emojis.CHECK)).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
+                        Button.builder().textNode(textService.get(Messages.NO_BTN, Emojis.CROSS)).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                 ))).build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
@@ -219,8 +220,8 @@ public class ResponseFactory {
         Menu menu = Menu.builder()
                 .titleNode(textService.get(Messages.SUBMISSION_LOOP_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.DISCARD_SUBMISSION_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_TO_SUBMIT_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.DISCARD_SUBMISSION_BTN, Emojis.TRASH)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.CONTINUE_TO_SUBMIT_BTN, Emojis.ARROW_RIGHT)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -228,10 +229,12 @@ public class ResponseFactory {
 
     private List<BotResponse> createDiscardConfirmationResponse() {
         Menu menu = Menu.builder()
-                .titleNode(textService.get(Messages.DISCARD_CONFIRMATION_TITLE))
+                .titleNode(textService.get(Messages.DISCARD_CONFIRMATION_TITLE, Emojis.WARNING))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.YES_DISCARD_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.NO_GO_BACK_BTN)).callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.YES_DISCARD_BTN, Emojis.TRASH))
+                                .callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.NO_GO_BACK_BTN, Emojis.BACK))
+                                .callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -239,9 +242,9 @@ public class ResponseFactory {
     
     private List<BotResponse> createNotesResponse() {
         Menu menu = Menu.builder()
-                .titleNode(textService.get(Messages.ADD_NOTES_PROMPT))
+                .titleNode(textService.get(Messages.ADD_NOTES_PROMPT, Emojis.MEMO))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.SKIP_BTN)).callbackData(ProposalCallbackData.SKIP_NOTES).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.SKIP_BTN, Emojis.ARROW_RIGHT)).callbackData(ProposalCallbackData.SKIP_NOTES).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
@@ -251,19 +254,19 @@ public class ResponseFactory {
         Menu menu = Menu.builder()
                 .titleNode(textService.get(Messages.CHOOSE_VERIFICATION_METHOD_PROMPT))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(Messages.VERIFY_WITH_CODE_BTN)).callbackData(VerificationCallbackData.CHOOSE_VERIFY_WITH_CODE).build()),
-                        List.of(Button.builder().textNode(textService.get(Messages.VERIFY_WITH_PHONE_BTN)).callbackData(VerificationCallbackData.CHOOSE_VERIFY_WITH_PHONE).build())
+                        List.of(Button.builder().textNode(textService.get(Messages.VERIFY_WITH_CODE_BTN, Emojis.NUMBERS)).callbackData(VerificationCallbackData.CHOOSE_VERIFY_WITH_CODE).build()),
+                        List.of(Button.builder().textNode(textService.get(Messages.VERIFY_WITH_PHONE_BTN, Emojis.PHONE)).callbackData(VerificationCallbackData.CHOOSE_VERIFY_WITH_PHONE).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
-    private List<BotResponse> buildSimpleMenuResponse(String messageKey) {
+    private List<BotResponse> buildSimpleMenuResponse(String messageKey, Object... args) {
         if (messageKey == null) {
-            return Collections.singletonList(BotResponse.builder().textNode(textService.get(Messages.ERROR_GENERIC)).build());
+            return Collections.singletonList(BotResponse.builder().textNode(textService.get(Messages.ERROR_GENERIC, Emojis.WARNING)).build());
         }
         return Collections.singletonList(BotResponse.builder()
-                .uiComponent(Menu.builder().titleNode(textService.get(messageKey)).build())
+                .uiComponent(Menu.builder().titleNode(textService.get(messageKey, args)).build())
                 .build());
     }
 
