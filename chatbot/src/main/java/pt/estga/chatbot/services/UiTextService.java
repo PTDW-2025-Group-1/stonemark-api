@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
-import pt.estga.chatbot.constants.Emojis;
+import pt.estga.chatbot.constants.EmojiKey;
 import pt.estga.chatbot.models.text.*;
 import pt.estga.chatbot.utils.TextTemplateParser;
 
@@ -39,13 +39,12 @@ public class UiTextService {
         Object[] result = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             Object arg = args[i];
-            if (arg instanceof Emojis emoji) {
-                result[i] = emoji; // keep as enum, to insert Emoji node later
-            } else {
-                // escape braces in plain text to avoid parser issues
-                result[i] = arg.toString()
+            if (arg instanceof String s) {
+                result[i] = s
                         .replace("{", "\\{")
                         .replace("}", "\\}");
+            } else {
+                result[i] = arg;
             }
         }
         return result;
@@ -69,7 +68,9 @@ public class UiTextService {
     private TextNode replacePlaceholders(TextNode node, Object[] args) {
         if (node instanceof Placeholder p) {
             Object arg = args[p.index()];
-            if (arg instanceof Emojis emoji) return new Emoji(emoji);
+            if (arg instanceof EmojiKey emojiKey) {
+                return new Emoji(emojiKey);
+            }
             return new Plain(arg.toString());
         } else if (node instanceof Container c) {
             List<TextNode> children = c.children().stream()
@@ -89,7 +90,7 @@ public class UiTextService {
         } else if (node instanceof Code code) {
             return code;
         } else {
-            return node; // Plain, NewLine, Emoji
+            return node; // Plain, NewLine
         }
     }
 

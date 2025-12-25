@@ -1,5 +1,5 @@
 package pt.estga.chatbot.models.text;
 
-import pt.estga.chatbot.constants.Emojis;
+import pt.estga.chatbot.constants.EmojiKey;
 
-public record Emoji(Emojis emoji) implements TextNode {}
+public record Emoji(EmojiKey key) implements TextNode {}

@@ -3,6 +3,7 @@ package pt.estga.chatbot.telegram.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pt.estga.chatbot.models.Platform;
 import pt.estga.chatbot.services.AuthService;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.services.UserIdentityService;
@@ -20,7 +21,7 @@ public class TelegramAuthService implements AuthService {
     }
 
     @Override
-    public boolean supports(String platform) {
-        return "TELEGRAM".equalsIgnoreCase(platform);
+    public boolean supports(Platform platform) {
+        return Platform.TELEGRAM.equals(platform);
     }
 }

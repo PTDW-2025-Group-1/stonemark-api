@@ -1,6 +1,6 @@
 package pt.estga.chatbot.constants;
 
-public class Messages {
+public class MessageKey {
 
     // General
     public static final String WELCOME = "welcome";
@@ -85,5 +85,5 @@ public class Messages {
     public static final String VERIFY_WITH_CODE_BTN = "verify_with_code_btn";
     public static final String VERIFY_WITH_PHONE_BTN = "verify_with_phone_btn";
 
-    private Messages() {}
+    private MessageKey() {}
 }

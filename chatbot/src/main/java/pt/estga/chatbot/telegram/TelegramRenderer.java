@@ -1,8 +1,10 @@
 package pt.estga.chatbot.telegram;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.models.text.*;
+import pt.estga.chatbot.services.EmojiProvider;
 import pt.estga.chatbot.services.TextRenderer;
 
 import java.util.List;
@@ -10,6 +12,12 @@ import java.util.List;
 @Component
 @Slf4j
 public class TelegramRenderer implements TextRenderer {
+
+    private final EmojiProvider emojiProvider;
+
+    public TelegramRenderer(@Qualifier("telegramEmojiProvider") EmojiProvider emojiProvider) {
+        this.emojiProvider = emojiProvider;
+    }
 
     @Override
     public RenderedText render(TextNode node) {
@@ -26,7 +34,7 @@ public class TelegramRenderer implements TextRenderer {
             case Bold b -> "*" + renderChildren(b.children(), escapeContent) + "*";
             case Italic i -> "_" + renderChildren(i.children(), escapeContent) + "_";
             case Code c -> "`" + escapeCode(c.text()) + "`";
-            case Emoji e -> e.emoji().toString();
+            case Emoji e -> emojiProvider.render(e.key());
             case Placeholder p -> "{" + p.index() + "}";
             case NewLine ignored -> "\n";
             case Container c -> renderChildren(c.children(), escapeContent);

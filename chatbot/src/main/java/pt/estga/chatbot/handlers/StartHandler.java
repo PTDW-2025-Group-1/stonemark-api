@@ -3,8 +3,7 @@ package pt.estga.chatbot.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.constants.Emojis;
-import pt.estga.chatbot.constants.Messages;
+import pt.estga.chatbot.constants.MessageKey;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
@@ -19,6 +18,8 @@ import pt.estga.user.services.UserIdentityService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static pt.estga.chatbot.constants.EmojiKey.WAVE;
 
 @Component
 @RequiredArgsConstructor
@@ -38,15 +39,15 @@ public class StartHandler {
         TextNode welcomeMessage;
         try {
             Optional<User> userOptional = userIdentityService
-                    .findByProviderAndValue(Provider.valueOf(input.getPlatform()), input.getUserId())
+                    .findByProviderAndValue(Provider.valueOf(input.getPlatform().name()), input.getUserId())
                     .map(UserIdentity::getUser);
 
             welcomeMessage = userOptional
-                    .map(user -> textService.get(Messages.WELCOME_BACK, user.getFirstName(), Emojis.WAVE))
-                    .orElse(textService.get(Messages.WELCOME, Emojis.WAVE));
+                    .map(user -> textService.get(MessageKey.WELCOME_BACK, user.getFirstName(), WAVE))
+                    .orElse(textService.get(MessageKey.WELCOME, WAVE));
         } catch (Exception e) {
             log.error("Error retrieving user for welcome message", e);
-            welcomeMessage = textService.get(Messages.WELCOME, Emojis.WAVE);
+            welcomeMessage = textService.get(MessageKey.WELCOME, WAVE);
         }
 
         // 2. Build the main options menu using the factory

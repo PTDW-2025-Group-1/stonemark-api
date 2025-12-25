@@ -3,7 +3,7 @@ package pt.estga.chatbot.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.constants.Messages;
+import pt.estga.chatbot.constants.MessageKey;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.ui.Button;
 import pt.estga.chatbot.models.ui.Menu;
@@ -25,15 +25,15 @@ public class MainMenuFactory {
 
         List<Button> buttons = new ArrayList<>();
         if (isAuthenticated) {
-            buttons.add(Button.builder().textNode(textService.get(Messages.PROPOSE_MARK_BTN))
+            buttons.add(Button.builder().textNode(textService.get(MessageKey.PROPOSE_MARK_BTN))
                     .callbackData(ProposalCallbackData.START_SUBMISSION).build());
         } else {
-            buttons.add(Button.builder().textNode(textService.get(Messages.VERIFY_ACCOUNT_BTN))
+            buttons.add(Button.builder().textNode(textService.get(MessageKey.VERIFY_ACCOUNT_BTN))
                     .callbackData(VerificationCallbackData.START_VERIFICATION).build());
         }
 
         return Menu.builder()
-                .titleNode(textService.get(Messages.HELP_OPTIONS_TITLE))
+                .titleNode(textService.get(MessageKey.HELP_OPTIONS_TITLE))
                 .buttons(List.of(buttons))
                 .build();
     }

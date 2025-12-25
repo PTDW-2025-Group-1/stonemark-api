@@ -1,14 +1,13 @@
 package pt.estga.chatbot.utils;
 
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.constants.Emojis;
 import pt.estga.chatbot.models.text.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parses text with supported formatting tags ({b}, {i}, {code}, {emoji.NAME}) into a tree of TextNodes.
+ * Parses text with supported formatting tags ({b}, {i}, {code}) into a tree of TextNodes.
  * Handles UTF-16 surrogate pairs (emojis) correctly by preserving plain text sequences.
  */
 @Component
@@ -19,7 +18,6 @@ public class TextTemplateParser {
             "{b}", "{/b}",
             "{i}", "{/i}",
             "{code}", "{/code}",
-            "{emoji.",
             "{0}", "{1}" // optional: parser can detect placeholders dynamically too
     };
 
@@ -66,25 +64,18 @@ public class TextTemplateParser {
                 continue;
             }
 
-            // Emoji
-            if (input.startsWith("{emoji.", i)) {
-                int end = input.indexOf("}", i);
-                if (end == -1) throw new IllegalStateException("Unclosed {emoji.} tag in message: " + input);
-
-                String name = input.substring(i + 7, end); // after "{emoji." up to "}"
-                Emojis emoji = Emojis.valueOf(name.toUpperCase());       // enum lookup
-                nodes.add(new Emoji(emoji));
-                i = end + 1;
-                continue;
-            }
-
             // Placeholder
-            if (input.startsWith("{0}", i) || input.startsWith("{1}", i) /* ... up to N */) {
+            if (input.startsWith("{", i) && input.indexOf("}", i) > i + 1) {
                 int end = input.indexOf("}", i);
-                int idx = Integer.parseInt(input.substring(i + 1, end));
-                nodes.add(new Placeholder(idx));
-                i = end + 1;
-                continue;
+                String placeholder = input.substring(i + 1, end);
+                try {
+                    int idx = Integer.parseInt(placeholder);
+                    nodes.add(new Placeholder(idx));
+                    i = end + 1;
+                    continue;
+                } catch (NumberFormatException e) {
+                    // Not a numeric placeholder, treat as plain text
+                }
             }
 
             // Plain text until next special
