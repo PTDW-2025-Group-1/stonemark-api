@@ -31,7 +31,7 @@
         <module>shared</module>
         <module>proposals</module>
         <module>support</module>
-        <module>chatbots</module>
+        <module>chatbot</module>
         <module>bookmark</module>
         <module>verification</module>
         <module>report</module>
