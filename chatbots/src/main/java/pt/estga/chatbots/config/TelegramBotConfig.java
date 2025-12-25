@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.concurrent.DelegatingSecurityContextExecutor;
-import pt.estga.chatbots.core.shared.services.BotConversationService;
+import pt.estga.chatbots.services.BotConversationService;
 import pt.estga.chatbots.telegram.StonemarkTelegramBot;
 import pt.estga.chatbots.telegram.TelegramAdapter;
 

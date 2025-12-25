@@ -8,9 +8,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pt.estga.chatbots.core.shared.services.BotConversationService;
-import pt.estga.chatbots.core.shared.models.BotInput;
-import pt.estga.chatbots.core.shared.models.BotResponse;
+import pt.estga.chatbots.services.BotConversationService;
+import pt.estga.chatbots.models.BotInput;
+import pt.estga.chatbots.models.BotResponse;
 
 import java.util.List;
 import java.util.concurrent.Executor;

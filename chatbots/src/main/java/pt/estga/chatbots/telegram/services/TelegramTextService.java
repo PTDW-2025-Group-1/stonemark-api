@@ -2,8 +2,8 @@ package pt.estga.chatbots.telegram.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.shared.models.text.RenderedText;
-import pt.estga.chatbots.core.shared.models.text.TextNode;
+import pt.estga.chatbots.models.text.RenderedText;
+import pt.estga.chatbots.models.text.TextNode;
 import pt.estga.chatbots.telegram.TelegramRenderer;
 
 @Component

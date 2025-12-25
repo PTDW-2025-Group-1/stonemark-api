@@ -2,8 +2,8 @@ package pt.estga.chatbots.telegram;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.shared.models.text.*;
-import pt.estga.chatbots.core.shared.services.TextRenderer;
+import pt.estga.chatbots.models.text.*;
+import pt.estga.chatbots.services.TextRenderer;
 
 @Component
 @Slf4j
