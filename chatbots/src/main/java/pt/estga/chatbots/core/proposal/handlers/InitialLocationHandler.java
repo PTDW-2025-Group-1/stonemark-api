@@ -6,6 +6,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -34,6 +35,6 @@ public class InitialLocationHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_LOCATION;
+        return ProposalState.AWAITING_LOCATION;
     }
 }

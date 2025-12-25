@@ -6,6 +6,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -32,6 +33,6 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_NEW_MONUMENT_NAME;
+        return ProposalState.AWAITING_NEW_MONUMENT_NAME;
     }
 }

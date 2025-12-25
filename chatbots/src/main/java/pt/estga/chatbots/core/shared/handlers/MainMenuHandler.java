@@ -6,6 +6,7 @@ import pt.estga.chatbots.core.proposal.ProposalCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
+import pt.estga.chatbots.core.shared.context.CoreState;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.verification.VerificationCallbackData;
@@ -33,14 +34,14 @@ public class MainMenuHandler implements ConversationStateHandler {
 
             if (existingProposal.isPresent()) {
                 context.setProposal(existingProposal.get());
-                return HandlerOutcome.SUCCESS; // Flow will move to AWAITING_PROPOSAL_ACTION
+                return HandlerOutcome.SUCCESS;
             }
 
-            return HandlerOutcome.START_NEW; // Flow will move to WAITING_FOR_PHOTO
+            return HandlerOutcome.START_NEW;
         }
 
         if (callbackData.equals(VerificationCallbackData.START_VERIFICATION)) {
-            return HandlerOutcome.START_VERIFICATION; // Flow will move to AWAITING_CONTACT
+            return HandlerOutcome.START_VERIFICATION;
         }
         
         return HandlerOutcome.FAILURE;
@@ -48,6 +49,6 @@ public class MainMenuHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.START;
+        return CoreState.START;
     }
 }

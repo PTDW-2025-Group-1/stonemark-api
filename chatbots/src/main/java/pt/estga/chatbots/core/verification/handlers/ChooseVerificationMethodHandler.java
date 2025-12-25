@@ -6,6 +6,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.VerificationState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.verification.VerificationCallbackData;
 
@@ -34,6 +35,6 @@ public class ChooseVerificationMethodHandler implements ConversationStateHandler
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_VERIFICATION_METHOD;
+        return VerificationState.AWAITING_VERIFICATION_METHOD;
     }
 }

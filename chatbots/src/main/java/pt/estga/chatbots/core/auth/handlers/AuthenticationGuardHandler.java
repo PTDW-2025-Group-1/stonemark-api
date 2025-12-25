@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
+import pt.estga.chatbots.core.shared.context.CoreState;
+import pt.estga.chatbots.core.shared.context.VerificationState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
@@ -30,7 +32,7 @@ public class AuthenticationGuardHandler {
     }
 
     public List<BotResponse> requireVerification(ConversationContext context) {
-        context.setCurrentState(ConversationState.START);
+        context.setCurrentState(CoreState.START);
         Menu verificationMenu = Menu.builder()
                 .titleNode(textService.get(Messages.AUTH_REQUIRED_TITLE))
                 .buttons(List.of(

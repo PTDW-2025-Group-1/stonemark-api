@@ -7,6 +7,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
 
@@ -35,6 +36,6 @@ public class SubmitProposalHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.READY_TO_SUBMIT;
+        return ProposalState.READY_TO_SUBMIT;
     }
 }

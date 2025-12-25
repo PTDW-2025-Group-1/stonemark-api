@@ -8,6 +8,7 @@ import pt.estga.chatbots.core.auth.handlers.AuthenticationGuardHandler;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
+import pt.estga.chatbots.core.shared.context.CoreState;
 import pt.estga.chatbots.core.shared.handlers.StartHandler;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
@@ -44,7 +45,7 @@ public class BotConversationServiceImpl implements BotConversationService {
         }
         
         if (context.getCurrentState() == null) {
-            context.setCurrentState(ConversationState.START);
+            context.setCurrentState(CoreState.START);
         }
 
         // Perform authentication check for stateful conversation.

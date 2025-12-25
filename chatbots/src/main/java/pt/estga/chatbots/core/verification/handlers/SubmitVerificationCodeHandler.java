@@ -7,6 +7,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.VerificationState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.user.entities.User;
 import pt.estga.user.enums.ContactType;
@@ -56,6 +57,6 @@ public class SubmitVerificationCodeHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_VERIFICATION_CODE;
+        return VerificationState.AWAITING_VERIFICATION_CODE;
     }
 }

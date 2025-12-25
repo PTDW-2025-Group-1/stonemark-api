@@ -7,7 +7,11 @@ import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
+import pt.estga.chatbots.core.shared.context.CoreState;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
+import pt.estga.chatbots.core.shared.context.VerificationState;
+import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.Menu;
@@ -22,10 +26,7 @@ import pt.estga.content.services.MonumentService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static java.util.Map.entry;
 
 @Service
 @RequiredArgsConstructor
@@ -34,25 +35,41 @@ public class ResponseFactory {
     private final UiTextService textService;
     private final MarkService markService;
     private final MonumentService monumentService;
+    private final MainMenuFactory mainMenuFactory;
 
-    public List<BotResponse> createResponse(ConversationContext context, HandlerOutcome outcome) {
+    public List<BotResponse> createResponse(ConversationContext context, HandlerOutcome outcome, BotInput input) {
         ConversationState currentState = context.getCurrentState();
 
         if (outcome == HandlerOutcome.FAILURE) {
             return createErrorResponse(context);
         }
 
-        // Special case for successful verification, which has a dynamic message
-        if (currentState == ConversationState.AWAITING_VERIFICATION_CODE && outcome == HandlerOutcome.SUCCESS) {
+        // Special case for successful verification
+        if (currentState == VerificationState.AWAITING_VERIFICATION_CODE && outcome == HandlerOutcome.SUCCESS) {
             return buildSimpleMenuResponse(Messages.VERIFICATION_SUCCESS_CODE);
         }
         
         // Special case for successful submission
-        if (currentState == ConversationState.SUBMITTED && outcome == HandlerOutcome.SUCCESS) {
-            return buildSimpleMenuResponse(Messages.SUBMISSION_SUCCESS);
+        if (currentState == ProposalState.SUBMITTED && outcome == HandlerOutcome.SUCCESS) {
+            List<BotResponse> responses = new ArrayList<>();
+            responses.add(buildSimpleMenuResponse(Messages.SUBMISSION_SUCCESS).getFirst());
+            responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
+            return responses;
         }
 
-        return switch (currentState) {
+        if (currentState instanceof ProposalState proposalState) {
+            return handleProposalState(proposalState, context);
+        } else if (currentState instanceof VerificationState verificationState) {
+            return handleVerificationState(verificationState);
+        } else if (currentState instanceof CoreState coreState) {
+            return handleCoreState(coreState);
+        }
+
+        return createErrorResponse(context);
+    }
+    
+    private List<BotResponse> handleProposalState(ProposalState state, ConversationContext context) {
+        return switch (state) {
             case AWAITING_PROPOSAL_ACTION -> createProposalActionResponse();
             case LOOP_OPTIONS -> createLoopOptionsResponse();
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
@@ -63,20 +80,36 @@ public class ResponseFactory {
             case SUBMISSION_LOOP_OPTIONS -> createSubmissionLoopResponse();
             case AWAITING_DISCARD_CONFIRMATION -> createDiscardConfirmationResponse();
             case AWAITING_NOTES -> createNotesResponse();
+            default -> {
+                String messageKey = getEntryMessageForState(state);
+                yield buildSimpleMenuResponse(messageKey);
+            }
+        };
+    }
+
+    private List<BotResponse> handleVerificationState(VerificationState state) {
+        return switch (state) {
             case AWAITING_VERIFICATION_METHOD -> createVerificationMethodResponse();
             case AWAITING_CONTACT -> buildSimpleMenuResponse(Messages.SHARE_CONTACT_PROMPT);
             case AWAITING_VERIFICATION_CODE -> buildSimpleMenuResponse(Messages.ENTER_VERIFICATION_CODE_PROMPT);
             default -> {
-                String messageKey = getEntryMessageForState(currentState);
+                String messageKey = getEntryMessageForState(state);
                 yield buildSimpleMenuResponse(messageKey);
             }
         };
+    }
+
+    private List<BotResponse> handleCoreState(CoreState state) {
+        String messageKey = getEntryMessageForState(state);
+        return buildSimpleMenuResponse(messageKey);
     }
     
     public List<BotResponse> createErrorResponse(ConversationContext context) {
         String messageKey = getFailureMessageForState(context.getCurrentState());
         return buildSimpleMenuResponse(messageKey);
     }
+
+    // ... (Helper methods for creating specific responses remain the same) ...
 
     private List<BotResponse> createProposalActionResponse() {
         Menu menu = Menu.builder()
@@ -235,25 +268,37 @@ public class ResponseFactory {
     }
 
     private String getEntryMessageForState(ConversationState state) {
-        return Map.of(
-                ConversationState.WAITING_FOR_PHOTO, Messages.REQUEST_PHOTO_PROMPT,
-                ConversationState.AWAITING_LOCATION, Messages.REQUEST_LOCATION_PROMPT
-        ).get(state);
+        if (state instanceof ProposalState proposalState) {
+            return switch (proposalState) {
+                case WAITING_FOR_PHOTO -> Messages.REQUEST_PHOTO_PROMPT;
+                case AWAITING_LOCATION -> Messages.REQUEST_LOCATION_PROMPT;
+                default -> null;
+            };
+        }
+        return null;
     }
 
     private String getFailureMessageForState(ConversationState state) {
-        return Map.ofEntries(
-                entry(ConversationState.WAITING_FOR_PHOTO, Messages.EXPECTING_PHOTO_ERROR),
-                entry(ConversationState.AWAITING_LOCATION, Messages.EXPECTING_LOCATION_ERROR),
-                entry(ConversationState.LOOP_OPTIONS, Messages.INVALID_SELECTION),
-                entry(ConversationState.AWAITING_PROPOSAL_ACTION, Messages.INVALID_SELECTION),
-                entry(ConversationState.AWAITING_PHOTO_ANALYSIS, Messages.ERROR_PROCESSING_PHOTO),
-                entry(ConversationState.AWAITING_MONUMENT_SUGGESTIONS, Messages.ERROR_GENERIC),
-                entry(ConversationState.SUBMISSION_LOOP_OPTIONS, Messages.INVALID_SELECTION),
-                entry(ConversationState.AWAITING_DISCARD_CONFIRMATION, Messages.INVALID_SELECTION),
-                entry(ConversationState.AWAITING_VERIFICATION_CODE, Messages.INVALID_CODE_ERROR),
-                entry(ConversationState.AWAITING_CONTACT, Messages.USER_NOT_FOUND_ERROR),
-                entry(ConversationState.AWAITING_VERIFICATION_METHOD, Messages.INVALID_SELECTION)
-        ).get(state);
+        if (state instanceof ProposalState proposalState) {
+            return switch (proposalState) {
+                case WAITING_FOR_PHOTO -> Messages.EXPECTING_PHOTO_ERROR;
+                case AWAITING_LOCATION -> Messages.EXPECTING_LOCATION_ERROR;
+                case LOOP_OPTIONS -> Messages.INVALID_SELECTION;
+                case AWAITING_PROPOSAL_ACTION -> Messages.INVALID_SELECTION;
+                case AWAITING_PHOTO_ANALYSIS -> Messages.ERROR_PROCESSING_PHOTO;
+                case AWAITING_MONUMENT_SUGGESTIONS -> Messages.ERROR_GENERIC;
+                case SUBMISSION_LOOP_OPTIONS -> Messages.INVALID_SELECTION;
+                case AWAITING_DISCARD_CONFIRMATION -> Messages.INVALID_SELECTION;
+                default -> null;
+            };
+        } else if (state instanceof VerificationState verificationState) {
+            return switch (verificationState) {
+                case AWAITING_VERIFICATION_CODE -> Messages.INVALID_CODE_ERROR;
+                case AWAITING_CONTACT -> Messages.USER_NOT_FOUND_ERROR;
+                case AWAITING_VERIFICATION_METHOD -> Messages.INVALID_SELECTION;
+                default -> null;
+            };
+        }
+        return null;
     }
 }

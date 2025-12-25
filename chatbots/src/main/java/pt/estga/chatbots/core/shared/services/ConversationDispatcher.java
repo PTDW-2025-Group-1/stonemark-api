@@ -1,11 +1,12 @@
 package pt.estga.chatbots.core.shared.services;
 
 import org.springframework.stereotype.Service;
-import pt.estga.chatbots.core.proposal.flow.ProposalFlow;
+import pt.estga.chatbots.core.proposal.flow.ConversationFlowManager;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 
@@ -19,16 +20,16 @@ import java.util.stream.Collectors;
 public class ConversationDispatcher {
 
     private final Map<ConversationState, ConversationStateHandler> handlers;
-    private final ProposalFlow proposalFlow;
+    private final ConversationFlowManager proposalFlow;
     private final ResponseFactory responseFactory;
-    
+
     // States that are "headless" and should be executed immediately without user input.
     private static final Set<ConversationState> IMMEDIATE_STATES = Set.of(
-            ConversationState.AWAITING_PHOTO_ANALYSIS,
-            ConversationState.AWAITING_MONUMENT_SUGGESTIONS
+            ProposalState.AWAITING_PHOTO_ANALYSIS,
+            ProposalState.AWAITING_MONUMENT_SUGGESTIONS
     );
 
-    public ConversationDispatcher(List<ConversationStateHandler> handlerList, ProposalFlow proposalFlow, ResponseFactory responseFactory) {
+    public ConversationDispatcher(List<ConversationStateHandler> handlerList, ConversationFlowManager proposalFlow, ResponseFactory responseFactory) {
         this.handlers = handlerList.stream()
                 .collect(Collectors.toMap(ConversationStateHandler::canHandle, Function.identity()));
         this.proposalFlow = proposalFlow;
@@ -46,7 +47,7 @@ public class ConversationDispatcher {
         // 1. Execute the handler for the current state.
         HandlerOutcome outcome = handler.handle(context, input);
 
-        // 2. Ask the ProposalFlow for the next state based on the outcome.
+        // 2. Ask the ConversationFlowManager for the next state based on the outcome.
         ConversationState nextState = proposalFlow.getNextState(context, currentState, outcome);
         context.setCurrentState(nextState);
 
@@ -57,6 +58,6 @@ public class ConversationDispatcher {
         }
 
         // 4. Generate a response for the user for the new state.
-        return responseFactory.createResponse(context, outcome);
+        return responseFactory.createResponse(context, outcome, input);
     }
 }

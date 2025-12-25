@@ -1,28 +1,12 @@
 package pt.estga.chatbots.core.shared.context;
 
-public enum ConversationState {
-    START,
-    SHOWING_OPTIONS,
-    WAITING_FOR_PHOTO,
-    AWAITING_REUPLOAD_PHOTO,
-    WAITING_FOR_MARK_CONFIRMATION,
-    WAITING_FOR_COORDINATES_HANDLING,
-    AWAITING_LOCATION,
-    WAITING_FOR_MONUMENT_CONFIRMATION,
-    AWAITING_MONUMENT_SELECTION,
-    AWAITING_NEW_MONUMENT_NAME,
-    AWAITING_MARK_SELECTION,
-    AWAITING_NEW_MARK_DETAILS,
-    AWAITING_NOTES,
-    READY_TO_SUBMIT,
-    SUBMITTED,
-    LOOP_OPTIONS,
-    SUBMISSION_LOOP_OPTIONS,
-    AWAITING_VERIFICATION_CODE,
-    AWAITING_CONTACT,
-    AWAITING_VERIFICATION_METHOD,
-    AWAITING_PROPOSAL_ACTION,
-    AWAITING_PHOTO_ANALYSIS,
-    AWAITING_MONUMENT_SUGGESTIONS,
-    AWAITING_DISCARD_CONFIRMATION
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+/**
+ * Marker interface for all conversation states.
+ * Implementations should be Enums.
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+public interface ConversationState {
+    String name();
 }

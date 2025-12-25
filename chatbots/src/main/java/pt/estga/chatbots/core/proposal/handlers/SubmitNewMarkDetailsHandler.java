@@ -7,6 +7,7 @@ import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
+import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
@@ -18,9 +19,6 @@ public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
-        // If the user sent text, this is the description.
-        // If they pressed the "skip" button, the description is empty.
-        // If they did neither, we are waiting for their input.
         String description;
         if (input.getText() != null) {
             description = input.getText();
@@ -38,6 +36,6 @@ public class SubmitNewMarkDetailsHandler implements ConversationStateHandler {
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_NEW_MARK_DETAILS;
+        return ProposalState.AWAITING_NEW_MARK_DETAILS;
     }
 }

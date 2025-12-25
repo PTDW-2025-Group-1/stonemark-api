@@ -3,6 +3,7 @@ package pt.estga.chatbots.core.auth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.shared.context.ConversationState;
+import pt.estga.chatbots.core.shared.context.VerificationState;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.services.AuthService;
 import pt.estga.chatbots.core.shared.services.AuthServiceFactory;
@@ -36,7 +37,7 @@ public class AuthenticationGuard {
                 return true;
             }
             // Allow user to submit a verification code if they are in that part of the conversation
-            return currentState == ConversationState.AWAITING_VERIFICATION_CODE;
+            return currentState == VerificationState.AWAITING_VERIFICATION_CODE;
         }
 
         // Allow starting the verification process and choosing a method

@@ -2,41 +2,52 @@ package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.proposal.ProposalCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
 import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.context.ProposalState;
 import pt.estga.chatbots.core.shared.models.BotInput;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
+
+import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class SelectMonumentHandler implements ConversationStateHandler {
+public class InitialPhotoHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
-        String callbackData = input.getCallbackData();
-        
-        if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.SELECT_MONUMENT_PREFIX)) {
-            return HandlerOutcome.AWAITING_INPUT;
+        if (input.getType() != BotInput.InputType.PHOTO || input.getFileData() == null) {
+            return HandlerOutcome.FAILURE;
         }
 
         try {
-            Long monumentId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MONUMENT_PREFIX.length()));
-            var updatedProposal = proposalFlowService.selectMonument(context.getProposal().getId(), monumentId);
-            context.setProposal(updatedProposal);
+            // If there is no proposal in context, create a new one
+            MarkOccurrenceProposal proposal = context.getProposal();
+            if (proposal == null) {
+                proposal = proposalFlowService.startProposal(context.getDomainUserId());
+                context.setProposal(proposal);
+            }
+
+            // Add the photo to the proposal
+            proposalFlowService.addPhoto(
+                    proposal.getId(),
+                    input.getFileData(),
+                    input.getFileName()
+            );
+
             return HandlerOutcome.SUCCESS;
-        } catch (NumberFormatException e) {
+        } catch (IOException e) {
             return HandlerOutcome.FAILURE;
         }
     }
 
     @Override
     public ConversationState canHandle() {
-        return ProposalState.AWAITING_MONUMENT_SELECTION;
+        return ProposalState.WAITING_FOR_PHOTO;
     }
 }
