@@ -2,33 +2,24 @@ package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
+import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
-import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class InitialLocationHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
-    private final LoopOptionsHandler loopOptionsHandler;
-    private final UiTextService textService;
 
     @Override
-    public List<BotResponse> handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ConversationContext context, BotInput input) {
         if (input.getLocation() == null) {
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.EXPECTING_LOCATION_ERROR)).build())
-                    .build());
+            // The input was invalid for this handler. Report failure.
+            return HandlerOutcome.FAILURE;
         }
 
         proposalFlowService.addLocation(
@@ -37,8 +28,8 @@ public class InitialLocationHandler implements ConversationStateHandler {
                 input.getLocation().getLongitude()
         );
 
-        context.setCurrentState(ConversationState.LOOP_OPTIONS);
-        return loopOptionsHandler.handle(context, BotInput.builder().build());
+        // The location was successfully added. Report success.
+        return HandlerOutcome.SUCCESS;
     }
 
     @Override

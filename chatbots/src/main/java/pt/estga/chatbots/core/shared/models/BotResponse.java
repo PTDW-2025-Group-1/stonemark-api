@@ -10,7 +10,6 @@ import pt.estga.chatbots.core.shared.models.ui.UIComponent;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BotResponse {
-    private String text;
     private TextNode textNode;
     private UIComponent uiComponent;
 }

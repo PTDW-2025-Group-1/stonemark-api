@@ -23,6 +23,7 @@ public class Messages {
     
     public static final String REQUEST_LOCATION_PROMPT = "request_location_prompt";
     public static final String EXPECTING_LOCATION_ERROR = "expecting_location_error";
+    public static final String LOCATION_RECEIVED = "location_received";
     
     public static final String LOOP_OPTIONS_TITLE = "loop_options_title";
     public static final String CHANGE_LOCATION_BTN = "change_location_btn";
@@ -78,6 +79,10 @@ public class Messages {
     public static final String ENTER_VERIFICATION_CODE_PROMPT = "enter_verification_code_prompt";
     public static final String SHARE_CONTACT_PROMPT = "share_contact_prompt";
     public static final String ENTER_CODE_AFTER_CONTACT_PROMPT = "enter_code_after_contact_prompt";
+    
+    public static final String CHOOSE_VERIFICATION_METHOD_PROMPT = "choose_verification_method_prompt";
+    public static final String VERIFY_WITH_CODE_BTN = "verify_with_code_btn";
+    public static final String VERIFY_WITH_PHONE_BTN = "verify_with_phone_btn";
 
     private Messages() {}
 }

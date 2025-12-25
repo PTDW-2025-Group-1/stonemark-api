@@ -1,6 +1,7 @@
 package pt.estga.chatbots.core.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
@@ -9,29 +10,27 @@ import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 
+import java.util.List;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
+public class MonumentSuggestionHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
-        if (input.getText() == null || input.getText().isBlank()) {
-            return HandlerOutcome.FAILURE;
-        }
+        List<String> suggestedMonumentIds = proposalFlowService.getSuggestedMonumentIds(context.getProposal().getId());
+        context.setSuggestedMonumentIds(suggestedMonumentIds);
 
-        var updatedProposal = proposalFlowService.createMonument(
-                context.getProposal().getId(),
-                input.getText()
-        );
-        context.setProposal(updatedProposal);
-        
+        log.info("Found {} suggested monuments for proposal {}", suggestedMonumentIds.size(), context.getProposal().getId());
+
         return HandlerOutcome.SUCCESS;
     }
 
     @Override
     public ConversationState canHandle() {
-        return ConversationState.AWAITING_NEW_MONUMENT_NAME;
+        return ConversationState.AWAITING_MONUMENT_SUGGESTIONS;
     }
 }

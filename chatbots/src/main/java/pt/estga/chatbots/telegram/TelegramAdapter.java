@@ -20,6 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import pt.estga.chatbots.core.shared.models.BotInput;
 import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.chatbots.core.shared.models.text.RenderedText;
+import pt.estga.chatbots.core.shared.models.text.TextNode;
 import pt.estga.chatbots.core.shared.models.ui.Button;
 import pt.estga.chatbots.core.shared.models.ui.ContactRequest;
 import pt.estga.chatbots.core.shared.models.ui.LocationRequest;
@@ -175,7 +176,7 @@ public class TelegramAdapter {
 
         if (uiComponent instanceof Menu menu) {
             log.debug("Rendering Menu component");
-            methods.add(renderMenu(chatIdStr, menu, response.getText()));
+            methods.add(renderMenu(chatIdStr, menu, response.getTextNode()));
             return methods;
         }
 
@@ -197,9 +198,6 @@ public class TelegramAdapter {
                 msg.setParseMode(rendered.parseMode());
             }
             methods.add(msg);
-        } else if (response.getText() != null) {
-            log.debug("Rendering plain text response");
-            methods.add(new SendMessage(chatId, response.getText()));
         }
     }
 
@@ -222,9 +220,10 @@ public class TelegramAdapter {
         }
     }
 
-    private SendMessage renderMenu(String chatId, Menu menu, String text) {
-        RenderedText rendered = text != null
-                ? new RenderedText(text, null)
+    private SendMessage renderMenu(String chatId, Menu menu, TextNode textNode) {
+        // Render the provided textNode if it exists, otherwise fallback to the menu title
+        RenderedText rendered = textNode != null
+                ? textService.render(textNode)
                 : textService.render(menu.getTitleNode());
 
         SendMessage sendMessage = new SendMessage(chatId, rendered.text());

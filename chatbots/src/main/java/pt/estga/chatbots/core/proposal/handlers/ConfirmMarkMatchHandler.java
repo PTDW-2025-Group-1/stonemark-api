@@ -3,62 +3,48 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
-import pt.estga.chatbots.core.proposal.service.ProposalNavigationService;
-import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
+import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
-import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.services.UiTextService;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class ConfirmMarkMatchHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
-    private final ProposalNavigationService navigationService;
-    private final LoopOptionsHandler loopOptionsHandler;
-    private final UiTextService textService;
 
     @Override
-    public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MARK_PREFIX)) {
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.CONFIRM_MARK_MATCH_PROMPT)).build())
-                    .build());
+    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+        String callbackData = input.getCallbackData();
+
+        if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.CONFIRM_MARK_PREFIX)) {
+            return (callbackData == null) ? HandlerOutcome.AWAITING_INPUT : HandlerOutcome.FAILURE;
         }
 
-        String[] callbackDataParts = input.getCallbackData().split(":");
-        if (callbackDataParts.length < 2) {
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.INVALID_SELECTION)).build())
-                    .build());
+        String[] callbackParts = callbackData.split(":");
+        if (callbackParts.length < 2) {
+            return HandlerOutcome.FAILURE;
         }
 
-        boolean matches = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackDataParts[1]);
+        boolean matches = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackParts[1]);
 
         if (matches) {
-            Long markId = Long.valueOf(callbackDataParts[2]);
-            proposalFlowService.selectMark(context.getProposal().getId(), markId);
-            
-            List<BotResponse> responses = navigationService.navigate(context);
-            if (responses != null) {
-                return responses;
+            if (callbackParts.length < 3) {
+                return HandlerOutcome.FAILURE; // Mark ID is missing
             }
-            // If navigation returns null, it means we are ready for the loop options
-            return loopOptionsHandler.handle(context, BotInput.builder().build());
+            try {
+                Long markId = Long.valueOf(callbackParts[2]);
+                proposalFlowService.selectMark(context.getProposal().getId(), markId);
+                return HandlerOutcome.SUCCESS;
+            } catch (NumberFormatException e) {
+                return HandlerOutcome.FAILURE;
+            }
         } else {
-            context.setCurrentState(ConversationState.AWAITING_NEW_MARK_DETAILS);
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.PROVIDE_NEW_MARK_DETAILS_PROMPT)).build())
-                    .build());
+            return HandlerOutcome.REJECTED;
         }
     }
 

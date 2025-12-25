@@ -3,18 +3,13 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
-import pt.estga.chatbots.core.shared.Messages;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
-import pt.estga.chatbots.core.shared.handlers.OptionsMessageHandler;
+import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
-import pt.estga.chatbots.core.shared.models.BotResponse;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
 import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -22,23 +17,25 @@ public class AddNotesHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
     private final MarkOccurrenceProposalSubmissionService submissionService;
-    private final OptionsMessageHandler optionsMessageHandler;
 
     @Override
-    public List<BotResponse> handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+        // Handle "skip" or text input for notes
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
-            proposalFlowService.addNotes(context.getProposal().getId(), input.getText());
+            if (input.getText() != null) {
+                proposalFlowService.addNotes(context.getProposal().getId(), input.getText());
+            }
         }
 
+        // Submit the proposal
         submissionService.submit(context.getProposal().getId());
+        
+        // Clean up the context
         context.setProposal(null);
-        context.setCurrentState(ConversationState.START);
+        context.setSuggestedMarkIds(null);
+        context.setSuggestedMonumentIds(null);
 
-        List<BotResponse> responses = new ArrayList<>();
-        responses.add(BotResponse.builder().text(Messages.SUBMISSION_SUCCESS).build());
-        responses.addAll(optionsMessageHandler.handle(context, input));
-
-        return responses;
+        return HandlerOutcome.SUCCESS;
     }
 
     @Override

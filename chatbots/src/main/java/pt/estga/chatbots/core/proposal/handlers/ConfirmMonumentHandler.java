@@ -3,59 +3,49 @@ package pt.estga.chatbots.core.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbots.core.proposal.ProposalCallbackData;
-import pt.estga.chatbots.core.shared.Messages;
+import pt.estga.chatbots.core.shared.SharedCallbackData;
 import pt.estga.chatbots.core.shared.context.ConversationContext;
 import pt.estga.chatbots.core.shared.context.ConversationState;
 import pt.estga.chatbots.core.shared.context.ConversationStateHandler;
-import pt.estga.chatbots.core.shared.SharedCallbackData;
+import pt.estga.chatbots.core.shared.context.HandlerOutcome;
 import pt.estga.chatbots.core.shared.models.BotInput;
-import pt.estga.chatbots.core.shared.models.BotResponse;
-import pt.estga.chatbots.core.shared.models.ui.Menu;
-import pt.estga.chatbots.core.shared.services.UiTextService;
-import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.ChatbotProposalFlowService;
-
-import java.util.Collections;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class ConfirmMonumentHandler implements ConversationStateHandler {
 
     private final ChatbotProposalFlowService proposalFlowService;
-    private final SubmissionLoopHandler submissionLoopHandler;
-    private final UiTextService textService;
 
     @Override
-    public List<BotResponse> handle(ConversationContext context, BotInput input) {
-        if (input.getCallbackData() == null || !input.getCallbackData().startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.CONFIRM_MONUMENT_MATCH_PROMPT)).build())
-                    .build());
+    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+        String callbackData = input.getCallbackData();
+
+        if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
+            return (callbackData == null) ? HandlerOutcome.AWAITING_INPUT : HandlerOutcome.FAILURE;
         }
 
-        Long proposalId = context.getProposal().getId();
-        String[] callbackDataParts = input.getCallbackData().split(":");
-        
-        if (callbackDataParts.length < 2) {
-             return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.INVALID_SELECTION)).build())
-                    .build());
+        String[] callbackParts = callbackData.split(":");
+        if (callbackParts.length < 2) {
+            return HandlerOutcome.FAILURE;
         }
 
-        boolean confirmed = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackDataParts[1]);
+        boolean confirmed = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackParts[1]);
 
         if (confirmed) {
-            Long monumentId = Long.valueOf(callbackDataParts[2]);
-            MarkOccurrenceProposal updatedProposal = proposalFlowService.selectMonument(proposalId, monumentId);
-            context.setProposal(updatedProposal);
-            context.setCurrentState(ConversationState.SUBMISSION_LOOP_OPTIONS);
-            return submissionLoopHandler.handle(context, BotInput.builder().build());
+            if (callbackParts.length < 3) {
+                return HandlerOutcome.FAILURE; // Monument ID is missing
+            }
+            try {
+                Long monumentId = Long.valueOf(callbackParts[2]);
+                var updatedProposal = proposalFlowService.selectMonument(context.getProposal().getId(), monumentId);
+                context.setProposal(updatedProposal);
+                return HandlerOutcome.SUCCESS;
+            } catch (NumberFormatException e) {
+                return HandlerOutcome.FAILURE;
+            }
         } else {
-            context.setCurrentState(ConversationState.AWAITING_NEW_MONUMENT_NAME);
-            return Collections.singletonList(BotResponse.builder()
-                    .uiComponent(Menu.builder().titleNode(textService.get(Messages.PROVIDE_NEW_MONUMENT_NAME_PROMPT)).build())
-                    .build());
+            return HandlerOutcome.REJECTED;
         }
     }
 

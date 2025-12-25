@@ -19,7 +19,7 @@ public class UiTextService {
     private final TextTemplateParser parser;
 
     // Pattern to match {emoji.something}
-    private static final Pattern EMOJI_PATTERN = Pattern.compile("\\{emoji\\.([a-zA-Z0-9_]+)\\}");
+    private static final Pattern EMOJI_PATTERN = Pattern.compile("\\{emoji\\.([a-zA-Z0-9_]+)}");
 
     public TextNode get(String key) {
         return get(key, (Object[]) null);
