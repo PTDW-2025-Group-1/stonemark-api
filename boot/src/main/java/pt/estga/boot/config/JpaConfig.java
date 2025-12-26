@@ -18,9 +18,9 @@ public class JpaConfig {
     public AuditorAware<Long> auditorProvider() {
         return () -> {
             try {
-                return SecurityUtils.getCurrentUserId().or(() -> Optional.of(0L));
+                return SecurityUtils.getCurrentUserId();
             } catch (Exception e) {
-                log.error("Error retrieving auditor id", e);
+                log.error("Error retrieving auditor user", e);
                 return Optional.empty();
             }
         };

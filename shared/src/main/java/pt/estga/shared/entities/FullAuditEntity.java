@@ -19,12 +19,12 @@ public abstract class FullAuditEntity {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    @LastModifiedDate
-    private Instant modifiedAt;
-
     @CreatedBy
     @Column(updatable = false)
     private Long createdById;
+
+    @LastModifiedDate
+    private Instant lastModifiedAt;
 
     @LastModifiedBy
     private Long modifiedById;

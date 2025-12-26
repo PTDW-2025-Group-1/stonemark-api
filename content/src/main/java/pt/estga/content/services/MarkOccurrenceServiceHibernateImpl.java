@@ -43,7 +43,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     public List<MarkOccurrence> findLatest(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return repository.findAll(pageable).getContent();
+        return repository.findLatest(pageable);
     }
 
     @Override
@@ -73,6 +73,10 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     public long countByMarkId(Long markId) {
         return repository.countByMarkId(markId);
+    }
+
+    public long countDistinctMonumentsByMarkId(Long markId) {
+        return repository.countDistinctMonumentIdByMarkId(markId);
     }
 
     @Override

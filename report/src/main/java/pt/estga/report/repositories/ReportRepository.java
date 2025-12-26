@@ -7,9 +7,5 @@ import pt.estga.report.entities.Report;
 import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-    Optional<Report> findByUserIdAndTargetIdAndTargetType(
-            Long userId,
-            Long targetId,
-            TargetType targetType
-    );
+    Optional<Report> findByUserIdAndTargetIdAndTargetType(Long userId, Long targetId, TargetType targetType);
 }

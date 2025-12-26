@@ -103,7 +103,6 @@ public class MonumentController {
     @PutMapping("/{id}")
     public ResponseEntity<MonumentResponseDto> updateMonument(
             @PathVariable Long id,
-
             @Valid @RequestBody MonumentRequestDto monumentDto
     ) {
         Monument monument = mapper.toEntity(monumentDto);
