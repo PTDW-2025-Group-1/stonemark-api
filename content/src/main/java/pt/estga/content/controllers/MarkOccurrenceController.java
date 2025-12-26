@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -50,9 +51,11 @@ public class MarkOccurrenceController {
     public Page<MarkOccurrenceListDto> getOccurrencesByMark(
             @PathVariable Long markId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "desc") String sort
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt")); // substitui "createdAt" pelo campo correto
         return service.findByMarkId(markId, pageable)
                 .map(mapper::toListDto);
     }
@@ -78,13 +81,21 @@ public class MarkOccurrenceController {
         return ResponseEntity.ok(service.countByMarkId(markId));
     }
 
+    @GetMapping("/count-monuments-by-mark/{markId}")
+    public ResponseEntity<Long> countMonumentsByMark(@PathVariable Long markId) {
+        long count = service.countDistinctMonumentsByMarkId(markId);
+        return ResponseEntity.ok(count);
+    }
+
     @GetMapping("/by-monument/{monumentId}")
     public Page<MarkOccurrenceListDto> getOccurrencesByMonument(
             @PathVariable Long monumentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "desc") String sort
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
         return service.findByMonumentId(monumentId, pageable)
                 .map(mapper::toListDto);
     }
@@ -110,9 +121,11 @@ public class MarkOccurrenceController {
             @RequestParam Long markId,
             @RequestParam Long monumentId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "desc") String sort
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
         return service.findByMarkIdAndMonumentId(markId, monumentId, pageable)
                 .map(mapper::toListDto);
     }

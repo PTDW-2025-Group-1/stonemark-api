@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import pt.estga.shared.utils.SecurityUtils;
+import pt.estga.user.entities.User;
+import pt.estga.user.repositories.UserRepository;
 
 import java.util.Optional;
 
@@ -15,14 +17,16 @@ import java.util.Optional;
 public class JpaConfig {
 
     @Bean
-    public AuditorAware<Long> auditorProvider() {
+    public AuditorAware<User> auditorProvider(UserRepository userRepository) {
         return () -> {
             try {
-                return SecurityUtils.getCurrentUserId().or(() -> Optional.of(0L));
+                return SecurityUtils.getCurrentUserId()
+                        .flatMap(userRepository::findById);
             } catch (Exception e) {
-                log.error("Error retrieving auditor id", e);
+                log.error("Error retrieving auditor user", e);
                 return Optional.empty();
             }
         };
     }
 }
+
