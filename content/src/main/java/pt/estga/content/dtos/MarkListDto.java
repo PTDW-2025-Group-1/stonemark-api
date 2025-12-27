@@ -1,7 +1,7 @@
 package pt.estga.content.dtos;
 
-public record MarkDto(
+public record MarkListDto(
         Long id,
-        String description,
         Long coverId
-) { }
+) {
+}

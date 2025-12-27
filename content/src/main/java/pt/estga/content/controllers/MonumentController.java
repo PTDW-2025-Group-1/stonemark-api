@@ -10,6 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pt.estga.content.dtos.MonumentListDto;
+import pt.estga.content.dtos.MonumentMapDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
@@ -37,34 +39,48 @@ public class MonumentController {
         return service.findAll(pageable).map(mapper::toResponseDto);
     }
 
+    @GetMapping("/list")
+    public Page<MonumentListDto> getMonumentsList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return service.findAll(pageable).map(mapper::toListDto);
+    }
+
+    @GetMapping("/map")
+    public Page<MonumentMapDto> getAllForMap(Pageable pageable) {
+        return service.findAll(pageable).map(mapper::toMapDto);
+    }
+
     @GetMapping("/search")
-    public Page<MonumentResponseDto> searchMonuments(
+    public Page<MonumentListDto> searchMonuments(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.searchByName(query, pageable).map(mapper::toResponseDto);
+        return service.searchByName(query, pageable).map(mapper::toListDto);
     }
 
     @GetMapping("/filter")
-    public Page<MonumentResponseDto> filterMonumentsByCity(
+    public Page<MonumentListDto> filterMonumentsByCity(
             @RequestParam String city,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByCity(city, pageable).map(mapper::toResponseDto);
+        return service.findByCity(city, pageable).map(mapper::toListDto);
     }
 
     @GetMapping("/latest")
-    public List<MonumentResponseDto> getLatestMonuments(
+    public List<MonumentListDto> getLatestMonuments(
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
         return service.findLatest(safeLimit)
                 .stream()
-                .map(mapper::toResponseDto)
+                .map(mapper::toListDto)
                 .toList();
     }
 
