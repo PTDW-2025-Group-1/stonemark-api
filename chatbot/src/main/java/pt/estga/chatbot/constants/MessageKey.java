@@ -84,6 +84,10 @@ public class MessageKey {
     public static final String CHOOSE_VERIFICATION_METHOD_PROMPT = "choose_verification_method_prompt";
     public static final String VERIFY_WITH_CODE_BTN = "verify_with_code_btn";
     public static final String VERIFY_WITH_PHONE_BTN = "verify_with_phone_btn";
+    public static final String VERIFICATION_SUCCESS_PHONE = "verification_success_phone";
+    public static final String PROMPT_CONNECT_PHONE = "prompt_connect_phone";
+    public static final String PHONE_CONNECTION_SUCCESS = "phone_connection_success";
+
 
     private MessageKey() {}
 }

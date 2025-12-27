@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class ChatbotProposalFlowServiceImpl implements ChatbotProposalFlowService {
+public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurrenceProposalChatbotFlowService {
 
     private final MarkOccurrenceProposalService proposalService;
     private final MediaService mediaService;

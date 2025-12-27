@@ -5,7 +5,7 @@ import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import java.io.IOException;
 import java.util.List;
 
-public interface ChatbotProposalFlowService {
+public interface MarkOccurrenceProposalChatbotFlowService {
 
     MarkOccurrenceProposal startProposal(Long userId);
 

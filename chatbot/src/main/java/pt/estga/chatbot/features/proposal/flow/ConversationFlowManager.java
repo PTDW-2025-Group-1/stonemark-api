@@ -1,7 +1,7 @@
 package pt.estga.chatbot.features.proposal.flow;
 
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -17,7 +17,7 @@ import static pt.estga.chatbot.context.HandlerOutcome.*;
 public class ConversationFlowManager {
 
     private static final Map<ConversationState, ConversationState> SUCCESS_TRANSITIONS = Map.ofEntries(
-            Map.entry(CoreState.START, ProposalState.AWAITING_PROPOSAL_ACTION),
+            Map.entry(CoreState.START, CoreState.MAIN_MENU),
             Map.entry(ProposalState.AWAITING_PROPOSAL_ACTION, ProposalState.WAITING_FOR_PHOTO),
             Map.entry(ProposalState.WAITING_FOR_PHOTO, ProposalState.AWAITING_LOCATION),
             Map.entry(ProposalState.AWAITING_LOCATION, ProposalState.LOOP_OPTIONS),
@@ -29,24 +29,43 @@ public class ConversationFlowManager {
             Map.entry(ProposalState.AWAITING_DISCARD_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),
             Map.entry(ProposalState.SUBMISSION_LOOP_OPTIONS, ProposalState.AWAITING_NOTES),
             Map.entry(ProposalState.AWAITING_NOTES, ProposalState.SUBMITTED),
-            Map.entry(ProposalState.SUBMITTED, CoreState.START),
-            
+            Map.entry(ProposalState.SUBMITTED, CoreState.MAIN_MENU),
+
             // Verification Flow
-            Map.entry(VerificationState.AWAITING_CONTACT, VerificationState.AWAITING_VERIFICATION_CODE),
-            Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, CoreState.START)
+            Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, VerificationState.AWAITING_PHONE_CONNECTION_DECISION)
     );
 
-    public ConversationState getNextState(ConversationContext context, ConversationState currentState, HandlerOutcome outcome) {
-        // Handle branching from START state (MainMenuHandler)
-        if (currentState == CoreState.START) {
+    public ConversationState getNextState(ChatbotContext context, ConversationState currentState, HandlerOutcome outcome) {
+
+        if (outcome == FAILURE) {
+            return currentState;
+        }
+
+        // Handle branching from MAIN_MENU state
+        if (currentState == CoreState.MAIN_MENU) {
             if (outcome == START_NEW) return ProposalState.WAITING_FOR_PHOTO;
             if (outcome == START_VERIFICATION) return VerificationState.AWAITING_VERIFICATION_METHOD;
+            if (outcome == CONTINUE) return ProposalState.AWAITING_PROPOSAL_ACTION;
         }
 
         // Handle branching from AWAITING_VERIFICATION_METHOD
         if (currentState == VerificationState.AWAITING_VERIFICATION_METHOD) {
             if (outcome == VERIFY_WITH_CODE) return VerificationState.AWAITING_VERIFICATION_CODE;
             if (outcome == VERIFY_WITH_PHONE) return VerificationState.AWAITING_CONTACT;
+        }
+
+        // Handle branching from AWAITING_CONTACT
+        if (currentState == VerificationState.AWAITING_CONTACT && outcome == SUCCESS) {
+            if (context.getDomainUserId() != null) {
+                return VerificationState.PHONE_CONNECTION_SUCCESS;
+            }
+            return VerificationState.PHONE_VERIFICATION_SUCCESS;
+        }
+
+        // Handle branching from AWAITING_PHONE_CONNECTION_DECISION
+        if (currentState == VerificationState.AWAITING_PHONE_CONNECTION_DECISION) {
+            if (outcome == VERIFY_WITH_PHONE) return VerificationState.AWAITING_CONTACT;
+            if (outcome == SUCCESS) return CoreState.START;
         }
 
         // Handle branching from AWAITING_PROPOSAL_ACTION
@@ -66,7 +85,7 @@ public class ConversationFlowManager {
 
         // Handle branching after photo analysis
         if (currentState == ProposalState.AWAITING_PHOTO_ANALYSIS && outcome == SUCCESS) {
-            List<String> suggestions = context.getSuggestedMarkIds();
+            List<String> suggestions = context.getProposalContext().getSuggestedMarkIds();
             if (suggestions == null || suggestions.isEmpty()) {
                 return ProposalState.AWAITING_NEW_MARK_DETAILS;
             } else if (suggestions.size() == 1) {
@@ -75,7 +94,7 @@ public class ConversationFlowManager {
                 return ProposalState.AWAITING_MARK_SELECTION;
             }
         }
-        
+
         // Handle branching from mark confirmation
         if (currentState == ProposalState.WAITING_FOR_MARK_CONFIRMATION && outcome == REJECTED) {
             return ProposalState.AWAITING_NEW_MARK_DETAILS;
@@ -88,7 +107,7 @@ public class ConversationFlowManager {
 
         // Handle branching after monument suggestion
         if (currentState == ProposalState.AWAITING_MONUMENT_SUGGESTIONS && outcome == SUCCESS) {
-            List<String> suggestions = context.getSuggestedMonumentIds();
+            List<String> suggestions = context.getProposalContext().getSuggestedMonumentIds();
             if (suggestions == null || suggestions.isEmpty()) {
                 return ProposalState.AWAITING_NEW_MONUMENT_NAME;
             } else {

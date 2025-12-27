@@ -3,13 +3,16 @@ package pt.estga.chatbot.features.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +21,7 @@ public class ProposalActionHandler implements ConversationStateHandler {
     private final MarkOccurrenceProposalService proposalService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null) {
@@ -26,13 +29,17 @@ public class ProposalActionHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.CONTINUE_PROPOSAL)) {
-            // The user wants to continue. The flow will decide where to navigate next.
-            return HandlerOutcome.CONTINUE;
+            Optional<MarkOccurrenceProposal> proposal = proposalService.findIncompleteByUserId(Long.valueOf(input.getUserId()));
+            if (proposal.isPresent()) {
+                context.getProposalContext().setProposal(proposal.get());
+                return HandlerOutcome.CONTINUE;
+            }
+            return HandlerOutcome.FAILURE;
         }
 
         if (callbackData.equals(ProposalCallbackData.DELETE_AND_START_NEW)) {
-            proposalService.delete(context.getProposal());
-            context.setProposal(null);
+            proposalService.delete(context.getProposalContext().getProposal());
+            context.getProposalContext().setProposal(null);
             // This outcome signals that the old proposal was discarded and we should start fresh.
             return HandlerOutcome.DISCARD_CONFIRMED;
         }

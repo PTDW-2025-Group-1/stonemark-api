@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -18,7 +18,7 @@ public class DiscardConfirmationHandler implements ConversationStateHandler {
     private final MarkOccurrenceProposalService proposalService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null) {
@@ -27,8 +27,8 @@ public class DiscardConfirmationHandler implements ConversationStateHandler {
 
         switch (callbackData) {
             case ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED:
-                proposalService.delete(context.getProposal());
-                context.setProposal(null);
+                proposalService.delete(context.getProposalContext().getProposal());
+                context.getProposalContext().setProposal(null);
                 return HandlerOutcome.DISCARD_CONFIRMED;
             
             // This callback is used by the "No, go back" button

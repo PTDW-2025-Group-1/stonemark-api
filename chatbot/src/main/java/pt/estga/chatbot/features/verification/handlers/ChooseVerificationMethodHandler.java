@@ -2,7 +2,7 @@ package pt.estga.chatbot.features.verification.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -15,7 +15,7 @@ import pt.estga.chatbot.features.verification.VerificationCallbackData;
 public class ChooseVerificationMethodHandler implements ConversationStateHandler {
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null) {
