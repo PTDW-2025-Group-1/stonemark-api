@@ -10,8 +10,6 @@ import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.VerificationState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.user.entities.User;
-import pt.estga.user.enums.ContactType;
-import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
 import pt.estga.verification.services.ChatbotVerificationService;
 
@@ -23,32 +21,25 @@ import java.util.Optional;
 public class SubmitVerificationCodeHandler implements ConversationStateHandler {
 
     private final ChatbotVerificationService verificationService;
-    private final UserContactService userContactService;
     private final UserIdentityService userIdentityService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
         String code = input.getText();
-        String phoneNumber = context.getVerificationPhoneNumber();
-
-        if (phoneNumber == null) {
-            log.error("Verification phone number is missing from conversation context for user {}", input.getUserId());
-            return HandlerOutcome.FAILURE;
-        }
 
         Optional<User> userOptional = verificationService.verifyTelegramCode(code, input.getUserId());
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             context.setDomainUserId(user.getId());
-            context.setVerificationPhoneNumber(null); // Clean up context
+            context.setUserName(user.getFirstName());
 
-            // Create verified contact and identity
-            userContactService.createVerifiedContact(user, ContactType.TELEPHONE, phoneNumber);
+            // Create verified identity
             userIdentityService.createOrUpdateTelegramIdentity(user, input.getUserId());
 
-            log.info("Successfully verified user {} with phone number and created Telegram identity.", user.getUsername());
+            log.info("Successfully verified user {} and created Telegram identity.", user.getUsername());
 
+            context.setCurrentState(VerificationState.AWAITING_PHONE_CONNECTION_DECISION);
             return HandlerOutcome.SUCCESS;
         } else {
             return HandlerOutcome.FAILURE;

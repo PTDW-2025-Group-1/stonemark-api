@@ -13,6 +13,7 @@ import pt.estga.user.entities.User;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
+import pt.estga.user.services.UserService;
 
 import java.util.Optional;
 
@@ -23,6 +24,7 @@ public class SubmitContactHandler implements ConversationStateHandler {
 
     private final UserContactService userContactService;
     private final UserIdentityService userIdentityService;
+    private final UserService userService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
@@ -31,24 +33,43 @@ public class SubmitContactHandler implements ConversationStateHandler {
         }
 
         String phoneNumber = input.getText();
-        Optional<User> userOptional = userContactService.findUserByPhoneNumber(phoneNumber);
+        Long domainUserId = context.getDomainUserId();
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            // Create a verified contact for the user
-            userContactService.createVerifiedContact(user, ContactType.TELEPHONE, phoneNumber);
-            // Associate the Telegram ID with the user
-            userIdentityService.createOrUpdateTelegramIdentity(user, input.getUserId());
-            
-            log.info("Successfully verified user {} and associated their Telegram ID.", user.getUsername());
-            
-            // Store phone number in context in case it's needed for code verification
-            context.setVerificationPhoneNumber(phoneNumber);
-
-            return HandlerOutcome.SUCCESS;
+        if (domainUserId != null) {
+            // User is already verified, just connect the phone number
+            Optional<User> userOptional = userService.findById(domainUserId);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                userContactService.createVerifiedContact(user, ContactType.TELEPHONE, phoneNumber);
+                log.info("Successfully connected phone number for user {}", user.getUsername());
+                context.setCurrentState(VerificationState.PHONE_CONNECTION_SUCCESS);
+                return HandlerOutcome.SUCCESS;
+            } else {
+                log.error("User with ID {} not found in domain", domainUserId);
+                return HandlerOutcome.FAILURE;
+            }
         } else {
-            log.warn("No user found for phone number: {}", phoneNumber);
-            return HandlerOutcome.FAILURE;
+            // New user verification
+            Optional<User> userOptional = userContactService.findUserByPhoneNumber(phoneNumber);
+
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                // Create a verified contact for the user
+                userContactService.createVerifiedContact(user, ContactType.TELEPHONE, phoneNumber);
+                // Associate the Telegram ID with the user
+                userIdentityService.createOrUpdateTelegramIdentity(user, input.getUserId());
+
+                log.info("Successfully verified user {} and associated their Telegram ID.", user.getUsername());
+
+                context.setDomainUserId(user.getId());
+                context.setUserName(user.getFirstName());
+                context.setCurrentState(VerificationState.PHONE_VERIFICATION_SUCCESS);
+
+                return HandlerOutcome.SUCCESS;
+            } else {
+                log.warn("No user found for phone number: {}", phoneNumber);
+                return HandlerOutcome.FAILURE;
+            }
         }
     }
 

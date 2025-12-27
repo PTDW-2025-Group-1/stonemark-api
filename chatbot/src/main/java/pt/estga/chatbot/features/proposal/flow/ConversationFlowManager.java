@@ -17,7 +17,7 @@ import static pt.estga.chatbot.context.HandlerOutcome.*;
 public class ConversationFlowManager {
 
     private static final Map<ConversationState, ConversationState> SUCCESS_TRANSITIONS = Map.ofEntries(
-            Map.entry(CoreState.START, ProposalState.AWAITING_PROPOSAL_ACTION),
+            Map.entry(CoreState.START, CoreState.MAIN_MENU),
             Map.entry(ProposalState.AWAITING_PROPOSAL_ACTION, ProposalState.WAITING_FOR_PHOTO),
             Map.entry(ProposalState.WAITING_FOR_PHOTO, ProposalState.AWAITING_LOCATION),
             Map.entry(ProposalState.AWAITING_LOCATION, ProposalState.LOOP_OPTIONS),
@@ -30,15 +30,19 @@ public class ConversationFlowManager {
             Map.entry(ProposalState.SUBMISSION_LOOP_OPTIONS, ProposalState.AWAITING_NOTES),
             Map.entry(ProposalState.AWAITING_NOTES, ProposalState.SUBMITTED),
             Map.entry(ProposalState.SUBMITTED, CoreState.START),
-            
+
             // Verification Flow
-            Map.entry(VerificationState.AWAITING_CONTACT, VerificationState.AWAITING_VERIFICATION_CODE),
-            Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, CoreState.START)
+            Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, VerificationState.AWAITING_PHONE_CONNECTION_DECISION)
     );
 
     public ConversationState getNextState(ConversationContext context, ConversationState currentState, HandlerOutcome outcome) {
-        // Handle branching from START state (MainMenuHandler)
-        if (currentState == CoreState.START) {
+
+        if (outcome == FAILURE) {
+            return currentState;
+        }
+
+        // Handle branching from MAIN_MENU state
+        if (currentState == CoreState.MAIN_MENU) {
             if (outcome == START_NEW) return ProposalState.WAITING_FOR_PHOTO;
             if (outcome == START_VERIFICATION) return VerificationState.AWAITING_VERIFICATION_METHOD;
         }
@@ -47,6 +51,20 @@ public class ConversationFlowManager {
         if (currentState == VerificationState.AWAITING_VERIFICATION_METHOD) {
             if (outcome == VERIFY_WITH_CODE) return VerificationState.AWAITING_VERIFICATION_CODE;
             if (outcome == VERIFY_WITH_PHONE) return VerificationState.AWAITING_CONTACT;
+        }
+
+        // Handle branching from AWAITING_CONTACT
+        if (currentState == VerificationState.AWAITING_CONTACT && outcome == SUCCESS) {
+            if (context.getDomainUserId() != null) {
+                return VerificationState.PHONE_CONNECTION_SUCCESS;
+            }
+            return VerificationState.PHONE_VERIFICATION_SUCCESS;
+        }
+
+        // Handle branching from AWAITING_PHONE_CONNECTION_DECISION
+        if (currentState == VerificationState.AWAITING_PHONE_CONNECTION_DECISION) {
+            if (outcome == VERIFY_WITH_PHONE) return VerificationState.AWAITING_CONTACT;
+            if (outcome == SUCCESS) return CoreState.START;
         }
 
         // Handle branching from AWAITING_PROPOSAL_ACTION
@@ -75,7 +93,7 @@ public class ConversationFlowManager {
                 return ProposalState.AWAITING_MARK_SELECTION;
             }
         }
-        
+
         // Handle branching from mark confirmation
         if (currentState == ProposalState.WAITING_FOR_MARK_CONFIRMATION && outcome == REJECTED) {
             return ProposalState.AWAITING_NEW_MARK_DETAILS;

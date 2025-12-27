@@ -8,7 +8,6 @@ import pt.estga.chatbot.features.auth.handlers.AuthenticationGuardHandler;
 import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ConversationContext;
 import pt.estga.chatbot.context.CoreState;
-import pt.estga.chatbot.handlers.StartHandler;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
 
@@ -22,7 +21,6 @@ public class BotConversationServiceImpl implements BotConversationService {
     private final Cache<String, ConversationContext> conversationContexts;
     private final AuthenticationGuard authenticationGuard;
     private final AuthenticationGuardHandler authenticationGuardHandler;
-    private final StartHandler startHandler;
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {
@@ -35,12 +33,11 @@ public class BotConversationServiceImpl implements BotConversationService {
         boolean isBackToMenu = input.getCallbackData() != null && input.getCallbackData().equals(SharedCallbackData.BACK_TO_MAIN_MENU);
 
         if (isStartCommand || isHelpCommand || isOptionsCommand || isBackToMenu) {
-            // Reset context and let the StartHandler generate the initial response.
-            context.setCurrentState(null);
+            // Reset context and dispatch to the state machine.
+            context.setCurrentState(CoreState.START);
             context.setProposal(null);
             context.setSuggestedMarkIds(null);
             context.setSuggestedMonumentIds(null);
-            return startHandler.handle(context, input);
         }
         
         if (context.getCurrentState() == null) {

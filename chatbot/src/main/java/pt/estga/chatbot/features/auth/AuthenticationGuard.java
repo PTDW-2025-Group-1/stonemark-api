@@ -37,7 +37,10 @@ public class AuthenticationGuard {
                 return true;
             }
             // Allow user to submit a verification code if they are in that part of the conversation
-            return currentState == VerificationState.AWAITING_VERIFICATION_CODE;
+            if (currentState == VerificationState.AWAITING_VERIFICATION_CODE) {
+                return true;
+            }
+            return currentState == VerificationState.AWAITING_CONTACT;
         }
 
         // Allow starting the verification process and choosing a method
@@ -49,7 +52,11 @@ public class AuthenticationGuard {
         }
 
         // Allow sending a contact
-        return input.getType() == BotInput.InputType.CONTACT;
+        if (input.getType() == BotInput.InputType.CONTACT) {
+            return currentState == VerificationState.AWAITING_CONTACT;
+        }
+
+        return false;
     }
 
     private boolean isAuthenticated(BotInput input) {

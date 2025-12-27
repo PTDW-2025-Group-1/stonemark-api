@@ -17,6 +17,8 @@ import pt.estga.chatbot.features.verification.VerificationCallbackData;
 import java.util.Collections;
 import java.util.List;
 
+import static pt.estga.chatbot.constants.EmojiKey.CHECK;
+
 @Component
 @RequiredArgsConstructor
 public class AuthenticationGuardHandler {
@@ -34,7 +36,7 @@ public class AuthenticationGuardHandler {
         Menu verificationMenu = Menu.builder()
                 .titleNode(textService.get(MessageKey.AUTH_REQUIRED_TITLE))
                 .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(MessageKey.VERIFY_ACCOUNT_BTN)).callbackData(VerificationCallbackData.START_VERIFICATION).build())
+                        List.of(Button.builder().textNode(textService.get(MessageKey.VERIFY_ACCOUNT_BTN, CHECK)).callbackData(VerificationCallbackData.START_VERIFICATION).build())
                 ))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(verificationMenu).build());

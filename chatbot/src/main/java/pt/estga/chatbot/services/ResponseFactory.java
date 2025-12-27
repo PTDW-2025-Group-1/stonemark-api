@@ -14,10 +14,8 @@ import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.features.verification.VerificationCallbackData;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
-import pt.estga.chatbot.models.ui.Button;
-import pt.estga.chatbot.models.ui.Menu;
-import pt.estga.chatbot.models.ui.PhotoItem;
-import pt.estga.chatbot.models.ui.TextMessage;
+import pt.estga.chatbot.models.text.TextNode;
+import pt.estga.chatbot.models.ui.*;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkService;
@@ -46,25 +44,12 @@ public class ResponseFactory {
             return createErrorResponse(context);
         }
 
-        // Special case for successful verification
-        if (currentState == VerificationState.AWAITING_VERIFICATION_CODE && outcome == HandlerOutcome.SUCCESS) {
-            return buildSimpleMenuResponse(MessageKey.VERIFICATION_SUCCESS_CODE);
-        }
-
-        // Special case for successful submission
-        if (currentState == ProposalState.SUBMITTED && outcome == HandlerOutcome.SUCCESS) {
-            List<BotResponse> responses = new ArrayList<>();
-            responses.add(buildSimpleMenuResponse(MessageKey.SUBMISSION_SUCCESS, TADA).getFirst());
-            responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
-            return responses;
-        }
-
         if (currentState instanceof ProposalState proposalState) {
             return handleProposalState(proposalState, context);
         } else if (currentState instanceof VerificationState verificationState) {
-            return handleVerificationState(verificationState);
+            return handleVerificationState(verificationState, context, input);
         } else if (currentState instanceof CoreState coreState) {
-            return handleCoreState(coreState);
+            return handleCoreState(coreState, context, input);
         }
 
         return createErrorResponse(context);
@@ -90,23 +75,52 @@ public class ResponseFactory {
         };
     }
 
-    private List<BotResponse> handleVerificationState(VerificationState state) {
+    private List<BotResponse> handleVerificationState(VerificationState state, ConversationContext context, BotInput input) {
         return switch (state) {
             case AWAITING_VERIFICATION_METHOD -> createVerificationMethodResponse();
-            case AWAITING_CONTACT ->
-                    buildSimpleMenuResponse(MessageKey.SHARE_CONTACT_PROMPT, PHONE);
+            case AWAITING_CONTACT -> createContactRequestResponse();
             case AWAITING_VERIFICATION_CODE ->
                     buildSimpleMenuResponse(MessageKey.ENTER_VERIFICATION_CODE_PROMPT, NUMBERS);
+            case AWAITING_PHONE_CONNECTION_DECISION -> {
+                List<BotResponse> responses = new ArrayList<>();
+                responses.add(buildSimpleMenuResponse(MessageKey.VERIFICATION_SUCCESS_CODE, context.getUserName(), TADA).getFirst());
+                responses.add(createPhoneConnectionPrompt().getFirst());
+                yield responses;
+            }
+            case PHONE_VERIFICATION_SUCCESS -> {
+                List<BotResponse> responses = new ArrayList<>();
+                responses.add(buildSimpleMenuResponse(MessageKey.VERIFICATION_SUCCESS_PHONE, TADA).getFirst());
+                responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
+                yield responses;
+            }
+            case PHONE_CONNECTION_SUCCESS -> {
+                List<BotResponse> responses = new ArrayList<>();
+                responses.add(buildSimpleMenuResponse(MessageKey.PHONE_CONNECTION_SUCCESS, TADA).getFirst());
+                responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
+                yield responses;
+            }
+        };
+    }
+
+    private List<BotResponse> handleCoreState(CoreState state, ConversationContext context, BotInput input) {
+        return switch (state) {
+            case MAIN_MENU -> {
+                List<BotResponse> responses = new ArrayList<>();
+                TextNode welcomeMessage;
+                if (context.getUserName() != null) {
+                    welcomeMessage = textService.get(MessageKey.WELCOME_BACK, context.getUserName(), WAVE);
+                } else {
+                    welcomeMessage = textService.get(MessageKey.WELCOME, WAVE);
+                }
+                responses.add(BotResponse.builder().textNode(welcomeMessage).build());
+                responses.add(BotResponse.builder().uiComponent(mainMenuFactory.create(input)).build());
+                yield responses;
+            }
             default -> {
                 String messageKey = getEntryMessageForState(state);
                 yield buildSimpleMenuResponse(messageKey);
             }
         };
-    }
-
-    private List<BotResponse> handleCoreState(CoreState state) {
-        String messageKey = getEntryMessageForState(state);
-        return buildSimpleMenuResponse(messageKey);
     }
 
     public List<BotResponse> createErrorResponse(ConversationContext context) {
@@ -265,6 +279,24 @@ public class ResponseFactory {
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
+    private List<BotResponse> createContactRequestResponse() {
+        ContactRequest contactRequest = ContactRequest.builder()
+                .messageNode(textService.get(MessageKey.SHARE_PHONE_NUMBER_PROMPT, PHONE))
+                .build();
+        return Collections.singletonList(BotResponse.builder().uiComponent(contactRequest).build());
+    }
+
+    private List<BotResponse> createPhoneConnectionPrompt() {
+        Menu menu = Menu.builder()
+                .titleNode(textService.get(MessageKey.PROMPT_CONNECT_PHONE))
+                .buttons(List.of(
+                        List.of(Button.builder().textNode(textService.get(MessageKey.YES_BTN, CHECK)).callbackData(VerificationCallbackData.CONNECT_PHONE_YES).build()),
+                        List.of(Button.builder().textNode(textService.get(MessageKey.NO_BTN, CROSS)).callbackData(VerificationCallbackData.CONNECT_PHONE_NO).build())
+                ))
+                .build();
+        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
+    }
+
     private List<BotResponse> buildSimpleMenuResponse(String messageKey, Object... args) {
         if (messageKey == null) {
             return Collections.singletonList(BotResponse.builder().textNode(textService.get(MessageKey.ERROR_GENERIC, WARNING)).build());
@@ -281,6 +313,8 @@ public class ResponseFactory {
                 case AWAITING_LOCATION -> MessageKey.REQUEST_LOCATION_PROMPT;
                 default -> null;
             };
+        } else if (state instanceof VerificationState) {
+            return null;
         }
         return null;
     }
@@ -290,19 +324,18 @@ public class ResponseFactory {
             return switch (proposalState) {
                 case WAITING_FOR_PHOTO -> MessageKey.EXPECTING_PHOTO_ERROR;
                 case AWAITING_LOCATION -> MessageKey.EXPECTING_LOCATION_ERROR;
-                case LOOP_OPTIONS -> MessageKey.INVALID_SELECTION;
-                case AWAITING_PROPOSAL_ACTION -> MessageKey.INVALID_SELECTION;
+                case LOOP_OPTIONS, AWAITING_DISCARD_CONFIRMATION,
+                     SUBMISSION_LOOP_OPTIONS, AWAITING_PROPOSAL_ACTION
+                        -> MessageKey.INVALID_SELECTION;
                 case AWAITING_PHOTO_ANALYSIS -> MessageKey.ERROR_PROCESSING_PHOTO;
                 case AWAITING_MONUMENT_SUGGESTIONS -> MessageKey.ERROR_GENERIC;
-                case SUBMISSION_LOOP_OPTIONS -> MessageKey.INVALID_SELECTION;
-                case AWAITING_DISCARD_CONFIRMATION -> MessageKey.INVALID_SELECTION;
                 default -> null;
             };
         } else if (state instanceof VerificationState verificationState) {
             return switch (verificationState) {
                 case AWAITING_VERIFICATION_CODE -> MessageKey.INVALID_CODE_ERROR;
                 case AWAITING_CONTACT -> MessageKey.USER_NOT_FOUND_ERROR;
-                case AWAITING_VERIFICATION_METHOD -> MessageKey.INVALID_SELECTION;
+                case AWAITING_VERIFICATION_METHOD, AWAITING_PHONE_CONNECTION_DECISION -> MessageKey.INVALID_SELECTION;
                 default -> null;
             };
         }

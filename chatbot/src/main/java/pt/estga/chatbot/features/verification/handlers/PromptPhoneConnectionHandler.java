@@ -1,15 +1,14 @@
-package pt.estga.chatbot.handlers;
+package pt.estga.chatbot.features.verification.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.*;
 import pt.estga.chatbot.features.verification.VerificationCallbackData;
 import pt.estga.chatbot.models.BotInput;
 
 @Component
 @RequiredArgsConstructor
-public class MainMenuHandler implements ConversationStateHandler {
+public class PromptPhoneConnectionHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {
@@ -19,19 +18,17 @@ public class MainMenuHandler implements ConversationStateHandler {
             return HandlerOutcome.FAILURE;
         }
 
-        if (callbackData.equals(SharedCallbackData.BACK_TO_MAIN_MENU)) {
-            return HandlerOutcome.START_NEW;
+        if (callbackData.equals(VerificationCallbackData.CONNECT_PHONE_YES)) {
+            return HandlerOutcome.VERIFY_WITH_PHONE;
+        } else if (callbackData.equals(VerificationCallbackData.CONNECT_PHONE_NO)) {
+            return HandlerOutcome.SUCCESS;
+        } else {
+            return HandlerOutcome.FAILURE;
         }
-
-        if (callbackData.equals(VerificationCallbackData.START_VERIFICATION)) {
-            return HandlerOutcome.START_VERIFICATION;
-        }
-
-        return HandlerOutcome.FAILURE;
     }
 
     @Override
     public ConversationState canHandle() {
-        return CoreState.MAIN_MENU;
+        return VerificationState.AWAITING_PHONE_CONNECTION_DECISION;
     }
 }

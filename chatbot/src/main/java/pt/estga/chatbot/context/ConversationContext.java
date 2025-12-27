@@ -9,7 +9,7 @@ import java.util.List;
 public class ConversationContext {
     private ConversationState currentState;
     private Long domainUserId;
-    private String verificationPhoneNumber;
+    private String userName;
     // This will be moved to a feature-specific context later
     private MarkOccurrenceProposal proposal;
     private List<String> suggestedMarkIds;
