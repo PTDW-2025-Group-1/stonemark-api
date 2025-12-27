@@ -37,6 +37,8 @@ public class MessageKey {
     public static final String CONFIRM_MARK_MATCH_PROMPT = "confirm_mark_match_prompt";
     public static final String PROPOSE_NEW_MARK_BTN = "propose_new_mark_btn";
     public static final String MARK_CAPTION = "mark_caption";
+    public static final String MARK_DESCRIPTION = "mark_description";
+    public static final String MARK_SELECTED_CONFIRMATION = "mark_selected_confirmation";
     public static final String IF_NONE_OF_ABOVE_OPTIONS_MATCH = "if_none_of_above_options_match";
     public static final String NO_MARKS_FOUND_PROMPT = "no_marks_found_prompt";
     public static final String SKIP_BTN = "skip_btn";

@@ -21,7 +21,7 @@ import static pt.estga.chatbot.constants.EmojiKey.CHECK;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticationGuardHandler {
+public class AuthResponseProvider {
 
     private final AuthServiceFactory authServiceFactory;
     private final UiTextService textService;

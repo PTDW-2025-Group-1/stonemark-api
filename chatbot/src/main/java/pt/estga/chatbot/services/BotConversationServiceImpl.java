@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.features.auth.AuthenticationGuard;
-import pt.estga.chatbot.features.auth.handlers.AuthenticationGuardHandler;
+import pt.estga.chatbot.features.auth.handlers.AuthResponseProvider;
 import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.CoreState;
@@ -20,7 +20,7 @@ public class BotConversationServiceImpl implements BotConversationService {
     private final ConversationDispatcher conversationDispatcher;
     private final Cache<String, ChatbotContext> conversationContexts;
     private final AuthenticationGuard authenticationGuard;
-    private final AuthenticationGuardHandler authenticationGuardHandler;
+    private final AuthResponseProvider authenticationGuardHandler;
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {

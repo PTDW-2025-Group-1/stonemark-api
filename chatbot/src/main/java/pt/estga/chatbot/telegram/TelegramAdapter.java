@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
+import pt.estga.chatbot.models.Platform;
 import pt.estga.chatbot.models.text.RenderedText;
 import pt.estga.chatbot.models.text.TextNode;
 import pt.estga.chatbot.models.ui.Button;
@@ -39,8 +40,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-
-import static pt.estga.chatbot.models.Platform.TELEGRAM;
 
 @Component
 @RequiredArgsConstructor
@@ -92,7 +91,7 @@ public class TelegramAdapter {
         return BotInput.builder()
                 .userId(String.valueOf(callbackQuery.getFrom().getId()))
                 .chatId(callbackQuery.getMessage().getChatId())
-                .platform(TELEGRAM)
+                .platform(Platform.TELEGRAM)
                 .type(BotInput.InputType.CALLBACK)
                 .callbackData(callbackQuery.getData())
                 .build();
@@ -108,7 +107,7 @@ public class TelegramAdapter {
         return BotInput.builder()
                 .userId(userId)
                 .chatId(chatId)
-                .platform(TELEGRAM)
+                .platform(Platform.TELEGRAM)
                 .type(type)
                 .text(text)
                 .locale(locale)
@@ -119,7 +118,7 @@ public class TelegramAdapter {
         return BotInput.builder()
                 .userId(userId)
                 .chatId(chatId)
-                .platform(TELEGRAM)
+                .platform(Platform.TELEGRAM)
                 .locale(locale)
                 .type(BotInput.InputType.LOCATION)
                 .location(new Location(location.getLatitude(), location.getLongitude()))
@@ -158,7 +157,7 @@ public class TelegramAdapter {
             return BotInput.builder()
                     .userId(String.valueOf(chatId))
                     .chatId(chatId)
-                    .platform(TELEGRAM)
+                    .platform(Platform.TELEGRAM)
                     .type(BotInput.InputType.PHOTO)
                     .fileData(photoData)
                     .fileName(fileName)

@@ -1,4 +1,4 @@
-package pt.estga.chatbot.services;
+package pt.estga.chatbot.features.core;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -8,6 +8,9 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.ui.Button;
 import pt.estga.chatbot.models.ui.Menu;
 import pt.estga.chatbot.features.verification.VerificationCallbackData;
+import pt.estga.chatbot.services.AuthService;
+import pt.estga.chatbot.services.AuthServiceFactory;
+import pt.estga.chatbot.services.UiTextService;
 
 import java.util.ArrayList;
 import java.util.List;

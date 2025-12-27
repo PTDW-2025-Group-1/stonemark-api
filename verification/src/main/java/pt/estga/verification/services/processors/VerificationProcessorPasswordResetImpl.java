@@ -20,7 +20,7 @@ public class VerificationProcessorPasswordResetImpl implements VerificationProce
 
     private final EmailService emailService;
 
-    @Value("${application.frontend-auth-url}/reset-password")
+    @Value("${application.frontend.auth-url}/reset-password")
     private String resetPasswordUrl;
 
     @Override

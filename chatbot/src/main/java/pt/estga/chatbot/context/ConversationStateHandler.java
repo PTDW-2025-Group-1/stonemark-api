@@ -22,4 +22,13 @@ public interface ConversationStateHandler {
      * @return The specific {@link ConversationState} that this handler is responsible for.
      */
     ConversationState canHandle();
+
+    /**
+     * Indicates whether this state should be executed automatically without waiting for user input.
+     *
+     * @return true if the state is automatic, false otherwise.
+     */
+    default boolean isAutomatic() {
+        return false;
+    }
 }

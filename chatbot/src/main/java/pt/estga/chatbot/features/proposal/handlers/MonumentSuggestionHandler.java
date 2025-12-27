@@ -34,4 +34,9 @@ public class MonumentSuggestionHandler implements ConversationStateHandler {
     public ConversationState canHandle() {
         return ProposalState.AWAITING_MONUMENT_SUGGESTIONS;
     }
+
+    @Override
+    public boolean isAutomatic() {
+        return true;
+    }
 }

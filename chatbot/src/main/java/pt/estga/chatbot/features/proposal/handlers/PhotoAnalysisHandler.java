@@ -44,4 +44,9 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
     public ConversationState canHandle() {
         return ProposalState.AWAITING_PHOTO_ANALYSIS;
     }
+
+    @Override
+    public boolean isAutomatic() {
+        return true;
+    }
 }

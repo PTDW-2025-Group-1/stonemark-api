@@ -1,4 +1,4 @@
-package pt.estga.chatbot.handlers;
+package pt.estga.chatbot.features.core.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
