@@ -24,7 +24,7 @@ public class ReportServiceHibernateImpl implements ReportService {
     @Transactional
     public ReportResponseDto createReport(User user, ReportRequestDto dto) {
 
-        repository.findByUserIdAndTargetIdAndTargetType(
+        repository.findByCreatedByIdAndTargetIdAndTargetType(
                 user.getId(),
                 dto.targetId(),
                 dto.targetType()
@@ -33,7 +33,6 @@ public class ReportServiceHibernateImpl implements ReportService {
         });
 
         Report report = mapper.toEntity(dto);
-        report.setUser(user);
         report.setStatus(ReportStatus.PENDING);
 
         repository.save(report);

@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.content.dtos.MarkListDto;
 import pt.estga.content.dtos.MarkUpdateDto;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
@@ -29,6 +30,15 @@ public class MarkController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findAll(pageable).map(mapper::toDto);
+    }
+
+    @GetMapping("/list")
+    public Page<MarkListDto> getMarksList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return service.findAll(pageable).map(mapper::toListDto);
     }
 
     @GetMapping("/{id}")
