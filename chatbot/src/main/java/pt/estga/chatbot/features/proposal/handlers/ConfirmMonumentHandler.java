@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.constants.SharedCallbackData;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -19,7 +19,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
     private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null || !callbackData.startsWith(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX)) {
@@ -39,8 +39,8 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
             }
             try {
                 Long monumentId = Long.valueOf(callbackParts[2]);
-                var updatedProposal = proposalFlowService.selectMonument(context.getProposal().getId(), monumentId);
-                context.setProposal(updatedProposal);
+                var updatedProposal = proposalFlowService.selectMonument(context.getProposalContext().getProposal().getId(), monumentId);
+                context.getProposalContext().setProposal(updatedProposal);
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;

@@ -2,7 +2,7 @@ package pt.estga.chatbot.services;
 
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.features.proposal.flow.ConversationFlowManager;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -36,7 +36,7 @@ public class ConversationDispatcher {
         this.responseFactory = responseFactory;
     }
 
-    public List<BotResponse> dispatch(ConversationContext context, BotInput input) {
+    public List<BotResponse> dispatch(ChatbotContext context, BotInput input) {
         ConversationState currentState = context.getCurrentState();
         ConversationStateHandler handler = handlers.get(currentState);
 
@@ -46,6 +46,11 @@ public class ConversationDispatcher {
 
         // 1. Execute the handler for the current state.
         HandlerOutcome outcome = handler.handle(context, input);
+
+        // Handle re-dispatch outcome
+        if (outcome == HandlerOutcome.RE_DISPATCH) {
+            return dispatch(context, input);
+        }
 
         // 2. Ask the ConversationFlowManager for the next state based on the outcome.
         ConversationState nextState = proposalFlow.getNextState(context, currentState, outcome);

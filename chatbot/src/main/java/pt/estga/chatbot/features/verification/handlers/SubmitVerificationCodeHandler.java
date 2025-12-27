@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.verification.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -24,7 +24,7 @@ public class SubmitVerificationCodeHandler implements ConversationStateHandler {
     private final UserIdentityService userIdentityService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String code = input.getText();
 
         Optional<User> userOptional = verificationService.verifyTelegramCode(code, input.getUserId());

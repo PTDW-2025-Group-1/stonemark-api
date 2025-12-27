@@ -16,7 +16,7 @@ public interface ConversationStateHandler {
      * @param input The user's input.
      * @return The outcome of the handling process.
      */
-    HandlerOutcome handle(ConversationContext context, BotInput input);
+    HandlerOutcome handle(ChatbotContext context, BotInput input);
 
     /**
      * @return The specific {@link ConversationState} that this handler is responsible for.

@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.auth.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.constants.MessageKey;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
@@ -31,7 +31,7 @@ public class AuthenticationGuardHandler {
         return authService.isAuthenticated(input.getUserId());
     }
 
-    public List<BotResponse> requireVerification(ConversationContext context) {
+    public List<BotResponse> requireVerification(ChatbotContext context) {
         context.setCurrentState(CoreState.START);
         Menu verificationMenu = Menu.builder()
                 .titleNode(textService.get(MessageKey.AUTH_REQUIRED_TITLE))

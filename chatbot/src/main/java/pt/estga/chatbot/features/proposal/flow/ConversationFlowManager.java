@@ -1,7 +1,7 @@
 package pt.estga.chatbot.features.proposal.flow;
 
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -35,7 +35,7 @@ public class ConversationFlowManager {
             Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, VerificationState.AWAITING_PHONE_CONNECTION_DECISION)
     );
 
-    public ConversationState getNextState(ConversationContext context, ConversationState currentState, HandlerOutcome outcome) {
+    public ConversationState getNextState(ChatbotContext context, ConversationState currentState, HandlerOutcome outcome) {
 
         if (outcome == FAILURE) {
             return currentState;
@@ -85,7 +85,7 @@ public class ConversationFlowManager {
 
         // Handle branching after photo analysis
         if (currentState == ProposalState.AWAITING_PHOTO_ANALYSIS && outcome == SUCCESS) {
-            List<String> suggestions = context.getSuggestedMarkIds();
+            List<String> suggestions = context.getProposalContext().getSuggestedMarkIds();
             if (suggestions == null || suggestions.isEmpty()) {
                 return ProposalState.AWAITING_NEW_MARK_DETAILS;
             } else if (suggestions.size() == 1) {
@@ -107,7 +107,7 @@ public class ConversationFlowManager {
 
         // Handle branching after monument suggestion
         if (currentState == ProposalState.AWAITING_MONUMENT_SUGGESTIONS && outcome == SUCCESS) {
-            List<String> suggestions = context.getSuggestedMonumentIds();
+            List<String> suggestions = context.getProposalContext().getSuggestedMonumentIds();
             if (suggestions == null || suggestions.isEmpty()) {
                 return ProposalState.AWAITING_NEW_MONUMENT_NAME;
             } else {

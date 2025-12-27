@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.constants.MessageKey;
 import pt.estga.chatbot.constants.SharedCallbackData;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -37,7 +37,7 @@ public class ResponseFactory {
     private final MonumentService monumentService;
     private final MainMenuFactory mainMenuFactory;
 
-    public List<BotResponse> createResponse(ConversationContext context, HandlerOutcome outcome, BotInput input) {
+    public List<BotResponse> createResponse(ChatbotContext context, HandlerOutcome outcome, BotInput input) {
         ConversationState currentState = context.getCurrentState();
 
         if (outcome == HandlerOutcome.FAILURE) {
@@ -55,8 +55,9 @@ public class ResponseFactory {
         return createErrorResponse(context);
     }
 
-    private List<BotResponse> handleProposalState(ProposalState state, ConversationContext context, BotInput input) {
+    private List<BotResponse> handleProposalState(ProposalState state, ChatbotContext context, BotInput input) {
         return switch (state) {
+            case AWAITING_LOCATION -> createLocationRequestResponse();
             case AWAITING_PROPOSAL_ACTION -> createProposalActionResponse();
             case LOOP_OPTIONS -> createLoopOptionsResponse();
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
@@ -76,7 +77,7 @@ public class ResponseFactory {
         };
     }
 
-    private List<BotResponse> handleVerificationState(VerificationState state, ConversationContext context, BotInput input) {
+    private List<BotResponse> handleVerificationState(VerificationState state, ChatbotContext context, BotInput input) {
         return switch (state) {
             case AWAITING_VERIFICATION_METHOD -> createVerificationMethodResponse();
             case AWAITING_CONTACT -> createContactRequestResponse();
@@ -103,7 +104,7 @@ public class ResponseFactory {
         };
     }
 
-    private List<BotResponse> handleCoreState(CoreState state, ConversationContext context, BotInput input) {
+    private List<BotResponse> handleCoreState(CoreState state, ChatbotContext context, BotInput input) {
         return switch (state) {
             case MAIN_MENU -> {
                 List<BotResponse> responses = new ArrayList<>();
@@ -124,7 +125,7 @@ public class ResponseFactory {
         };
     }
 
-    public List<BotResponse> createErrorResponse(ConversationContext context) {
+    public List<BotResponse> createErrorResponse(ChatbotContext context) {
         Message message = getFailureMessageForState(context.getCurrentState());
         return buildSimpleMenuResponse(message);
     }
@@ -152,8 +153,8 @@ public class ResponseFactory {
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
-    private List<BotResponse> createSingleMarkConfirmationResponse(ConversationContext context) {
-        String markId = context.getSuggestedMarkIds().getFirst();
+    private List<BotResponse> createSingleMarkConfirmationResponse(ChatbotContext context) {
+        String markId = context.getProposalContext().getSuggestedMarkIds().getFirst();
         Optional<Mark> markOptional = markService.findWithCoverById(Long.valueOf(markId));
 
         if (markOptional.isEmpty()) {
@@ -180,11 +181,11 @@ public class ResponseFactory {
         return responses;
     }
 
-    private List<BotResponse> createMultipleMarkSelectionResponse(ConversationContext context) {
+    private List<BotResponse> createMultipleMarkSelectionResponse(ChatbotContext context) {
         List<BotResponse> responses = new ArrayList<>();
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MARKS_TITLE, SEARCH))).build()).build());
 
-        for (String markId : context.getSuggestedMarkIds()) {
+        for (String markId : context.getProposalContext().getSuggestedMarkIds()) {
             markService.findWithCoverById(Long.valueOf(markId)).ifPresent(mark -> {
                 PhotoItem photoItem = PhotoItem.builder()
                         .mediaFileId(mark.getCover() != null ? mark.getCover().getId() : null)
@@ -212,11 +213,11 @@ public class ResponseFactory {
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
-    private List<BotResponse> createMonumentConfirmationResponse(ConversationContext context) {
-        if (context.getSuggestedMonumentIds() == null || context.getSuggestedMonumentIds().isEmpty()) {
+    private List<BotResponse> createMonumentConfirmationResponse(ChatbotContext context) {
+        if (context.getProposalContext().getSuggestedMonumentIds() == null || context.getProposalContext().getSuggestedMonumentIds().isEmpty()) {
             return createErrorResponse(context);
         }
-        String monumentId = context.getSuggestedMonumentIds().getFirst();
+        String monumentId = context.getProposalContext().getSuggestedMonumentIds().getFirst();
         Optional<Monument> monumentOptional = monumentService.findById(Long.valueOf(monumentId));
 
         if (monumentOptional.isEmpty()) {
@@ -283,6 +284,13 @@ public class ResponseFactory {
                 .messageNode(textService.get(new Message(MessageKey.SHARE_PHONE_NUMBER_PROMPT, PHONE)))
                 .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(contactRequest).build());
+    }
+
+    private List<BotResponse> createLocationRequestResponse() {
+        LocationRequest locationRequest = LocationRequest.builder()
+                .messageNode(textService.get(new Message(MessageKey.REQUEST_LOCATION_PROMPT, LOCATION, PAPERCLIP)))
+                .build();
+        return Collections.singletonList(BotResponse.builder().uiComponent(locationRequest).build());
     }
 
     private List<BotResponse> createPhoneConnectionPrompt() {

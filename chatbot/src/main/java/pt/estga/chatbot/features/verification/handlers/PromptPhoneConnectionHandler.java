@@ -11,7 +11,7 @@ import pt.estga.chatbot.models.BotInput;
 public class PromptPhoneConnectionHandler implements ConversationStateHandler {
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null) {

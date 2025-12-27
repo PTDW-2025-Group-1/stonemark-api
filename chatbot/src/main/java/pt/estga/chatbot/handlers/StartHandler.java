@@ -2,7 +2,7 @@ package pt.estga.chatbot.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.CoreState;
@@ -14,7 +14,7 @@ import pt.estga.chatbot.models.BotInput;
 public class StartHandler implements ConversationStateHandler {
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         context.setCurrentState(CoreState.MAIN_MENU);
         return HandlerOutcome.SUCCESS;
     }

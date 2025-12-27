@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.proposal.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -18,18 +18,18 @@ public class SubmitProposalHandler implements ConversationStateHandler {
     private final MarkOccurrenceProposalSubmissionService submissionService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
 
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SUBMIT_PROPOSAL)) {
             return HandlerOutcome.AWAITING_INPUT;
         }
 
-        submissionService.submit(context.getProposal().getId());
+        submissionService.submit(context.getProposalContext().getProposal().getId());
         
         // Clean up the context for the next conversation
-        context.setProposal(null);
-        context.setSuggestedMarkIds(null);
-        context.setSuggestedMonumentIds(null);
+        context.getProposalContext().setProposal(null);
+        context.getProposalContext().setSuggestedMarkIds(null);
+        context.getProposalContext().setSuggestedMonumentIds(null);
 
         return HandlerOutcome.SUCCESS;
     }

@@ -3,7 +3,7 @@ package pt.estga.chatbot.features.verification.handlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -27,7 +27,7 @@ public class SubmitContactHandler implements ConversationStateHandler {
     private final UserService userService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         if (input.getType() != BotInput.InputType.CONTACT || input.getText() == null) {
             return HandlerOutcome.FAILURE;
         }

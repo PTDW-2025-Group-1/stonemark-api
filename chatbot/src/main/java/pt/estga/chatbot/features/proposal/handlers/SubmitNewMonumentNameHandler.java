@@ -2,7 +2,7 @@ package pt.estga.chatbot.features.proposal.handlers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.chatbot.context.ConversationContext;
+import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
@@ -17,16 +17,16 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
     private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         if (input.getText() == null || input.getText().isBlank()) {
             return HandlerOutcome.FAILURE;
         }
 
         var updatedProposal = proposalFlowService.createMonument(
-                context.getProposal().getId(),
+                context.getProposalContext().getProposal().getId(),
                 input.getText()
         );
-        context.setProposal(updatedProposal);
+        context.getProposalContext().setProposal(updatedProposal);
         
         return HandlerOutcome.SUCCESS;
     }

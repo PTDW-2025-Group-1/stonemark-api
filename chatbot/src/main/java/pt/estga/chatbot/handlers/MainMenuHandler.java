@@ -15,7 +15,7 @@ public class MainMenuHandler implements ConversationStateHandler {
     private final IncompleteSubmissionResolver incompleteSubmissionResolver;
 
     @Override
-    public HandlerOutcome handle(ConversationContext context, BotInput input) {
+    public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
 
         if (callbackData == null) {
@@ -24,7 +24,7 @@ public class MainMenuHandler implements ConversationStateHandler {
 
         if (callbackData.equals(ProposalCallbackData.START_SUBMISSION)) {
             if (incompleteSubmissionResolver.hasIncompleteSubmission(Long.valueOf(input.getUserId()))) {
-                return HandlerOutcome.CONTINUE;
+                context.getProposalContext().clear();
             }
             return HandlerOutcome.START_NEW;
         }

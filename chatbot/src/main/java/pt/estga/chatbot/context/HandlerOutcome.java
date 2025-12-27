@@ -18,5 +18,6 @@ public enum HandlerOutcome {
     START_NEW,
     START_VERIFICATION,
     VERIFY_WITH_CODE,
-    VERIFY_WITH_PHONE
+    VERIFY_WITH_PHONE,
+    RE_DISPATCH
 }
