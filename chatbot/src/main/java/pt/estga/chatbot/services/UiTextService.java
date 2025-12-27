@@ -5,6 +5,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.constants.EmojiKey;
+import pt.estga.chatbot.models.Message;
 import pt.estga.chatbot.models.text.*;
 import pt.estga.chatbot.utils.TextTemplateParser;
 
@@ -19,35 +20,21 @@ public class UiTextService {
     private final MessageSource messageSource;
     private final TextTemplateParser parser;
 
+    public TextNode get(Message message) {
+        return get(message.getKey(), message.getArgs());
+    }
+
     public TextNode get(String key) {
         return get(key, (Object[]) null);
     }
 
     public TextNode get(String key, Object... args) {
-        Object[] normalized = normalizeArgs(args);
         String raw = messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
         TextNode ast = parser.parse(raw);
-        if (normalized != null && normalized.length > 0) {
-            ast = replacePlaceholders(ast, normalized);
+        if (args != null && args.length > 0) {
+            ast = replacePlaceholders(ast, args);
         }
         return ast;
-    }
-
-    private Object[] normalizeArgs(Object[] args) {
-        if (args == null) return null;
-
-        Object[] result = new Object[args.length];
-        for (int i = 0; i < args.length; i++) {
-            Object arg = args[i];
-            if (arg instanceof String s) {
-                result[i] = s
-                        .replace("{", "\\{")
-                        .replace("}", "\\}");
-            } else {
-                result[i] = arg;
-            }
-        }
-        return result;
     }
 
     public String raw(String key) {

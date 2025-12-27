@@ -9,14 +9,14 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.services.ChatbotProposalFlowService;
+import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.proposals.services.MarkOccurrenceProposalSubmissionService;
 
 @Component
 @RequiredArgsConstructor
 public class AddNotesHandler implements ConversationStateHandler {
 
-    private final ChatbotProposalFlowService proposalFlowService;
+    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
     private final MarkOccurrenceProposalSubmissionService submissionService;
 
     @Override
@@ -32,9 +32,7 @@ public class AddNotesHandler implements ConversationStateHandler {
         submissionService.submit(context.getProposal().getId());
         
         // Clean up the context
-        context.setProposal(null);
-        context.setSuggestedMarkIds(null);
-        context.setSuggestedMonumentIds(null);
+        context.clear();
 
         return HandlerOutcome.SUCCESS;
     }

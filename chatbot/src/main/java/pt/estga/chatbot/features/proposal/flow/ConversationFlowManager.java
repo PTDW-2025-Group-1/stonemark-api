@@ -29,7 +29,7 @@ public class ConversationFlowManager {
             Map.entry(ProposalState.AWAITING_DISCARD_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),
             Map.entry(ProposalState.SUBMISSION_LOOP_OPTIONS, ProposalState.AWAITING_NOTES),
             Map.entry(ProposalState.AWAITING_NOTES, ProposalState.SUBMITTED),
-            Map.entry(ProposalState.SUBMITTED, CoreState.START),
+            Map.entry(ProposalState.SUBMITTED, CoreState.MAIN_MENU),
 
             // Verification Flow
             Map.entry(VerificationState.AWAITING_VERIFICATION_CODE, VerificationState.AWAITING_PHONE_CONNECTION_DECISION)
@@ -45,6 +45,7 @@ public class ConversationFlowManager {
         if (currentState == CoreState.MAIN_MENU) {
             if (outcome == START_NEW) return ProposalState.WAITING_FOR_PHOTO;
             if (outcome == START_VERIFICATION) return VerificationState.AWAITING_VERIFICATION_METHOD;
+            if (outcome == CONTINUE) return ProposalState.AWAITING_PROPOSAL_ACTION;
         }
 
         // Handle branching from AWAITING_VERIFICATION_METHOD

@@ -9,7 +9,7 @@ import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.ChatbotProposalFlowService;
+import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class InitialPhotoHandler implements ConversationStateHandler {
 
-    private final ChatbotProposalFlowService proposalFlowService;
+    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {

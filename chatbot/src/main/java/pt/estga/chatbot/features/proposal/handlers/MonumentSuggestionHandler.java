@@ -9,7 +9,7 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.services.ChatbotProposalFlowService;
+import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MonumentSuggestionHandler implements ConversationStateHandler {
 
-    private final ChatbotProposalFlowService proposalFlowService;
+    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ConversationContext context, BotInput input) {

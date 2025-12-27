@@ -9,7 +9,10 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposals.entities.MarkOccurrenceProposal;
 import pt.estga.proposals.services.MarkOccurrenceProposalService;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -26,8 +29,12 @@ public class ProposalActionHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.CONTINUE_PROPOSAL)) {
-            // The user wants to continue. The flow will decide where to navigate next.
-            return HandlerOutcome.CONTINUE;
+            Optional<MarkOccurrenceProposal> proposal = proposalService.findIncompleteByUserId(Long.valueOf(input.getUserId()));
+            if (proposal.isPresent()) {
+                context.setProposal(proposal.get());
+                return HandlerOutcome.CONTINUE;
+            }
+            return HandlerOutcome.FAILURE;
         }
 
         if (callbackData.equals(ProposalCallbackData.DELETE_AND_START_NEW)) {
