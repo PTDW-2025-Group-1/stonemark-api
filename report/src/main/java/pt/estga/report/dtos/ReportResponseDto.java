@@ -8,11 +8,13 @@ import java.time.Instant;
 
 public record ReportResponseDto(
         Long id,
-        Long userId,
         Long targetId,
         TargetType targetType,
         ReportReason reason,
         String description,
         ReportStatus status,
-        Instant createdAt
+        Long createdById,
+        Long modifiedById,
+        Instant createdAt,
+        Instant lastModifiedAt
 ) {}
