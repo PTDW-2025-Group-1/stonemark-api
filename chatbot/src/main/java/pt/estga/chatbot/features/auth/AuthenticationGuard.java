@@ -1,28 +1,28 @@
 package pt.estga.chatbot.features.auth;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.context.ConversationState;
-import pt.estga.chatbot.context.VerificationState;
+import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.services.AuthService;
 import pt.estga.chatbot.services.AuthServiceFactory;
-import pt.estga.chatbot.features.verification.VerificationCallbackData;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class AuthenticationGuard {
 
     private final AuthServiceFactory authServiceFactory;
+    private final Map<ConversationState, ConversationStateHandler> handlers;
 
-    // Whitelist commands that an unauthenticated user can use
-    private static final Set<String> ALLOWED_UNAUTHENTICATED_COMMANDS = Set.of(
-            "/start",
-            "/options",
-            "/help"
-    );
+    public AuthenticationGuard(AuthServiceFactory authServiceFactory, List<ConversationStateHandler> handlerList) {
+        this.authServiceFactory = authServiceFactory;
+        this.handlers = handlerList.stream()
+                .collect(Collectors.toMap(ConversationStateHandler::canHandle, Function.identity()));
+    }
 
     public boolean isActionAllowed(BotInput input, ConversationState currentState) {
         // If the user is authenticated, always allow the action.
@@ -30,32 +30,17 @@ public class AuthenticationGuard {
             return true;
         }
 
-        // If the user is not authenticated, only allow specific actions.
-        if (input.getType() == BotInput.InputType.TEXT && input.getText() != null) {
-            // Allow whitelisted commands (e.g., /start)
-            if (ALLOWED_UNAUTHENTICATED_COMMANDS.stream().anyMatch(cmd -> input.getText().startsWith(cmd))) {
-                return true;
+        // If the user is not authenticated, check if the handler for the current state allows unauthenticated access.
+        if (currentState != null) {
+            ConversationStateHandler handler = handlers.get(currentState);
+            if (handler != null) {
+                RequiresAuthentication annotation = handler.getClass().getAnnotation(RequiresAuthentication.class);
+                // If the annotation is present and its value is false, access is allowed.
+                return annotation != null && !annotation.value();
             }
-            // Allow user to submit a verification code if they are in that part of the conversation
-            if (currentState == VerificationState.AWAITING_VERIFICATION_CODE) {
-                return true;
-            }
-            return currentState == VerificationState.AWAITING_CONTACT;
         }
-
-        // Allow starting the verification process and choosing a method
-        if (input.getType() == BotInput.InputType.CALLBACK) {
-            String callbackData = input.getCallbackData();
-            return VerificationCallbackData.START_VERIFICATION.equals(callbackData) ||
-                   VerificationCallbackData.CHOOSE_VERIFY_WITH_CODE.equals(callbackData) ||
-                   VerificationCallbackData.CHOOSE_VERIFY_WITH_PHONE.equals(callbackData);
-        }
-
-        // Allow sending a contact
-        if (input.getType() == BotInput.InputType.CONTACT) {
-            return currentState == VerificationState.AWAITING_CONTACT;
-        }
-
+        
+        // By default, deny access.
         return false;
     }
 

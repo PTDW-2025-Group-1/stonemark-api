@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.chatbot.features.auth.AuthenticationGuard;
-import pt.estga.chatbot.features.auth.handlers.AuthResponseProvider;
+import pt.estga.chatbot.features.auth.AuthResponseProvider;
 import pt.estga.chatbot.constants.SharedCallbackData;
 import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.CoreState;

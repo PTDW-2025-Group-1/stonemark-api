@@ -1,28 +1,27 @@
-package pt.estga.chatbot.features.core.handlers;
+package pt.estga.chatbot.features.verification.handlers;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
 import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
+import pt.estga.chatbot.context.VerificationState;
 import pt.estga.chatbot.features.auth.RequiresAuthentication;
 import pt.estga.chatbot.models.BotInput;
 
 @Component
-@RequiredArgsConstructor
 @RequiresAuthentication(false)
-public class StartHandler implements ConversationStateHandler {
+public class PhoneVerificationSuccessHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         context.setCurrentState(CoreState.MAIN_MENU);
-        return HandlerOutcome.SUCCESS;
+        return HandlerOutcome.RE_DISPATCH;
     }
 
     @Override
     public ConversationState canHandle() {
-        return CoreState.START;
+        return VerificationState.PHONE_VERIFICATION_SUCCESS;
     }
 }

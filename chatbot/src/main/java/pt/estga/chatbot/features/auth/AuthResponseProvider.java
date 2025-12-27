@@ -1,16 +1,13 @@
-package pt.estga.chatbot.features.auth.handlers;
+package pt.estga.chatbot.features.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.constants.MessageKey;
 import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.CoreState;
-import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
 import pt.estga.chatbot.models.ui.Button;
 import pt.estga.chatbot.models.ui.Menu;
-import pt.estga.chatbot.services.AuthService;
-import pt.estga.chatbot.services.AuthServiceFactory;
 import pt.estga.chatbot.services.UiTextService;
 import pt.estga.chatbot.features.verification.VerificationCallbackData;
 
@@ -23,13 +20,7 @@ import static pt.estga.chatbot.constants.EmojiKey.CHECK;
 @RequiredArgsConstructor
 public class AuthResponseProvider {
 
-    private final AuthServiceFactory authServiceFactory;
     private final UiTextService textService;
-
-    public boolean isAuthenticated(BotInput input) {
-        AuthService authService = authServiceFactory.getAuthService(input.getPlatform());
-        return authService.isAuthenticated(input.getUserId());
-    }
 
     public List<BotResponse> requireVerification(ChatbotContext context) {
         context.setCurrentState(CoreState.START);
