@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BotConversationServiceImpl implements BotConversationService {
+public class BotEngineImpl implements BotEngine {
 
     private final ConversationDispatcher conversationDispatcher;
     private final Cache<String, ChatbotContext> conversationContexts;

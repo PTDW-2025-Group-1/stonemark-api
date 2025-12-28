@@ -5,6 +5,6 @@ import pt.estga.chatbot.models.BotResponse;
 
 import java.util.List;
 
-public interface BotConversationService {
+public interface BotEngine {
     List<BotResponse> handleInput(BotInput input);
 }

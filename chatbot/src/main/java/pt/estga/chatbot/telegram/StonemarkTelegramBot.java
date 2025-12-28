@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import pt.estga.chatbot.services.BotConversationService;
+import pt.estga.chatbot.services.BotEngine;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
 
@@ -21,14 +21,14 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     private final String botUsername;
     private final String botPath;
-    private final BotConversationService conversationService;
+    private final BotEngine conversationService;
     private final TelegramAdapter telegramAdapter;
     private final Executor botExecutor;
 
     public StonemarkTelegramBot(String botUsername,
                                 String botToken,
                                 String botPath,
-                                BotConversationService conversationService,
+                                BotEngine conversationService,
                                 TelegramAdapter telegramAdapter,
                                 Executor botExecutor) {
         super(botToken);
