@@ -16,7 +16,7 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
 
-    Optional<MarkOccurrenceProposal> findFirstByIsSubmitted(boolean isSubmitted);
+    Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 
     @Query("SELECT COUNT(p) FROM MarkOccurrenceProposal p WHERE p.submittedById = :userId AND p.status = 'APPROVED'")
     long countApprovedProposalsByUserId(@Param("userId") Long userId);

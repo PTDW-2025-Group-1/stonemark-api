@@ -53,7 +53,7 @@ public class ProposalEventListener {
         }
 
         // Boost for New Monument Proposals (+5) - Small boost for complexity
-        if (proposal.getProposedMonument() != null) {
+        if (proposal.getMonumentName() != null) {
             priority += 5;
         }
 

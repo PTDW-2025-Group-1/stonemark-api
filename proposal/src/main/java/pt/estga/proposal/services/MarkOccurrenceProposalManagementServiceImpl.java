@@ -10,7 +10,6 @@ import pt.estga.content.repositories.MarkOccurrenceRepository;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.entities.ProposedMonument;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
@@ -78,13 +77,13 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     }
 
     private void validateProposalForApproval(MarkOccurrenceProposal proposal) {
-        if (!proposal.isSubmitted()) {
+        if (!proposal.getSubmitted()) {
             throw new IllegalStateException("Only submitted proposals can be approved.");
         }
-        if (proposal.getExistingMonument() == null && proposal.getProposedMonument() == null) {
-            throw new IllegalStateException("Proposal must have either an existing monument or a proposed monument.");
+        if (proposal.getExistingMonument() == null && proposal.getMonumentName() == null) {
+            throw new IllegalStateException("Proposal must have either an existing monument or a proposed monument name.");
         }
-        if (proposal.getExistingMark() == null && !proposal.isNewMark()) {
+        if (proposal.getExistingMark() == null && !proposal.getNewMark()) {
             throw new IllegalStateException("Proposal must have either an existing mark or be a new mark.");
         }
     }
@@ -97,11 +96,10 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
 
         // Otherwise, create a new one based on the proposal details.
         // We do NOT automatically check for nearby monuments here to avoid false positives.
-        ProposedMonument proposedMonument = proposal.getProposedMonument();
         Monument newMonument = Monument.builder()
-                .name(proposedMonument.getName())
-                .latitude(proposedMonument.getLatitude())
-                .longitude(proposedMonument.getLongitude())
+                .name(proposal.getMonumentName())
+                .latitude(proposal.getLatitude())
+                .longitude(proposal.getLongitude())
                 .build();
         return monumentRepository.save(newMonument);
     }

@@ -14,9 +14,7 @@ import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.entities.ProposedMonument;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.proposal.repositories.ProposedMonumentRepository;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
@@ -35,7 +33,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     private final MediaService mediaService;
     private final MonumentService monumentService;
     private final MarkService markService;
-    private final ProposedMonumentRepository proposedMonumentRepository;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
     private final UserService userService;
@@ -145,14 +142,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMonumentSelections(proposal);
 
-        ProposedMonument proposedMonument = ProposedMonument.builder()
-                .name(name)
-                .latitude(proposal.getLatitude())
-                .longitude(proposal.getLongitude())
-                .build();
-
-        ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
-        proposal.setProposedMonument(savedProposedMonument);
+        proposal.setMonumentName(name);
 
         return proposalService.update(proposal);
     }
@@ -224,10 +214,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     private void clearMonumentSelections(MarkOccurrenceProposal proposal) {
         proposal.setExistingMonument(null);
-        if (proposal.getProposedMonument() != null) {
-            proposedMonumentRepository.delete(proposal.getProposedMonument());
-            proposal.setProposedMonument(null);
-        }
+        proposal.setMonumentName(null);
     }
 
     private void clearMarkSelections(MarkOccurrenceProposal proposal) {
