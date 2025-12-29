@@ -23,7 +23,6 @@ public class ProposalFlowStrategy implements FlowStrategy {
             Map.entry(ProposalState.AWAITING_MARK_SELECTION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.WAITING_FOR_MARK_CONFIRMATION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.MARK_SELECTED, ProposalState.AWAITING_MONUMENT_SUGGESTIONS),
-            Map.entry(ProposalState.AWAITING_NEW_MARK_DETAILS, ProposalState.AWAITING_MONUMENT_SUGGESTIONS),
             Map.entry(ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),
             Map.entry(ProposalState.AWAITING_NEW_MONUMENT_NAME, ProposalState.SUBMISSION_LOOP_OPTIONS),
             Map.entry(ProposalState.AWAITING_DISCARD_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),

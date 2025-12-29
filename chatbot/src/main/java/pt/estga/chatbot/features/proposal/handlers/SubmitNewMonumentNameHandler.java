@@ -22,11 +22,10 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
             return HandlerOutcome.FAILURE;
         }
 
-        var updatedProposal = proposalFlowService.createMonument(
-                context.getProposalContext().getProposal().getId(),
+        proposalFlowService.setNewMonumentName(
+                context.getProposalContext().getProposalId(),
                 input.getText()
         );
-        context.getProposalContext().setProposal(updatedProposal);
         
         return HandlerOutcome.SUCCESS;
     }

@@ -24,7 +24,7 @@ public class InitialLocationHandler implements ConversationStateHandler {
         }
 
         proposalFlowService.addLocation(
-                context.getProposalContext().getProposal().getId(),
+                context.getProposalContext().getProposalId(),
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()
         );

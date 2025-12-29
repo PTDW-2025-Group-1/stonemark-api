@@ -20,6 +20,8 @@ import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +38,7 @@ public class ProposalResponseProvider implements ResponseProvider {
     private final MarkService markService;
     private final MonumentService monumentService;
     private final MainMenuFactory mainMenuFactory;
+    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Value("${application.frontend.base-url}")
     private String frontendBaseUrl;
@@ -160,7 +163,8 @@ public class ProposalResponseProvider implements ResponseProvider {
     }
 
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
-        Long markId = context.getProposalContext().getProposal().getExistingMark().getId();
+        MarkOccurrenceProposal proposal = proposalFlowService.getProposal(context.getProposalContext().getProposalId());
+        Long markId = proposal.getExistingMark().getId();
         return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
     }
 

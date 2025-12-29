@@ -17,15 +17,16 @@ public class AddNotesHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
+        Long proposalId = context.getProposalContext().getProposalId();
         // Handle "skip" or text input for notes
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
             if (input.getText() != null) {
-                proposalFlowService.addNotes(context.getProposalContext().getProposal().getId(), input.getText());
+                proposalFlowService.addNotes(proposalId, input.getText());
             }
         }
 
         // Submit the proposal
-        submissionService.submit(context.getProposalContext().getProposal().getId());
+        submissionService.submit(proposalId);
         
         // Clean up the context
         context.clear();

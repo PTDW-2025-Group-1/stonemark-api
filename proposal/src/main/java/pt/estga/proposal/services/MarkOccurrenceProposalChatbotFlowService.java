@@ -1,5 +1,7 @@
 package pt.estga.proposal.services;
 
+import pt.estga.content.entities.Mark;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 
 import java.io.IOException;
@@ -9,25 +11,23 @@ public interface MarkOccurrenceProposalChatbotFlowService {
 
     MarkOccurrenceProposal startProposal(Long userId);
 
-    MarkOccurrenceProposal addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
+    void addPhotoAndAnalyze(Long proposalId, byte[] photoData, String filename) throws IOException;
 
-    MarkOccurrenceProposal addLocation(Long proposalId, Double latitude, Double longitude);
+    void addLocation(Long proposalId, Double latitude, Double longitude);
 
-    MarkOccurrenceProposal analyzePhoto(Long proposalId) throws IOException;
+    List<Monument> suggestMonuments(Long proposalId);
 
-    List<String> getSuggestedMonumentIds(Long proposalId);
+    void selectMonument(Long proposalId, Long monumentId);
 
-    MarkOccurrenceProposal selectMonument(Long proposalId, Long monumentId);
+    void setNewMonumentName(Long proposalId, String name);
 
-    MarkOccurrenceProposal createMonument(Long proposalId, String name);
+    List<Mark> suggestMarks(Long proposalId);
 
-    List<String> getSuggestedMarkIds(Long proposalId);
+    void selectMark(Long proposalId, Long markId);
 
-    MarkOccurrenceProposal selectMark(Long proposalId, Long markId);
+    void indicateNewMark(Long proposalId);
 
-    MarkOccurrenceProposal createMark(Long proposalId, String description);
-
-    MarkOccurrenceProposal addNotes(Long proposalId, String notes);
+    void addNotes(Long proposalId, String notes);
 
     MarkOccurrenceProposal getProposal(Long proposalId);
 
