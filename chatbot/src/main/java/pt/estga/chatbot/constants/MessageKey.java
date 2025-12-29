@@ -46,10 +46,13 @@ public class MessageKey {
     public static final String PROVIDE_NEW_MARK_DETAILS_PROMPT = "provide_new_mark_details_prompt";
 
     public static final String SELECT_MONUMENT_PROMPT = "select_monument_prompt";
+    public static final String FOUND_MONUMENTS_TITLE = "found_monuments_title";
+    public static final String MONUMENT_OPTION = "monument_option";
     public static final String CONFIRM_MONUMENT_MATCH_PROMPT = "confirm_monument_match_prompt";
     public static final String MONUMENT_CONFIRMATION_TITLE = "monument_confirmation_title";
-    public static final String NO_MONUMENTS_FOUND_PROMPT = "no_monuments_found_prompt";
+    public static final String NO_MONUMENTS_FOUND = "no_monuments_found";
     public static final String PROVIDE_NEW_MONUMENT_NAME_PROMPT = "provide_new_monument_name_prompt";
+    public static final String PROPOSE_NEW_MONUMENT_BTN = "propose_new_monument_btn";
     
     public static final String SUBMISSION_LOOP_TITLE = "submission_loop_title";
     public static final String CHANGE_MARK_BTN = "change_mark_btn";

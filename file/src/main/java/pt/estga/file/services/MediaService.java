@@ -23,12 +23,21 @@ public interface MediaService {
     MediaFile save(InputStream fileStream, String filename) throws IOException;
 
     /**
-     * Loads a file as a {@link Resource} from the given file path.
+     * Loads a file as a {@link Resource} from the given file id.
      *
-     * @param filePath the path to the file to load
+     * @param fileId the id of the file to load
      * @return the loaded file as a {@link Resource}
      * @throws RuntimeException if the file cannot be loaded
      */
-    Resource loadFile(String filePath);
+    Resource loadFileById(Long fileId);
+
+    /**
+     * Gets the content of a media file as a byte array.
+     *
+     * @param fileId the id of the file to load
+     * @return the file content as a byte array
+     * @throws RuntimeException if the file cannot be loaded
+     */
+    byte[] getMediaContent(Long fileId);
 
 }

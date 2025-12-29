@@ -58,6 +58,7 @@ public class ProposalResponseProvider implements ResponseProvider {
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
+            case AWAITING_MONUMENT_SUGGESTIONS -> createMonumentSuggestionsResponse(context);
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
             case AWAITING_NEW_MONUMENT_NAME ->
                     buildSimpleMenuResponse(new Message(MessageKey.PROVIDE_NEW_MONUMENT_NAME_PROMPT, MONUMENT));
@@ -166,6 +167,34 @@ public class ProposalResponseProvider implements ResponseProvider {
         MarkOccurrenceProposal proposal = proposalFlowService.getProposal(context.getProposalContext().getProposalId());
         Long markId = proposal.getExistingMark().getId();
         return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+    }
+
+    private List<BotResponse> createMonumentSuggestionsResponse(ChatbotContext context) {
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposalId());
+
+        if (suggestedMonuments.isEmpty()) {
+            return buildSimpleMenuResponse(new Message(MessageKey.NO_MONUMENTS_FOUND));
+        }
+
+        List<BotResponse> responses = new ArrayList<>();
+        responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MONUMENTS_TITLE, SEARCH))).build()).build());
+
+        for (Monument monument : suggestedMonuments) {
+            Menu selectionMenu = Menu.builder()
+                    .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
+                    .buttons(List.of(List.of(
+                            Button.builder().textNode(textService.get(new Message(MessageKey.SELECT_BTN, CHECK))).callbackData(ProposalCallbackData.SELECT_MONUMENT_PREFIX + monument.getId()).build()
+                    ))).build();
+            responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
+        }
+
+        Menu proposeNewMenu = Menu.builder()
+                .titleNode(textService.get(new Message(MessageKey.IF_NONE_OF_ABOVE_OPTIONS_MATCH)))
+                .buttons(List.of(List.of(Button.builder().textNode(textService.get(new Message(MessageKey.PROPOSE_NEW_MONUMENT_BTN, NEW))).callbackData(ProposalCallbackData.PROPOSE_NEW_MONUMENT).build())))
+                .build();
+        responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
+
+        return responses;
     }
 
     private List<BotResponse> createMonumentConfirmationResponse(ChatbotContext context) {

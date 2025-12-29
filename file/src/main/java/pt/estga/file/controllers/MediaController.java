@@ -46,12 +46,12 @@ public class MediaController {
         }
 
         log.info("Found media file, loading from path: {}", mediaFile.getStoragePath());
-        Resource resource = mediaService.loadFile(mediaFile.getStoragePath());
+        Resource resource = mediaService.loadFileById(id);
 
-        MediaType mediaType = MediaTypeFactory.getMediaType(mediaFile.getOriginalFileName())
+        MediaType mediaType = MediaTypeFactory.getMediaType(mediaFile.getOriginalFilename())
                 .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
-        String extension = StringUtils.getFilenameExtension(mediaFile.getOriginalFileName());
+        String extension = StringUtils.getFilenameExtension(mediaFile.getOriginalFilename());
         String filename = "stonemark-" + mediaFile.getId() + (extension != null ? "." + extension : "");
         
         return ResponseEntity.ok()

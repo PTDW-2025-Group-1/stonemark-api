@@ -38,6 +38,7 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
             }
 
             boolean matches = SharedCallbackData.CONFIRM_YES.equalsIgnoreCase(callbackParts[1]);
+            boolean rejected = SharedCallbackData.CONFIRM_NO.equalsIgnoreCase(callbackParts[1]);
 
             if (matches) {
                 if (callbackParts.length < 3) {
@@ -50,6 +51,8 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
                 } catch (NumberFormatException e) {
                     return HandlerOutcome.FAILURE;
                 }
+            } else if (rejected) {
+                return HandlerOutcome.REJECTED;
             }
         }
         return HandlerOutcome.FAILURE;

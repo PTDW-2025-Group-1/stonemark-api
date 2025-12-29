@@ -11,7 +11,9 @@ public interface MarkOccurrenceProposalChatbotFlowService {
 
     MarkOccurrenceProposal startProposal(Long userId);
 
-    void addPhotoAndAnalyze(Long proposalId, byte[] photoData, String filename) throws IOException;
+    void addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
+
+    void analyzePhoto(Long proposalId);
 
     void addLocation(Long proposalId, Double latitude, Double longitude);
 

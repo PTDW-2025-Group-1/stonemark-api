@@ -33,7 +33,7 @@ public class InitialPhotoHandler implements ConversationStateHandler {
                 context.getProposalContext().setProposalId(proposalId);
             }
 
-            proposalFlowService.addPhotoAndAnalyze(
+            proposalFlowService.addPhoto(
                     proposalId,
                     input.getFileData(),
                     input.getFileName()

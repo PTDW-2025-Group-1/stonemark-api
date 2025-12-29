@@ -54,15 +54,24 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     @Override
     @Transactional
-    public void addPhotoAndAnalyze(Long proposalId, byte[] photoData, String filename) throws IOException {
-        log.info("Adding and analyzing photo for proposal ID: {}", proposalId);
+    public void addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
+        log.info("Adding photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
         MediaFile mediaFile = mediaService.save(new ByteArrayInputStream(photoData), filename);
         proposal.setOriginalMediaFile(mediaFile);
 
-        try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(photoData)) {
-            DetectionResult detectionResult = detectionService.detect(detectionInputStream, filename);
+        proposalService.update(proposal);
+    }
+
+    @Override
+    @Transactional
+    public void analyzePhoto(Long proposalId) {
+        log.info("Analyzing photo for proposal ID: {}", proposalId);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+
+        try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(mediaService.getMediaContent(proposal.getOriginalMediaFile().getId()))) {
+            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
             if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
                 List<Double> embeddedVector = detectionResult.embedding();
                 proposal.setEmbedding(embeddedVector);
