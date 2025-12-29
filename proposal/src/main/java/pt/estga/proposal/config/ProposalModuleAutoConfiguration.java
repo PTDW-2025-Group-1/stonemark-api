@@ -9,5 +9,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @ComponentScan("pt.estga.proposal")
 @EnableJpaRepositories("pt.estga.proposal.repositories")
 @EntityScan("pt.estga.proposal.entities")
-public class ProposalsModuleAutoConfiguration {
+public class ProposalModuleAutoConfiguration {
 }

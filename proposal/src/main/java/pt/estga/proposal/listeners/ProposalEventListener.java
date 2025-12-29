@@ -37,12 +37,12 @@ public class ProposalEventListener {
     private Integer calculatePriority(MarkOccurrenceProposal proposal) {
         int priority = 0;
 
-        // 1. Boost for Staff Submissions (+50) - Significant boost
+        // Boost for Staff Submissions (+50) - Significant boost
         if (proposal.getSubmissionSource() == SubmissionSource.STAFF_APP) {
             priority += 50;
         }
 
-        // 2. User Reputation Boost (based on approved proposals)
+        // User Reputation Boost (based on approved proposals)
         Long userId = proposal.getSubmittedById();
         if (userId != null) {
             long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
@@ -52,12 +52,7 @@ public class ProposalEventListener {
             priority += reputationBoost;
         }
 
-        // 3. Boost for New Mark Proposals (+5) - Small boost for complexity
-        if (proposal.getProposedMark() != null) {
-            priority += 5;
-        }
-
-        // 4. Boost for New Monument Proposals (+5) - Small boost for complexity
+        // Boost for New Monument Proposals (+5) - Small boost for complexity
         if (proposal.getProposedMonument() != null) {
             priority += 5;
         }

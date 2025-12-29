@@ -33,6 +33,11 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
 
             log.info("Photo analysis complete for proposal {}. Found {} suggestions.", updatedProposal.getId(), suggestedMarkIds.size());
 
+            if (suggestedMarkIds == null || suggestedMarkIds.isEmpty()) {
+                updatedProposal = proposalFlowService.createMark(updatedProposal.getId(), null);
+                context.getProposalContext().setProposal(updatedProposal);
+            }
+
             return HandlerOutcome.SUCCESS;
         } catch (IOException e) {
             log.error("Error during photo analysis for proposal {}", context.getProposalContext().getProposal().getId(), e);

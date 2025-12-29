@@ -55,7 +55,6 @@ public class ProposalResponseProvider implements ResponseProvider {
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
-            case AWAITING_NEW_MARK_DETAILS -> createNewMarkDetailsResponse();
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
             case AWAITING_NEW_MONUMENT_NAME ->
                     buildSimpleMenuResponse(new Message(MessageKey.PROVIDE_NEW_MONUMENT_NAME_PROMPT, MONUMENT));
@@ -163,14 +162,6 @@ public class ProposalResponseProvider implements ResponseProvider {
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
         Long markId = context.getProposalContext().getProposal().getExistingMark().getId();
         return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
-    }
-
-    private List<BotResponse> createNewMarkDetailsResponse() {
-        Menu menu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.PROVIDE_NEW_MARK_DETAILS_PROMPT, MEMO)))
-                .buttons(List.of(List.of(Button.builder().textNode(textService.get(new Message(MessageKey.SKIP_BTN, ARROW_RIGHT))).callbackData(ProposalCallbackData.SKIP_MARK_DETAILS).build())))
-                .build();
-        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
     private List<BotResponse> createMonumentConfirmationResponse(ChatbotContext context) {

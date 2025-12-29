@@ -14,10 +14,8 @@ import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.entities.ProposedMark;
 import pt.estga.proposal.entities.ProposedMonument;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.proposal.repositories.ProposedMarkRepository;
 import pt.estga.proposal.repositories.ProposedMonumentRepository;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
@@ -37,7 +35,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     private final MediaService mediaService;
     private final MonumentService monumentService;
     private final MarkService markService;
-    private final ProposedMarkRepository proposedMarkRepository;
     private final ProposedMonumentRepository proposedMonumentRepository;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
@@ -101,6 +98,8 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
                     log.info("No embedding detected for proposal {}", proposal.getId());
                 }
             }
+        } catch (Exception e) {
+            log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposalId, e);
         }
 
         return proposalService.update(proposal);
@@ -162,7 +161,11 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     public List<String> getSuggestedMarkIds(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         if (proposal.getEmbedding() != null && !proposal.getEmbedding().isEmpty()) {
-            return markSearchService.searchMarks(proposal.getEmbedding());
+            try {
+                return markSearchService.searchMarks(proposal.getEmbedding());
+            } catch (Exception e) {
+                log.warn("Mark search service failed for proposal ID: {}. Proceeding without suggestions.", proposalId, e);
+            }
         }
         return List.of();
     }
@@ -192,12 +195,10 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMarkSelections(proposal);
 
-        ProposedMark proposedMark = new ProposedMark();
-        proposedMark.setDescription(description != null ? description : "");
-        proposedMark.setMediaFile(proposal.getOriginalMediaFile());
-        
-        ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
-        proposal.setProposedMark(savedProposedMark);
+        proposal.setNewMark(true);
+        if (description != null) {
+            proposal.setUserNotes(description);
+        }
 
         return proposalService.update(proposal);
     }
@@ -231,9 +232,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     private void clearMarkSelections(MarkOccurrenceProposal proposal) {
         proposal.setExistingMark(null);
-        if (proposal.getProposedMark() != null) {
-            proposedMarkRepository.delete(proposal.getProposedMark());
-            proposal.setProposedMark(null);
-        }
+        proposal.setNewMark(false);
     }
 }

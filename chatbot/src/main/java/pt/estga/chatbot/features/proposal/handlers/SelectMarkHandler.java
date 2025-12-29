@@ -37,6 +37,8 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.PROPOSE_NEW_MARK)) {
+            var updatedProposal = proposalFlowService.createMark(context.getProposalContext().getProposal().getId(), null);
+            context.getProposalContext().setProposal(updatedProposal);
             return HandlerOutcome.PROPOSE_NEW;
         }
 

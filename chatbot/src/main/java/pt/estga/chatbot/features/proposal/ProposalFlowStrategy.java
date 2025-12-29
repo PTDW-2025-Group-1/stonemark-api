@@ -62,7 +62,7 @@ public class ProposalFlowStrategy implements FlowStrategy {
         if (currentState == ProposalState.AWAITING_PHOTO_ANALYSIS && outcome == SUCCESS) {
             List<String> suggestions = context.getProposalContext().getSuggestedMarkIds();
             if (suggestions == null || suggestions.isEmpty()) {
-                return ProposalState.AWAITING_NEW_MARK_DETAILS;
+                return ProposalState.AWAITING_MONUMENT_SUGGESTIONS;
             } else if (suggestions.size() == 1) {
                 return ProposalState.WAITING_FOR_MARK_CONFIRMATION;
             } else {
@@ -72,12 +72,12 @@ public class ProposalFlowStrategy implements FlowStrategy {
 
         // Handle branching from mark confirmation
         if (currentState == ProposalState.WAITING_FOR_MARK_CONFIRMATION && outcome == REJECTED) {
-            return ProposalState.AWAITING_NEW_MARK_DETAILS;
+            return ProposalState.AWAITING_MONUMENT_SUGGESTIONS;
         }
 
         // Handle branching from mark selection
         if (currentState == ProposalState.AWAITING_MARK_SELECTION && outcome == PROPOSE_NEW) {
-            return ProposalState.AWAITING_NEW_MARK_DETAILS;
+            return ProposalState.AWAITING_MONUMENT_SUGGESTIONS;
         }
 
         // Handle branching after monument suggestion

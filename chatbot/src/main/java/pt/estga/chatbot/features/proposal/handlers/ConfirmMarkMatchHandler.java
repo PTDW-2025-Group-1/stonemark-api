@@ -45,6 +45,8 @@ public class ConfirmMarkMatchHandler implements ConversationStateHandler {
                 return HandlerOutcome.FAILURE;
             }
         } else {
+            var updatedProposal = proposalFlowService.createMark(context.getProposalContext().getProposal().getId(), null);
+            context.getProposalContext().setProposal(updatedProposal);
             return HandlerOutcome.REJECTED;
         }
     }

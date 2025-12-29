@@ -32,9 +32,6 @@ public class MarkOccurrenceProposal {
     private Monument existingMonument;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProposedMark proposedMark;
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private ProposedMonument proposedMonument;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -66,5 +63,8 @@ public class MarkOccurrenceProposal {
 
     @Column(updatable = false)
     private Instant submittedAt;
+
+    @Builder.Default
+    private boolean newMark = false;
 
 }

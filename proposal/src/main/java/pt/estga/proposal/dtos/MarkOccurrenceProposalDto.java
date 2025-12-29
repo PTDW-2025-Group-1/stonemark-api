@@ -11,7 +11,8 @@ public record MarkOccurrenceProposalDto(
         MonumentResponseDto existingMonument,
         ProposedMonumentDto proposedMonument,
         MarkDto existingMark,
-        ProposedMarkDto proposedMark,
+        boolean newMark,
+        String userNotes,
         boolean isSubmitted
 ) {
 }
