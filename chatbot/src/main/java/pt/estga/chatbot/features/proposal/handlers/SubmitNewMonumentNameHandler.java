@@ -8,7 +8,7 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor

@@ -2,8 +2,8 @@ package pt.estga.chatbot.features.proposal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalService;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.services.MarkOccurrenceProposalService;
 
 @Component
 @RequiredArgsConstructor
