@@ -8,7 +8,7 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
@@ -22,11 +22,10 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
             return HandlerOutcome.FAILURE;
         }
 
-        var updatedProposal = proposalFlowService.createMonument(
-                context.getProposalContext().getProposal().getId(),
+        proposalFlowService.setNewMonumentName(
+                context.getProposalContext().getProposalId(),
                 input.getText()
         );
-        context.getProposalContext().setProposal(updatedProposal);
         
         return HandlerOutcome.SUCCESS;
     }

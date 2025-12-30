@@ -9,9 +9,11 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.content.entities.Monument;
+import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -22,10 +24,14 @@ public class MonumentSuggestionHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        List<String> suggestedMonumentIds = proposalFlowService.getSuggestedMonumentIds(context.getProposalContext().getProposal().getId());
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposalId());
+        
+        List<String> suggestedMonumentIds = suggestedMonuments.stream()
+                .map(monument -> monument.getId().toString())
+                .collect(Collectors.toList());
         context.getProposalContext().setSuggestedMonumentIds(suggestedMonumentIds);
 
-        log.info("Found {} suggested monuments for proposal {}", suggestedMonumentIds.size(), context.getProposalContext().getProposal().getId());
+        log.info("Found {} suggested monuments for proposal {}", suggestedMonuments.size(), context.getProposalContext().getProposalId());
 
         return HandlerOutcome.SUCCESS;
     }

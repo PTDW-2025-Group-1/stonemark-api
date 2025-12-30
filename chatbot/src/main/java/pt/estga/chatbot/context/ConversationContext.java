@@ -1,7 +1,7 @@
 package pt.estga.chatbot.context;
 
 import lombok.Data;
-import pt.estga.proposals.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
 
 import java.util.List;
 

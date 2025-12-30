@@ -31,6 +31,7 @@ public class TelegramEmojiProvider implements EmojiProvider {
             case NUMBERS -> "🔢";
             case ARROW_RIGHT -> "➡️";
             case THINKING -> "🤔";
+            case HOURGLASS -> "⏳";
         };
     }
 }

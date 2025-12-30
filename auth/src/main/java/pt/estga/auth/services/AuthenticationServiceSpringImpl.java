@@ -20,7 +20,7 @@ import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
@@ -58,7 +58,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
         }
 
         if (user.getRole() == null) {
-            user.setRole(Role.USER);
+            user.setRole(UserRole.USER);
         }
 
         user.setTfaMethod(TfaMethod.NONE);

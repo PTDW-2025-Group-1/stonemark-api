@@ -6,6 +6,6 @@ public record UserContactDto(
         Long id,
         String value,
         ContactType type,
-        boolean primaryContact,
+        boolean primary,
         boolean verified
 ) {}

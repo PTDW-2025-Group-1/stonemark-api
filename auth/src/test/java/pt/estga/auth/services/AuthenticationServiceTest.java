@@ -14,13 +14,13 @@ import pt.estga.security.entities.RefreshToken;
 import pt.estga.security.services.AccessTokenService;
 import pt.estga.security.services.JwtService;
 import pt.estga.security.services.RefreshTokenService;
+import pt.estga.user.enums.UserRole;
 import pt.estga.verification.enums.ActionCodeType;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TotpService;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.Role;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
@@ -74,7 +74,7 @@ class AuthenticationServiceTest {
         user.setLastName("User");
         user.setPassword("password");
         user.setUsername("user228");
-        user.setRole(Role.USER);
+        user.setRole(UserRole.USER);
         user.setTfaMethod(TfaMethod.NONE);
 
         userContact = new UserContact();

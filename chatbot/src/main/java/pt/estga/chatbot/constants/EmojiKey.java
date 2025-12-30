@@ -21,5 +21,6 @@ public enum EmojiKey {
     PHONE,
     NUMBERS,
     ARROW_RIGHT,
-    THINKING
+    THINKING,
+    HOURGLASS
 }

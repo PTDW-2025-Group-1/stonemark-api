@@ -15,7 +15,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
@@ -77,7 +77,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                                     .username(username)
                                     .firstName(firstName)
                                     .lastName(lastName)
-                                    .role(Role.USER)
+                                    .role(UserRole.USER)
                                     .enabled(true)
                                     .tfaMethod(TfaMethod.NONE)
                                     .password(null)
@@ -88,7 +88,7 @@ public class SocialAuthenticationServiceImpl implements SocialAuthenticationServ
                             UserContact primaryEmail = UserContact.builder()
                                     .type(ContactType.EMAIL)
                                     .value(email)
-                                    .primaryContact(true)
+                                    .primary(true)
                                     .verified(true)
                                     .user(createdUser)
                                     .build();

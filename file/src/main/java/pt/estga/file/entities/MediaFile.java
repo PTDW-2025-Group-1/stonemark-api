@@ -20,10 +20,10 @@ public class MediaFile {
     private Long id;
 
     @Column(nullable = false)
-    private String fileName;
+    private String filename;
 
     @Column
-    private String originalFileName;
+    private String originalFilename;
 
     private Long size;
 
@@ -38,6 +38,6 @@ public class MediaFile {
     private String providerPublicId;
 
     @CreatedDate
-    private Instant createdAt;
+    private Instant uploadedAt;
 
 }

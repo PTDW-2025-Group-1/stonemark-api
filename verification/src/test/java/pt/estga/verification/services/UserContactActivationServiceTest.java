@@ -87,7 +87,7 @@ class UserContactActivationServiceTest {
         Optional<String> result = userContactActivationService.activateUserContact(emailActionCode);
 
         assertTrue(result.isEmpty());
-        assertTrue(emailContact.isVerified());
+        assertTrue(emailContact.getVerified());
         assertNotNull(emailContact.getVerifiedAt());
         verify(userContactRepository, times(1)).save(emailContact);
         verify(actionCodeService, times(1)).consumeCode(emailActionCode);
@@ -101,7 +101,7 @@ class UserContactActivationServiceTest {
         Optional<String> result = userContactActivationService.activateUserContact(phoneActionCode);
 
         assertTrue(result.isEmpty());
-        assertTrue(phoneContact.isVerified());
+        assertTrue(phoneContact.getVerified());
         assertNotNull(phoneContact.getVerifiedAt());
         verify(userContactRepository, times(1)).save(phoneContact);
         verify(actionCodeService, times(1)).consumeCode(phoneActionCode);

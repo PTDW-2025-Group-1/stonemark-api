@@ -33,9 +33,8 @@ public class CoreFlowStrategy implements FlowStrategy {
 
         // Handle branching from MAIN_MENU state
         if (currentState == CoreState.MAIN_MENU) {
-            if (outcome == START_NEW) return ProposalState.WAITING_FOR_PHOTO;
+            if (outcome == START_NEW) return ProposalState.PROPOSAL_START;
             if (outcome == START_VERIFICATION) return VerificationState.AWAITING_VERIFICATION_METHOD;
-            if (outcome == CONTINUE) return ProposalState.AWAITING_PROPOSAL_ACTION;
         }
 
         if (outcome == SUCCESS) {

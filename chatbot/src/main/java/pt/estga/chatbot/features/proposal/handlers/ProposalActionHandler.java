@@ -9,8 +9,8 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
-import pt.estga.proposals.entities.MarkOccurrenceProposal;
-import pt.estga.proposals.services.MarkOccurrenceProposalService;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.services.MarkOccurrenceProposalService;
 
 import java.util.Optional;
 
@@ -31,15 +31,18 @@ public class ProposalActionHandler implements ConversationStateHandler {
         if (callbackData.equals(ProposalCallbackData.CONTINUE_PROPOSAL)) {
             Optional<MarkOccurrenceProposal> proposal = proposalService.findIncompleteByUserId(Long.valueOf(input.getUserId()));
             if (proposal.isPresent()) {
-                context.getProposalContext().setProposal(proposal.get());
+                context.getProposalContext().setProposalId(proposal.get().getId());
                 return HandlerOutcome.CONTINUE;
             }
             return HandlerOutcome.FAILURE;
         }
 
         if (callbackData.equals(ProposalCallbackData.DELETE_AND_START_NEW)) {
-            proposalService.delete(context.getProposalContext().getProposal());
-            context.getProposalContext().setProposal(null);
+            Long proposalId = context.getProposalContext().getProposalId();
+            if (proposalId != null) {
+                proposalService.findById(proposalId).ifPresent(proposalService::delete);
+            }
+            context.getProposalContext().setProposalId(null);
             // This outcome signals that the old proposal was discarded and we should start fresh.
             return HandlerOutcome.DISCARD_CONFIRMED;
         }

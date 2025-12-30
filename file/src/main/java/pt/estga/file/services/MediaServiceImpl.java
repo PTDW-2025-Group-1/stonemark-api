@@ -40,7 +40,7 @@ public class MediaServiceImpl implements MediaService {
 
         String extension = StringUtils.getFilenameExtension(originalFilename);
         String newFilename = "stonemark-" + media.getId() + (extension != null ? "." + extension : "");
-        media.setFileName(newFilename);
+        media.setFilename(newFilename);
 
         // Todo: add target type start of relative path
         String normalizedFilename = newFilename.replace("\\", "/");
@@ -57,8 +57,8 @@ public class MediaServiceImpl implements MediaService {
 
     private MediaFile createInitialMediaFile(String originalFilename) {
         return MediaFile.builder()
-                .fileName(originalFilename) // Temporarily set to original, will be updated
-                .originalFileName(originalFilename)
+                .filename(originalFilename) // Temporarily set to original, will be updated
+                .originalFilename(originalFilename)
                 .size(0L)
                 .storageProvider(StorageProvider.valueOf(storageProvider.toUpperCase()))
                 .storagePath("")
@@ -66,9 +66,22 @@ public class MediaServiceImpl implements MediaService {
     }
 
     @Override
-    public Resource loadFile(String filePath) {
-        log.info("Loading file: {}", filePath);
-        return fileStorageService.loadFile(filePath);
+    public Resource loadFileById(Long fileId) {
+        log.info("Loading file with ID: {}", fileId);
+        MediaFile mediaFile = mediaFileRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("MediaFile not found with id: " + fileId));
+        return fileStorageService.loadFile(mediaFile.getStoragePath());
+    }
+
+    @Override
+    public byte[] getMediaContent(Long fileId) {
+        log.info("Getting content for file with ID: {}", fileId);
+        try {
+            Resource resource = loadFileById(fileId);
+            return resource.getInputStream().readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read file content for id: " + fileId, e);
+        }
     }
 
     /**

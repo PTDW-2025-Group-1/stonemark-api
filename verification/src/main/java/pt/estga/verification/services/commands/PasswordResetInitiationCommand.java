@@ -30,7 +30,7 @@ public class PasswordResetInitiationCommand implements VerificationCommand<Strin
             throw new UserNotFoundException("User not found with contact: " + contactValue);
         }
 
-        if (!userContact.isVerified()) {
+        if (!userContact.getVerified()) {
             throw new ContactMethodNotAvailableException("Contact is not verified: " + contactValue);
         }
 
