@@ -70,7 +70,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Override
     public Optional<UserContact> findPrimary(User user, ContactType contactType) {
         log.info("Finding primary user contact by user: {} and contact type: {}", user, contactType);
-        return repository.findByUserAndTypeAndPrimaryContactAndVerified(user, contactType, true, true).stream().findFirst();
+        return repository.findByUserAndTypeAndPrimaryAndVerified(user, contactType, true, true).stream().findFirst();
     }
 
     @Override
@@ -126,14 +126,14 @@ public class UserContactServiceImpl implements UserContactService {
     public UserContact setAsPrimary(UserContact userContact) {
         log.info("Setting primary user contact: {}", userContact);
 
-        if (!userContact.isVerified()) {
+        if (!userContact.getPrimary()) {
             throw new IllegalStateException("Contact must be verified before being set as primary.");
         }
 
         List<UserContact> contacts = repository.findByUser(userContact.getUser());
 
         for (UserContact contact : contacts) {
-            contact.setPrimaryContact(contact.getId().equals(userContact.getId()));
+            contact.setPrimary(contact.getId().equals(userContact.getId()));
         }
 
         repository.saveAll(contacts);

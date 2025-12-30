@@ -25,10 +25,10 @@ public class UserContact {
     private String value;
 
     @Column(name = "is_verified", nullable = false)
-    private boolean verified;
+    private Boolean verified;
 
     @Column(name = "is_primary", nullable = false)
-    private boolean primaryContact;
+    private Boolean primary;
 
     private Instant verifiedAt;
 

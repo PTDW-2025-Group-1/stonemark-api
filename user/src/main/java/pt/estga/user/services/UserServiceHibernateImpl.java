@@ -6,8 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.user.dtos.UserDto;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 
@@ -67,7 +66,7 @@ public class UserServiceHibernateImpl implements UserService {
     }
 
     @Override
-    public Optional<User> updateRole(User user, Role role) {
+    public Optional<User> updateRole(User user, UserRole role) {
         user.setRole(role);
         return Optional.ofNullable(update(user));
     }

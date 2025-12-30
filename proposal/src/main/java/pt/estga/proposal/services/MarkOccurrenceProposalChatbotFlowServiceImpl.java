@@ -15,8 +15,7 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.user.entities.User;
-import pt.estga.user.services.UserService;
+import pt.estga.shared.utils.SecurityUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,7 +34,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     private final MarkService markService;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
-    private final UserService userService;
 
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
@@ -45,10 +43,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         log.info("Starting new chatbot proposal for user ID: {}", userId);
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
-        if (userId != null) {
-            User user = userService.findById(userId).orElseThrow();
-            proposal.setSubmittedById(user.getId());
-        }
+        proposal.setSubmittedById(userId);
         return proposalService.create(proposal);
     }
 

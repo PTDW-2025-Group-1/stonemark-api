@@ -18,7 +18,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
@@ -70,7 +70,7 @@ class SocialAuthenticationServiceTest {
                 .username(USER_EMAIL)
                 .firstName(FIRST_NAME)
                 .lastName(LAST_NAME)
-                .role(Role.USER)
+                .role(UserRole.USER)
                 .enabled(true)
                 .tfaMethod(TfaMethod.NONE)
                 .build();
@@ -132,7 +132,7 @@ class SocialAuthenticationServiceTest {
         UserContact existingUserContact = UserContact.builder()
                 .type(ContactType.EMAIL)
                 .value(USER_EMAIL)
-                .primaryContact(true)
+                .primary(true)
                 .verified(true)
                 .user(existingUser)
                 .build();

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.repositories.UserRepository;
 
@@ -41,7 +41,7 @@ public class SystemUserInitializer {
                             "INSERT INTO _user (id, first_name, last_name, username, password, role, enabled, account_locked, tfa_method, created_at) " +
                             "VALUES (0, 'System', 'Administrator', 'system', ?1, ?2, true, false, ?3, ?4)")
                             .setParameter(1, passwordEncoder.encode("system_password_change_me"))
-                            .setParameter(2, Role.ADMIN.name())
+                            .setParameter(2, UserRole.ADMIN.name())
                             .setParameter(3, TfaMethod.NONE.name())
                             .setParameter(4, Instant.now())
                             .executeUpdate();

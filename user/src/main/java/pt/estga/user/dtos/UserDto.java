@@ -1,9 +1,10 @@
 package pt.estga.user.dtos;
 
 import lombok.*;
+import pt.estga.user.enums.UserRole;
+import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;
-import java.util.List;
 
 @Builder
 public record UserDto(
@@ -11,9 +12,9 @@ public record UserDto(
         String firstName,
         String lastName,
         String username,
-        List<UserContactDto> contacts,
-        String role,
+        UserRole role,
         Instant createdAt,
+        TfaMethod tfaMethod,
         boolean accountLocked,
         boolean enabled
 ) { }

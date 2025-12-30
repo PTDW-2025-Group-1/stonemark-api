@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;
@@ -32,7 +32,7 @@ public class User {
     private MediaFile photo;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private UserRole role;
 
     private boolean accountLocked;
     @Builder.Default

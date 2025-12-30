@@ -40,7 +40,7 @@ public class UserContactActivationService {
                 contactToVerify.getValue()
         );
 
-        if (contactToVerify.isVerified()) {
+        if (contactToVerify.getVerified()) {
             log.warn("Contact {} is already verified.", contactToVerify.getValue());
             actionCodeService.consumeCode(actionCode);
             return Optional.empty();

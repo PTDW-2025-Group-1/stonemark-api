@@ -35,7 +35,7 @@ public class AccountServiceImpl implements AccountService {
                 .user(user)
                 .value(value)
                 .type(type)
-                .primaryContact(false)
+                .primary(false)
                 .verified(false)
                 .build();
         userContactService.create(userContact);
@@ -48,7 +48,7 @@ public class AccountServiceImpl implements AccountService {
         if (!contact.getUser().getId().equals(user.getId())) {
             throw new IllegalArgumentException("Contact does not belong to user.");
         }
-        if (contact.isVerified()) {
+        if (contact.getVerified()) {
             throw new IllegalArgumentException("Contact already verified.");
         }
         ContactType type = contact.getType();
@@ -98,7 +98,7 @@ public class AccountServiceImpl implements AccountService {
             throw new IllegalArgumentException("Contact does not belong to user.");
         }
 
-        if (!contact.isVerified()) {
+        if (!contact.getVerified()) {
             throw new IllegalStateException("Contact must be verified before being set as primary.");
         }
 

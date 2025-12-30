@@ -4,7 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import pt.estga.shared.models.UserPrincipal;
 import pt.estga.user.entities.User;
-import pt.estga.user.enums.Role;
+import pt.estga.user.enums.UserRole;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,25 +23,25 @@ public class UserPrincipalFactory {
                 .build();
     }
 
-    private Collection<? extends GrantedAuthority> getAuthorities(Role role) {
+    private Collection<? extends GrantedAuthority> getAuthorities(UserRole role) {
         return switch (role) {
-            case Role.ADMIN -> List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name(),
-                    () -> Role.MODERATOR.name(),
-                    () -> Role.ADMIN.name()
+            case UserRole.ADMIN -> List.of(
+                    () -> UserRole.USER.name(),
+                    () -> UserRole.REVIEWER.name(),
+                    () -> UserRole.MODERATOR.name(),
+                    () -> UserRole.ADMIN.name()
             );
-            case Role.MODERATOR -> List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name(),
-                    () -> Role.MODERATOR.name()
+            case UserRole.MODERATOR -> List.of(
+                    () -> UserRole.USER.name(),
+                    () -> UserRole.REVIEWER.name(),
+                    () -> UserRole.MODERATOR.name()
             );
-            case Role.REVIEWER ->  List.of(
-                    () -> Role.USER.name(),
-                    () -> Role.REVIEWER.name()
+            case UserRole.REVIEWER ->  List.of(
+                    () -> UserRole.USER.name(),
+                    () -> UserRole.REVIEWER.name()
             );
-            case Role.USER -> List.of(
-                    () -> Role.USER.name()
+            case UserRole.USER -> List.of(
+                    () -> UserRole.USER.name()
             );
         };
     }

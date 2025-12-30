@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 
 import java.time.Instant;
@@ -29,6 +30,7 @@ public class MarkOccurrenceProposalSubmissionService {
 
         proposal.setSubmitted(true);
         proposal.setSubmittedAt(Instant.now());
+        proposal.setStatus(ProposalStatus.PENDING);
 
         MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
         log.info("Proposal with ID: {} submitted successfully", proposalId);

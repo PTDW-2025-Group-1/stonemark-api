@@ -59,10 +59,9 @@ public class MarkOccurrenceProposal {
     @Column(updatable = false)
     private Long submittedById;
 
-    @Column(updatable = false)
     private Instant submittedAt;
 
     @Builder.Default
-    private Boolean newMark = false;
+    private Boolean newMark = true;
 
 }

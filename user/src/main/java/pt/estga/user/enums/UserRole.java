@@ -1,6 +1,6 @@
 package pt.estga.user.enums;
 
-public enum Role {
+public enum UserRole {
     USER,
     REVIEWER,
     MODERATOR,
