@@ -1,6 +1,7 @@
 package pt.estga.report.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ public class ReportController {
 
     @PostMapping
     public ReportResponseDto createReport(
+            @Valid
             @RequestBody ReportRequestDto dto
     ) {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
