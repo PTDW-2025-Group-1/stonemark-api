@@ -1,5 +1,6 @@
 package pt.estga.chatbot.features.proposal;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.context.ChatbotContext;
 import pt.estga.chatbot.context.ConversationState;
@@ -7,6 +8,8 @@ import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.services.FlowStrategy;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +17,11 @@ import java.util.Map;
 import static pt.estga.chatbot.context.HandlerOutcome.*;
 
 @Component
+@RequiredArgsConstructor
 public class ProposalFlowStrategy implements FlowStrategy {
+
+    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
+    private final IncompleteSubmissionResolver incompleteSubmissionResolver;
 
     private static final Map<ConversationState, ConversationState> SUCCESS_TRANSITIONS = Map.ofEntries(
             Map.entry(ProposalState.AWAITING_PROPOSAL_ACTION, ProposalState.WAITING_FOR_PHOTO),
@@ -42,9 +49,25 @@ public class ProposalFlowStrategy implements FlowStrategy {
             return currentState;
         }
 
+        if (currentState == ProposalState.PROPOSAL_START) {
+            if (incompleteSubmissionResolver.hasIncompleteSubmission(context.getDomainUserId())) {
+                return ProposalState.AWAITING_PROPOSAL_ACTION;
+            }
+            return ProposalState.WAITING_FOR_PHOTO;
+        }
+
         // Handle branching from AWAITING_PROPOSAL_ACTION
         if (currentState == ProposalState.AWAITING_PROPOSAL_ACTION) {
-            if (outcome == CONTINUE) return ProposalState.LOOP_OPTIONS;
+            if (outcome == CONTINUE) {
+                MarkOccurrenceProposal proposal = proposalFlowService.getProposal(context.getProposalContext().getProposalId());
+                if (proposal.getOriginalMediaFile() == null) {
+                    return ProposalState.WAITING_FOR_PHOTO;
+                }
+                if (proposal.getLatitude() == null || proposal.getLongitude() == null) {
+                    return ProposalState.AWAITING_LOCATION;
+                }
+                return ProposalState.LOOP_OPTIONS;
+            }
             if (outcome == DISCARD_CONFIRMED) return ProposalState.WAITING_FOR_PHOTO;
         }
 

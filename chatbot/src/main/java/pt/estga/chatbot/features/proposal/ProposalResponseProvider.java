@@ -52,6 +52,7 @@ public class ProposalResponseProvider implements ResponseProvider {
     public List<BotResponse> createResponse(ChatbotContext context, HandlerOutcome outcome, BotInput input) {
         ProposalState state = (ProposalState) context.getCurrentState();
         return switch (state) {
+            case PROPOSAL_START -> Collections.emptyList();
             case AWAITING_LOCATION -> createLocationRequestResponse();
             case AWAITING_PROPOSAL_ACTION -> createProposalActionResponse();
             case LOOP_OPTIONS -> createLoopOptionsResponse();

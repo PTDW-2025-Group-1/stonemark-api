@@ -52,6 +52,7 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
                     return HandlerOutcome.FAILURE;
                 }
             } else if (rejected) {
+                proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
                 return HandlerOutcome.REJECTED;
             }
         }
