@@ -9,9 +9,12 @@ public record MarkOccurrenceProposalDto(
         Integer priority,
         MediaFileDto originalMediaFile,
         MonumentResponseDto existingMonument,
-        ProposedMonumentDto proposedMonument,
+        String monumentName,
+        Double latitude,
+        Double longitude,
         MarkDto existingMark,
-        ProposedMarkDto proposedMark,
+        boolean newMark,
+        String userNotes,
         boolean isSubmitted
 ) {
 }

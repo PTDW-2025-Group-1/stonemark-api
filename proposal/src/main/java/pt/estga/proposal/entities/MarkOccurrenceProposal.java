@@ -31,18 +31,16 @@ public class MarkOccurrenceProposal {
     @ManyToOne(fetch = FetchType.LAZY)
     private Monument existingMonument;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProposedMark proposedMark;
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProposedMonument proposedMonument;
-
     @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
     @Convert(converter = DoubleListConverter.class)
     @Column(columnDefinition = "TEXT")
     private List<Double> embedding;
+
+    private String monumentName;
+    private Double latitude;
+    private Double longitude;
 
     private String userNotes;
 
@@ -51,14 +49,11 @@ public class MarkOccurrenceProposal {
 
     private Integer priority;
 
-    private Double latitude;
-    private Double longitude;
-
     @Enumerated(EnumType.STRING)
     private ProposalStatus status;
 
     @Builder.Default
-    private boolean isSubmitted = false;
+    private Boolean submitted = false;
 
     @CreatedBy
     @Column(updatable = false)
@@ -66,5 +61,8 @@ public class MarkOccurrenceProposal {
 
     @Column(updatable = false)
     private Instant submittedAt;
+
+    @Builder.Default
+    private Boolean newMark = false;
 
 }

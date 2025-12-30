@@ -4,8 +4,8 @@ import java.time.Instant;
 
 public record MediaFileDto(
         Long id,
-        String fileName,
-        String originalFileName,
+        String filename,
+        String originalFilename,
         Long size,
         String storagePath,
         Instant uploadedAt

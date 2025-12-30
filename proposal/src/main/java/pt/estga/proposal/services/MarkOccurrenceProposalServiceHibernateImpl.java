@@ -36,7 +36,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     @Override
     @Transactional(readOnly = true)
     public Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId) {
-        return repository.findFirstByIsSubmitted(false);
+        return repository.findFirstBySubmitted(false);
     }
 
     @Override

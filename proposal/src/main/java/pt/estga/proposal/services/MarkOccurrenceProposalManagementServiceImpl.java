@@ -10,8 +10,6 @@ import pt.estga.content.repositories.MarkOccurrenceRepository;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.entities.ProposedMark;
-import pt.estga.proposal.entities.ProposedMonument;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
@@ -33,7 +31,7 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     // decision record should have creation listener and some procedures
     @Override
     @Transactional
-    public MarkOccurrenceProposal approve(Long proposalId) {
+    public void approve(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
         validateProposalForApproval(proposal);
@@ -54,23 +52,23 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
         markOccurrenceRepository.save(occurrence);
 
         proposal.setStatus(ProposalStatus.APPROVED);
-        return proposalRepository.save(proposal);
+        proposalRepository.save(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal reject(Long proposalId) {
+    public void reject(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setStatus(ProposalStatus.REJECTED);
-        return proposalRepository.save(proposal);
+        proposalRepository.save(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal pending(Long proposalId) {
+    public void pending(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setStatus(ProposalStatus.PENDING);
-        return proposalRepository.save(proposal);
+        proposalRepository.save(proposal);
     }
 
     private MarkOccurrenceProposal findProposalById(Long proposalId) {
@@ -79,14 +77,14 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
     }
 
     private void validateProposalForApproval(MarkOccurrenceProposal proposal) {
-        if (!proposal.isSubmitted()) {
+        if (!proposal.getSubmitted()) {
             throw new IllegalStateException("Only submitted proposals can be approved.");
         }
-        if (proposal.getExistingMonument() == null && proposal.getProposedMonument() == null) {
-            throw new IllegalStateException("Proposal must have either an existing monument or a proposed monument.");
+        if (proposal.getExistingMonument() == null && proposal.getMonumentName() == null) {
+            throw new IllegalStateException("Proposal must have either an existing monument or a proposed monument name.");
         }
-        if (proposal.getExistingMark() == null && proposal.getProposedMark() == null) {
-            throw new IllegalStateException("Proposal must have either an existing mark or a proposed mark.");
+        if (proposal.getExistingMark() == null && !proposal.getNewMark()) {
+            throw new IllegalStateException("Proposal must have either an existing mark or be a new mark.");
         }
     }
 
@@ -98,11 +96,10 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
 
         // Otherwise, create a new one based on the proposal details.
         // We do NOT automatically check for nearby monuments here to avoid false positives.
-        ProposedMonument proposedMonument = proposal.getProposedMonument();
         Monument newMonument = Monument.builder()
-                .name(proposedMonument.getName())
-                .latitude(proposedMonument.getLatitude())
-                .longitude(proposedMonument.getLongitude())
+                .name(proposal.getMonumentName())
+                .latitude(proposal.getLatitude())
+                .longitude(proposal.getLongitude())
                 .build();
         return monumentRepository.save(newMonument);
     }
@@ -112,11 +109,10 @@ public class MarkOccurrenceProposalManagementServiceImpl implements MarkOccurren
             return proposal.getExistingMark();
         }
 
-        ProposedMark proposedMark = proposal.getProposedMark();
         Mark newMark = Mark.builder()
-                .description(proposedMark.getDescription())
+                .description(proposal.getUserNotes())
                 .embedding(proposal.getEmbedding())
-                .cover(proposedMark.getMediaFile())
+                .cover(proposal.getOriginalMediaFile())
                 .build();
         return markRepository.save(newMark);
     }

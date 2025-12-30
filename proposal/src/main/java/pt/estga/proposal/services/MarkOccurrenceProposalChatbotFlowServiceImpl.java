@@ -2,9 +2,9 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
@@ -14,18 +14,14 @@ import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.entities.ProposedMark;
-import pt.estga.proposal.entities.ProposedMonument;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.proposal.repositories.ProposedMarkRepository;
-import pt.estga.proposal.repositories.ProposedMonumentRepository;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +33,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     private final MediaService mediaService;
     private final MonumentService monumentService;
     private final MarkService markService;
-    private final ProposedMarkRepository proposedMarkRepository;
-    private final ProposedMonumentRepository proposedMonumentRepository;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
     private final UserService userService;
@@ -60,69 +54,61 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
-        log.info("Adding photo to proposal ID: {}", proposalId);
+    public void addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException {
+        log.info("Adding photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
+
         MediaFile mediaFile = mediaService.save(new ByteArrayInputStream(photoData), filename);
         proposal.setOriginalMediaFile(mediaFile);
-        return proposalService.update(proposal);
+
+        proposalService.update(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal addLocation(Long proposalId, Double latitude, Double longitude) {
+    public void analyzePhoto(Long proposalId) {
+        log.info("Analyzing photo for proposal ID: {}", proposalId);
+        MarkOccurrenceProposal proposal = findProposalById(proposalId);
+
+        try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(mediaService.getMediaContent(proposal.getOriginalMediaFile().getId()))) {
+            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
+            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                List<Double> embeddedVector = detectionResult.embedding();
+                proposal.setEmbedding(embeddedVector);
+            } else {
+                log.info("No embedding detected for proposal {}", proposal.getId());
+            }
+        } catch (Exception e) {
+            log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposalId, e);
+        }
+
+        proposalService.update(proposal);
+    }
+
+    @Override
+    @Transactional
+    public void addLocation(Long proposalId, Double latitude, Double longitude) {
         log.info("Adding location to proposal ID: {}. Lat: {}, Lon: {}", proposalId, latitude, longitude);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setLatitude(latitude);
         proposal.setLongitude(longitude);
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
-    @Transactional
-    public MarkOccurrenceProposal analyzePhoto(Long proposalId) throws IOException {
-        log.info("Analyzing photo for proposal ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        if (proposal.getOriginalMediaFile() == null) {
-            log.warn("No photo found for proposal ID: {}", proposalId);
-            return proposal;
-        }
-
-        Resource photoResource = mediaService.loadFile(proposal.getOriginalMediaFile().getStoragePath());
-
-        try (InputStream is = photoResource.getInputStream()) {
-            byte[] photoData = is.readAllBytes();
-            try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(photoData)) {
-                DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getFileName());
-                if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                    List<Double> embeddedVector = detectionResult.embedding();
-                    proposal.setEmbedding(embeddedVector);
-                } else {
-                    log.info("No embedding detected for proposal {}", proposal.getId());
-                }
-            }
-        }
-
-        return proposalService.update(proposal);
-    }
-
-    @Override
-    public List<String> getSuggestedMonumentIds(Long proposalId) {
+    public List<Monument> suggestMonuments(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-            List<Monument> monuments = monumentService.findByCoordinatesInRange(
+            return monumentService.findByCoordinatesInRange(
                     proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE
             );
-            return monuments.stream()
-                    .map(m -> m.getId().toString())
-                    .toList();
         }
         return List.of();
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal selectMonument(Long proposalId, Long monumentId) {
+    public void selectMonument(Long proposalId, Long monumentId) {
         log.info("Selecting monument ID: {} for proposal ID: {}", monumentId, proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMonumentSelections(proposal);
@@ -136,40 +122,43 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
                         }
                 );
 
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal createMonument(Long proposalId, String name) {
-        log.info("Creating new monument '{}' for proposal ID: {}", name, proposalId);
+    public void setNewMonumentName(Long proposalId, String name) {
+        log.info("Setting new monument name '{}' for proposal ID: {}", name, proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMonumentSelections(proposal);
 
-        ProposedMonument proposedMonument = ProposedMonument.builder()
-                .name(name)
-                .latitude(proposal.getLatitude())
-                .longitude(proposal.getLongitude())
-                .build();
+        proposal.setMonumentName(name);
 
-        ProposedMonument savedProposedMonument = proposedMonumentRepository.save(proposedMonument);
-        proposal.setProposedMonument(savedProposedMonument);
-
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
-    public List<String> getSuggestedMarkIds(Long proposalId) {
+    public List<Mark> suggestMarks(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         if (proposal.getEmbedding() != null && !proposal.getEmbedding().isEmpty()) {
-            return markSearchService.searchMarks(proposal.getEmbedding());
+            try {
+                List<String> markIds = markSearchService.searchMarks(proposal.getEmbedding());
+                return markIds.stream()
+                        .map(Long::valueOf)
+                        .map(markService::findById)
+                        .filter(java.util.Optional::isPresent)
+                        .map(java.util.Optional::get)
+                        .collect(Collectors.toList());
+            } catch (Exception e) {
+                log.warn("Mark search service failed for proposal ID: {}. Proceeding without suggestions.", proposalId, e);
+            }
         }
         return List.of();
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal selectMark(Long proposalId, Long markId) {
+    public void selectMark(Long proposalId, Long markId) {
         log.info("Selecting mark ID: {} for proposal ID: {}", markId, proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMarkSelections(proposal);
@@ -182,33 +171,28 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
                 }
         );
 
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal createMark(Long proposalId, String description) {
-        log.info("Creating new mark for proposal ID: {}", proposalId);
+    public void indicateNewMark(Long proposalId) {
+        log.info("Setting new mark for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         clearMarkSelections(proposal);
 
-        ProposedMark proposedMark = new ProposedMark();
-        proposedMark.setDescription(description != null ? description : "");
-        proposedMark.setMediaFile(proposal.getOriginalMediaFile());
-        
-        ProposedMark savedProposedMark = proposedMarkRepository.save(proposedMark);
-        proposal.setProposedMark(savedProposedMark);
+        proposal.setNewMark(true);
 
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal addNotes(Long proposalId, String notes) {
+    public void addNotes(Long proposalId, String notes) {
         log.info("Adding notes to proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         proposal.setUserNotes(notes);
-        return proposalService.update(proposal);
+        proposalService.update(proposal);
     }
 
     @Override
@@ -223,17 +207,11 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     private void clearMonumentSelections(MarkOccurrenceProposal proposal) {
         proposal.setExistingMonument(null);
-        if (proposal.getProposedMonument() != null) {
-            proposedMonumentRepository.delete(proposal.getProposedMonument());
-            proposal.setProposedMonument(null);
-        }
+        proposal.setMonumentName(null);
     }
 
     private void clearMarkSelections(MarkOccurrenceProposal proposal) {
         proposal.setExistingMark(null);
-        if (proposal.getProposedMark() != null) {
-            proposedMarkRepository.delete(proposal.getProposedMark());
-            proposal.setProposedMark(null);
-        }
+        proposal.setNewMark(false);
     }
 }

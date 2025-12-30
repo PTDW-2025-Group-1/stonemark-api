@@ -19,17 +19,15 @@ public class InitialLocationHandler implements ConversationStateHandler {
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         if (input.getLocation() == null) {
-            // The input was invalid for this handler. Report failure.
             return HandlerOutcome.FAILURE;
         }
 
         proposalFlowService.addLocation(
-                context.getProposalContext().getProposal().getId(),
+                context.getProposalContext().getProposalId(),
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()
         );
 
-        // The location was successfully added. Report success.
         return HandlerOutcome.SUCCESS;
     }
 

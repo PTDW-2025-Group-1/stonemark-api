@@ -36,7 +36,7 @@ public class ConversationDispatcher {
             return responseFactory.createErrorResponse(context);
         }
 
-        // 1. Execute the handler for the current state.
+        // Execute the handler for the current state.
         HandlerOutcome outcome = handler.handle(context, input);
 
         // Handle re-dispatch outcome
@@ -44,14 +44,14 @@ public class ConversationDispatcher {
             return dispatch(context, input);
         }
 
-        // 2. Determine the next state.
+        // Determine the next state.
         ConversationState nextState = proposalFlow.getNextState(context, currentState, outcome);
         context.setCurrentState(nextState);
 
-        // 3. Generate a response for the NEW state.
+        // Generate a response for the NEW state.
         List<BotResponse> responses = new ArrayList<>(responseFactory.createResponse(context, outcome, input));
 
-        // 4. If the next state is automatic, dispatch it immediately and accumulate the responses.
+        // If the next state is automatic, dispatch it immediately and accumulate the responses.
         ConversationStateHandler nextHandler = handlers.get(nextState);
         if (nextHandler != null && nextHandler.isAutomatic()) {
             // Create a new input that preserves the user and platform info, but is otherwise empty.

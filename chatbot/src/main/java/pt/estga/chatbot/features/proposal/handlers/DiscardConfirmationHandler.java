@@ -27,8 +27,11 @@ public class DiscardConfirmationHandler implements ConversationStateHandler {
 
         switch (callbackData) {
             case ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED:
-                proposalService.delete(context.getProposalContext().getProposal());
-                context.getProposalContext().setProposal(null);
+                Long proposalId = context.getProposalContext().getProposalId();
+                if (proposalId != null) {
+                    proposalService.findById(proposalId).ifPresent(proposalService::delete);
+                }
+                context.getProposalContext().setProposalId(null);
                 return HandlerOutcome.DISCARD_CONFIRMED;
             
             // This callback is used by the "No, go back" button
