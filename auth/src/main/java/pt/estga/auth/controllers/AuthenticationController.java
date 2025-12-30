@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,7 @@ public class AuthenticationController {
     })
     @PostMapping("/register")
     public ResponseEntity<?> register(
+            @Valid
             @RequestBody(description = "User registration details including username, email, and password.",
                          required = true,
                          content = @Content(schema = @Schema(implementation = RegisterRequestDto.class)))

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import pt.estga.shared.dtos.MessageResponseDto;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,6 +17,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> handleIOException(IOException ex) {
         return new ResponseEntity<>("File processing error: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<MessageResponseDto> handleInvalidCredentials(
+            InvalidCredentialsException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new MessageResponseDto(ex.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class) // Catch generic RuntimeException for now, can be refined

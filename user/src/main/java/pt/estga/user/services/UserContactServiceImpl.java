@@ -126,7 +126,7 @@ public class UserContactServiceImpl implements UserContactService {
     public UserContact setAsPrimary(UserContact userContact) {
         log.info("Setting primary user contact: {}", userContact);
 
-        if (!userContact.getPrimary()) {
+        if (!userContact.getVerified()) {
             throw new IllegalStateException("Contact must be verified before being set as primary.");
         }
 

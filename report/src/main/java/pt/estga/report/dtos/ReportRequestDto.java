@@ -10,9 +10,9 @@ public record ReportRequestDto(
         Long targetId,
         @NotNull
         TargetType targetType,
-        @NotNull
+        @NotNull(message = "Reason is required")
         ReportReason reason,
-        @Size(max = 1000)
+        @Size(min = 10, max = 1000, message = "Description must be at most 1000 characters")
         String description
 ) {}
 

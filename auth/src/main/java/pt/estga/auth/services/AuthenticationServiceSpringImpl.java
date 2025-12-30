@@ -17,6 +17,7 @@ import pt.estga.security.services.AccessTokenService;
 import pt.estga.security.services.JwtService;
 import pt.estga.security.services.RefreshTokenService;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
+import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
@@ -96,7 +97,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(usernameOrContact, password));
         } catch (AuthenticationException e) {
             log.warn("Authentication failed for user: {}", usernameOrContact, e);
-            return Optional.empty();
+            throw new InvalidCredentialsException();
         }
 
         User user = userService.findByUsername(usernameOrContact)
