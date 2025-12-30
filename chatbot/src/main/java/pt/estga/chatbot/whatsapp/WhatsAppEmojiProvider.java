@@ -32,6 +32,7 @@ public class WhatsAppEmojiProvider implements EmojiProvider {
             case NUMBERS -> "🔢";
             case ARROW_RIGHT -> "➡️";
             case THINKING -> "🤔";
+            default -> "❓";
         };
     }
 }

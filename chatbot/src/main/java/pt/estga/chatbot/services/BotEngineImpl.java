@@ -2,6 +2,7 @@ package pt.estga.chatbot.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class BotEngineImpl implements BotEngine {
 
     private final ConversationDispatcher conversationDispatcher;
@@ -29,6 +29,22 @@ public class BotEngineImpl implements BotEngine {
     private final AuthResponseProvider authenticationGuardHandler;
     private final AuthService authService;
     private final UserIdentityService userIdentityService;
+
+    public BotEngineImpl(
+            ConversationDispatcher conversationDispatcher,
+            Cache<String, ChatbotContext> conversationContexts,
+            AuthenticationGuard authenticationGuard,
+            AuthResponseProvider authenticationGuardHandler,
+            @Qualifier("telegramAuthService") AuthService authService,
+            UserIdentityService userIdentityService
+    ) {
+        this.conversationDispatcher = conversationDispatcher;
+        this.conversationContexts = conversationContexts;
+        this.authenticationGuard = authenticationGuard;
+        this.authenticationGuardHandler = authenticationGuardHandler;
+        this.authService = authService;
+        this.userIdentityService = userIdentityService;
+    }
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {
