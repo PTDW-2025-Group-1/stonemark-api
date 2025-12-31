@@ -2,5 +2,6 @@ package pt.estga.user.enums;
 
 public enum Provider {
     GOOGLE,
-    TELEGRAM
+    TELEGRAM,
+    WHATSAPP
 }

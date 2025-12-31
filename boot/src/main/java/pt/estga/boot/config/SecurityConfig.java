@@ -23,6 +23,9 @@ public class SecurityConfig {
     @Value("${telegram.bot.webhook-path}")
     private String telegramWebhookPath;
 
+    @Value("${whatsapp.bot.webhook-path}")
+    private String whatsappWebhookPath;
+
     private static final String[] OPEN_API_ROUTES = {
             "/",
             "/v2/api-docs",
@@ -47,7 +50,8 @@ public class SecurityConfig {
     private static final String[] ALLOWED_ORIGINS = {
             "http://localhost:*",
             "https://stonemark.pt",
-            "https://*.stonemark.pt"
+            "https://*.stonemark.pt",
+            "https://graph.facebook.com"
     };
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -69,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers(OPEN_API_ROUTES).permitAll()
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
                         .requestMatchers(telegramWebhookPath).permitAll()
+                        .requestMatchers(whatsappWebhookPath).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

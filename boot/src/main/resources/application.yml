@@ -118,6 +118,12 @@ telegram:
     auth:
       enabled: true
 
+whatsapp:
+  bot:
+    token: ${WHATSAPP_BOT_TOKEN}
+    webhook-path: /webhook/whatsapp
+    phone-number-id: 993756740480737
+
 vonage:
   api-key: ${VONAGE_API_KEY}
   api-secret: ${VONAGE_API_SECRET}
