@@ -14,17 +14,15 @@ import java.time.Instant;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class MarkOccurrenceProposal {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
+    // ==== User submission snapshot ====
     @ManyToOne(fetch = FetchType.LAZY)
     private Mark existingMark;
 
@@ -38,19 +36,15 @@ public class MarkOccurrenceProposal {
     @Column(columnDefinition = "TEXT")
     private List<Double> embedding;
 
+    private String userNotes;
     private String monumentName;
     private Double latitude;
     private Double longitude;
-
-    private String userNotes;
 
     @Enumerated(EnumType.STRING)
     private SubmissionSource submissionSource;
 
     private Integer priority;
-
-    @Enumerated(EnumType.STRING)
-    private ProposalStatus status;
 
     @Builder.Default
     private Boolean submitted = false;
@@ -63,5 +57,12 @@ public class MarkOccurrenceProposal {
 
     @Builder.Default
     private Boolean newMark = true;
+
+    // ==== Decision state ====
+    @OneToOne(fetch = FetchType.LAZY)
+    private ProposalDecisionAttempt activeDecision;
+
+    @Enumerated(EnumType.STRING)
+    private ProposalStatus status;
 
 }

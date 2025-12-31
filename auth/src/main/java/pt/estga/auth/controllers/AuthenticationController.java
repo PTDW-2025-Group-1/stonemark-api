@@ -98,7 +98,7 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or expired refresh token.",
                     content = @Content(schema = @Schema(implementation = MessageResponseDto.class)))
     })
-    @PostMapping("/refresh-token")
+    @PostMapping("/refresh")
     public ResponseEntity<AuthenticationResponseDto> refreshToken(
             @RequestBody(description = "Refresh token string.",
                          required = true,

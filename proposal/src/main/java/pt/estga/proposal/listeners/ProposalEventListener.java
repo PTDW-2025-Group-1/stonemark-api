@@ -6,9 +6,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
-import pt.estga.proposal.services.AutomaticProposalDecisionMaker;
+import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.proposal.services.AutomaticProposalDecisionService;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 
 @Component
@@ -17,24 +19,26 @@ import pt.estga.proposal.services.MarkOccurrenceProposalService;
 public class ProposalEventListener {
 
     private final MarkOccurrenceProposalService proposalService;
-    private final AutomaticProposalDecisionMaker decisionMaker;
+    private final AutomaticProposalDecisionService automaticDecisionService;
+    private final MarkOccurrenceProposalRepository proposalRepo;
 
     @Async
     @EventListener
     public void handleProposalSubmitted(ProposalSubmittedEvent event) {
+
         MarkOccurrenceProposal proposal = event.getProposal();
-        log.info("Handling proposal submission event for proposal ID: {}", proposal.getId());
 
-        Integer priority = calculatePriority(proposal);
-        proposal.setPriority(priority);
+        proposal.setPriority(calculatePriority(proposal));
+        proposal.setStatus(ProposalStatus.SUBMITTED);
 
-        MarkOccurrenceProposal createdProposal = proposalService.create(proposal);
-        log.info("Updated priority for proposal ID: {} to {}", createdProposal.getId(), priority);
+        proposalRepo.save(proposal);
 
-        decisionMaker.makeDecision(createdProposal);
+        automaticDecisionService.run(proposal);
     }
 
+
     private Integer calculatePriority(MarkOccurrenceProposal proposal) {
+        // Todo: adjust parameters and weights
         int priority = 0;
 
         // Boost for Staff Submissions (+50) - Significant boost
