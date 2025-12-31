@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.repositories.UserRepository;
 import pt.estga.user.entities.User;
 

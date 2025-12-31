@@ -7,26 +7,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
 import pt.estga.auth.services.tfa.TwoFactorAuthenticationService;
 import pt.estga.auth.services.tfa.TotpService;
+import pt.estga.security.enums.TokenType;
 import pt.estga.security.services.AccessTokenService;
 import pt.estga.security.services.JwtService;
 import pt.estga.security.services.RefreshTokenService;
+import pt.estga.shared.enums.PrincipalType;
 import pt.estga.shared.exceptions.EmailVerificationRequiredException;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.exceptions.UsernameAlreadyTakenException;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
 import pt.estga.verification.enums.ActionCodeType;
 
+import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
@@ -82,8 +86,9 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
             return Optional.of(new AuthenticationResponseDto(null, null, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, true, tfaCodeSent));
         }
 
-        var refreshTokenString = jwtService.generateRefreshToken(user.getId());
-        var accessTokenString = jwtService.generateAccessToken(user.getId());
+        var tokens = jwtService.generateTokens(PrincipalType.USER, user.getId(), user.getUsername(), Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name())));
+        var accessTokenString = tokens.get(TokenType.ACCESS);
+        var refreshTokenString = tokens.get(TokenType.REFRESH);
 
         var refreshToken = refreshTokenService.createToken(user.getId(), refreshTokenString);
         accessTokenService.createToken(user.getId(), accessTokenString, refreshToken);
@@ -153,12 +158,12 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
     public Optional<AuthenticationResponseDto> refreshToken(String refreshTokenString) {
         return refreshTokenService.findByToken(refreshTokenString)
                 .filter(token -> !token.isRevoked())
-                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, refreshToken.getUserId()))
+                .filter(refreshToken -> jwtService.isTokenValid(refreshTokenString, TokenType.REFRESH))
                 .flatMap(refreshToken -> userService.findById(refreshToken.getUserId())
                         .map(user -> {
                             accessTokenService.revokeAllByRefreshToken(refreshToken);
 
-                            String newAccessToken = jwtService.generateAccessToken(user.getId());
+                            String newAccessToken = jwtService.generateAccessToken(PrincipalType.USER, user.getId(), user.getUsername(), Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name())));
                             accessTokenService.createToken(user.getId(), newAccessToken, refreshToken);
 
                             return new AuthenticationResponseDto(newAccessToken, refreshTokenString, user.getRole().name(), user.getTfaMethod() != TfaMethod.NONE, false, false);

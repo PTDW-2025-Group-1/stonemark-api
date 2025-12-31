@@ -7,9 +7,6 @@ import pt.estga.shared.models.AppPrincipal;
 
 import java.util.concurrent.Callable;
 
-/**
- * Utility for running code with a ServiceAccountPrincipal in the SecurityContext.
- */
 public final class ServiceAccountUtils {
 
     private ServiceAccountUtils() {}

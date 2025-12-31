@@ -15,7 +15,7 @@ import pt.estga.user.entities.UserContact;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;

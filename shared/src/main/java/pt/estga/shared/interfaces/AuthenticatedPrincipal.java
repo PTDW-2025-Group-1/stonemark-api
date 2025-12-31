@@ -1,4 +1,4 @@
-package pt.estga.shared.models;
+package pt.estga.shared.interfaces;
 
 public interface AuthenticatedPrincipal {
     Long getId();

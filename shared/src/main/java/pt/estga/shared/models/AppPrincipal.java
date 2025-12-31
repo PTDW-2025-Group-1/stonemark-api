@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import pt.estga.shared.enums.PrincipalType;
+import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 
 import java.util.Collection;
 

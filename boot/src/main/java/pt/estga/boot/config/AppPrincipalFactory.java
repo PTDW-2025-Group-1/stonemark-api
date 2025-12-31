@@ -4,11 +4,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import pt.estga.shared.enums.PrincipalType;
 import pt.estga.shared.models.AppPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.user.entities.User;
-import pt.estga.user.enums.UserRole;
 
 import java.util.Collection;
-import java.util.List;
 
 @Component
 public class AppPrincipalFactory {
@@ -19,7 +18,7 @@ public class AppPrincipalFactory {
                 .type(PrincipalType.USER)
                 .identifier(user.getUsername())
                 .password(user.getPassword())
-                .authorities(mapUserRolesToAuthorities(user.getRole()))
+                .authorities(SecurityUtils.mapUserRolesToAuthorities(user.getRole()))
                 .enabled(user.isEnabled())
                 .accountNonLocked(!user.isAccountLocked())
                 .build();
@@ -47,28 +46,5 @@ public class AppPrincipalFactory {
                 .enabled(true)
                 .accountNonLocked(true)
                 .build();
-    }
-
-    private Collection<? extends GrantedAuthority> mapUserRolesToAuthorities(UserRole role) {
-        return switch (role) {
-            case ADMIN -> List.of(
-                    () -> UserRole.USER.name(),
-                    () -> UserRole.REVIEWER.name(),
-                    () -> UserRole.MODERATOR.name(),
-                    () -> UserRole.ADMIN.name()
-            );
-            case MODERATOR -> List.of(
-                    () -> UserRole.USER.name(),
-                    () -> UserRole.REVIEWER.name(),
-                    () -> UserRole.MODERATOR.name()
-            );
-            case REVIEWER -> List.of(
-                    () -> UserRole.USER.name(),
-                    () -> UserRole.REVIEWER.name()
-            );
-            case USER -> List.of(
-                    () -> UserRole.USER.name()
-            );
-        };
     }
 }

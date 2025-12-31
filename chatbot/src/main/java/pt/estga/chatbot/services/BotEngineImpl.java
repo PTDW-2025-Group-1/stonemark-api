@@ -14,10 +14,10 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
 import pt.estga.shared.enums.PrincipalType;
 import pt.estga.shared.models.AppPrincipal;
+import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.services.UserIdentityService;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -48,9 +48,24 @@ public class BotEngineImpl implements BotEngine {
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {
-        ChatbotContext context = getOrCreateContext(input.getUserId());
+        String userId = input.getUserId();
+        var currentUserId = SecurityUtils.getCurrentUserId();
 
-        authenticateUserIfPossible(context, input.getUserId());
+        if (userId == null) {
+            userId = currentUserId
+                    .map(String::valueOf)
+                    .orElse(null);
+        }
+
+        ChatbotContext context = getOrCreateContext(userId);
+
+        currentUserId.ifPresent(id -> {
+            if (context.getDomainUserId() == null) {
+                context.setDomainUserId(id);
+            }
+        });
+
+        authenticateUserIfPossible(context, userId);
 
         if (isGlobalCommand(input)) {
             resetContext(context);
@@ -82,11 +97,11 @@ public class BotEngineImpl implements BotEngine {
                                 .type(PrincipalType.USER)
                                 .identifier(user.getUsername())
                                 .password(user.getPassword())
-                                .authorities(Collections.emptyList())
+                                .authorities(SecurityUtils.mapUserRolesToAuthorities(user.getRole()))
                                 .enabled(user.isEnabled())
                                 .accountNonLocked(!user.isAccountLocked())
                                 .build();
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     });
         }

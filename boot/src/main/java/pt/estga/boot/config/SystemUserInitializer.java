@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.repositories.UserRepository;
 

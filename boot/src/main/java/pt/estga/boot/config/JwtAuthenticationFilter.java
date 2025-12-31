@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pt.estga.security.enums.TokenType;
-import pt.estga.security.services.NewJwtService;
+import pt.estga.security.services.JwtService;
 import pt.estga.shared.models.AppPrincipal;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final NewJwtService jwtService;
+    private final JwtService jwtService;
     private final AppPrincipalFactory principalFactory;
 
     @Override

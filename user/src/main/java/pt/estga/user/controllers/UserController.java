@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.user.dtos.UserPublicDto;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.mappers.UserMapper;
 import pt.estga.user.dtos.UserDto;
 import pt.estga.user.entities.User;

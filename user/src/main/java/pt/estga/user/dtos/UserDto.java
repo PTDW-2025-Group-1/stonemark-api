@@ -1,7 +1,7 @@
 package pt.estga.user.dtos;
 
 import lombok.*;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 
 import java.time.Instant;

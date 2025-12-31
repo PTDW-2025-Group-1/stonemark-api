@@ -2,7 +2,7 @@ package pt.estga.user.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
