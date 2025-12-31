@@ -1,6 +1,7 @@
 package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQueryService {
 
     private final MarkOccurrenceProposalRepository proposalRepository;
@@ -26,7 +29,10 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
     @Override
     public ProposalModeratorViewDto getProposal(Long id) {
         MarkOccurrenceProposal proposal = proposalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Proposal not found"));
+                .orElseThrow(() -> {
+                    log.error("Proposal with ID {} not found", id);
+                    return new ResourceNotFoundException("Proposal not found with id: " + id);
+                });
 
         ActiveDecisionViewDto activeDecisionDto = getActiveDecisionViewDto(proposal);
 

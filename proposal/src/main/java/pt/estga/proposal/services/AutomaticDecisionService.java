@@ -11,6 +11,7 @@ import pt.estga.proposal.enums.DecisionType;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 
 import java.time.Instant;
 
@@ -24,14 +25,19 @@ public class AutomaticDecisionService {
 
     @Transactional
     public ProposalDecisionAttempt rerunAutomaticDecision(Long proposalId) {
+        log.info("Rerunning automatic decision for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
-                .orElseThrow(() -> new RuntimeException("Proposal not found"));
+                .orElseThrow(() -> {
+                    log.error("Proposal with ID {} not found during automatic decision rerun", proposalId);
+                    return new ResourceNotFoundException("Proposal not found with id: " + proposalId);
+                });
 
         return run(proposal);
     }
 
     @Transactional
     public ProposalDecisionAttempt run(MarkOccurrenceProposal proposal) {
+        log.debug("Running automatic decision logic for proposal ID: {}, Priority: {}", proposal.getId(), proposal.getPriority());
 
         DecisionOutcome outcome;
         boolean confident = false;
@@ -46,6 +52,8 @@ public class AutomaticDecisionService {
             outcome = DecisionOutcome.INCONCLUSIVE;
         }
 
+        log.info("Automatic decision outcome for proposal ID {}: {} (Confident: {})", proposal.getId(), outcome, confident);
+
         ProposalDecisionAttempt attempt = ProposalDecisionAttempt.builder()
                 .proposal(proposal)
                 .type(DecisionType.AUTOMATIC)
@@ -56,6 +64,7 @@ public class AutomaticDecisionService {
                 .build();
 
         attemptRepo.save(attempt);
+        log.debug("Saved automatic decision attempt with ID: {}", attempt.getId());
 
         applyAsActiveDecision(proposal, attempt);
         
@@ -79,5 +88,6 @@ public class AutomaticDecisionService {
         }
 
         proposalRepo.save(proposal);
+        log.info("Updated proposal ID: {} status to: {}", proposal.getId(), proposal.getStatus());
     }
 }
