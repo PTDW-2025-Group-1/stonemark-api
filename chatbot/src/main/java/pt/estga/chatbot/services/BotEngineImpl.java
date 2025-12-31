@@ -1,7 +1,7 @@
 package pt.estga.chatbot.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -12,39 +12,21 @@ import pt.estga.chatbot.features.auth.AuthResponseProvider;
 import pt.estga.chatbot.features.auth.AuthenticationGuard;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
-import pt.estga.shared.enums.PrincipalType;
 import pt.estga.shared.models.AppPrincipal;
 import pt.estga.shared.utils.SecurityUtils;
-import pt.estga.user.enums.Provider;
-import pt.estga.user.services.UserIdentityService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class BotEngineImpl implements BotEngine {
 
     private final ConversationDispatcher conversationDispatcher;
     private final Cache<String, ChatbotContext> conversationContexts;
     private final AuthenticationGuard authenticationGuard;
     private final AuthResponseProvider authenticationGuardHandler;
-    private final AuthService authService;
-    private final UserIdentityService userIdentityService;
-
-    public BotEngineImpl(
-            ConversationDispatcher conversationDispatcher,
-            Cache<String, ChatbotContext> conversationContexts,
-            AuthenticationGuard authenticationGuard,
-            AuthResponseProvider authenticationGuardHandler,
-            @Qualifier("telegramAuthService") AuthService authService,
-            UserIdentityService userIdentityService
-    ) {
-        this.conversationDispatcher = conversationDispatcher;
-        this.conversationContexts = conversationContexts;
-        this.authenticationGuard = authenticationGuard;
-        this.authenticationGuardHandler = authenticationGuardHandler;
-        this.authService = authService;
-        this.userIdentityService = userIdentityService;
-    }
+    private final AuthServiceFactory authServiceFactory;
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {
@@ -65,7 +47,7 @@ public class BotEngineImpl implements BotEngine {
             }
         });
 
-        authenticateUserIfPossible(context, userId);
+        authenticateUserIfPossible(context, input);
 
         if (isGlobalCommand(input)) {
             resetContext(context);
@@ -86,25 +68,17 @@ public class BotEngineImpl implements BotEngine {
         return conversationContexts.get(userId, k -> new ChatbotContext());
     }
 
-    private void authenticateUserIfPossible(ChatbotContext context, String userId) {
-        if (context.getDomainUserId() == null && authService.isAuthenticated(userId)) {
-            userIdentityService.findByProviderAndValue(Provider.TELEGRAM, userId)
-                    .ifPresent(userIdentity -> {
-                        var user = userIdentity.getUser();
-                        context.setDomainUserId(user.getId());
-                        AppPrincipal principal = AppPrincipal.builder()
-                                .id(user.getId())
-                                .type(PrincipalType.USER)
-                                .identifier(user.getUsername())
-                                .password(user.getPassword())
-                                .authorities(SecurityUtils.mapUserRolesToAuthorities(user.getRole()))
-                                .enabled(user.isEnabled())
-                                .accountNonLocked(!user.isAccountLocked())
-                                .build();
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    });
-        }
+    private void authenticateUserIfPossible(ChatbotContext context, BotInput input) {
+        AuthService authService = authServiceFactory.getAuthService(input.getPlatform());
+        Optional<AppPrincipal> principalOpt = authService.authenticate(input.getUserId());
+        
+        principalOpt.ifPresent(principal -> {
+            if (context.getDomainUserId() == null) {
+                context.setDomainUserId(principal.getId());
+            }
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        });
     }
 
     private boolean isGlobalCommand(BotInput input) {

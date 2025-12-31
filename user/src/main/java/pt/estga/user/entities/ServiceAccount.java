@@ -13,7 +13,6 @@ import pt.estga.user.enums.ServiceRole;
 public class ServiceAccount {
 
     @Id
-    @GeneratedValue
     private Long id;
 
     @Column(unique = true, nullable = false)
