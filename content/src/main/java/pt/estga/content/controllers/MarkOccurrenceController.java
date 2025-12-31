@@ -55,7 +55,7 @@ public class MarkOccurrenceController {
             @RequestParam(defaultValue = "desc") String sort
     ) {
         Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt")); // substitui "createdAt" pelo campo correto
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
         return service.findByMarkId(markId, pageable)
                 .map(mapper::toListDto);
     }

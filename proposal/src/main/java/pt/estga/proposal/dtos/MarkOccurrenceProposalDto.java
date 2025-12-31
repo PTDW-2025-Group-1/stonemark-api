@@ -3,11 +3,12 @@ package pt.estga.proposal.dtos;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.file.dtos.MediaFileDto;
+import pt.estga.proposal.enums.ProposalStatus;
 
 public record MarkOccurrenceProposalDto(
         Long id,
         Integer priority,
-        MediaFileDto originalMediaFile,
+        MediaFileDto originalMediaFile, // todo put coverId
         MonumentResponseDto existingMonument,
         String monumentName,
         Double latitude,
@@ -15,6 +16,7 @@ public record MarkOccurrenceProposalDto(
         MarkDto existingMark,
         boolean newMark,
         String userNotes,
-        boolean isSubmitted
+        boolean isSubmitted,
+        ProposalStatus status
 ) {
 }

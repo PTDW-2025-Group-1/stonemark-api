@@ -31,21 +31,21 @@ public class MonumentController {
     private final MonumentMapper mapper;
 
     @GetMapping
-    public Page<MonumentResponseDto> getMonuments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toResponseDto);
-    }
-
-    @GetMapping("/list")
-    public Page<MonumentListDto> getMonumentsList(
+    public Page<MonumentListDto> getMonuments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findAll(pageable).map(mapper::toListDto);
+    }
+
+    @GetMapping("/details")
+    public Page<MonumentResponseDto> getDetailedMonuments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return service.findAll(pageable).map(mapper::toResponseDto);
     }
 
     @GetMapping("/map")

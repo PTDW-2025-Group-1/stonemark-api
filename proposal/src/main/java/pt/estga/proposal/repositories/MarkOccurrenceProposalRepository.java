@@ -1,5 +1,7 @@
 package pt.estga.proposal.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +14,12 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
-    List<MarkOccurrenceProposal> findBySubmittedById(Long userId);
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
+            "LEFT JOIN FETCH p.existingMonument " +
+            "LEFT JOIN FETCH p.existingMark " +
+            "WHERE p.submittedById = :userId")
+    Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
     List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
 
