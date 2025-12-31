@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+// Todo: refactor usages in controllers to @AuthenticatedPrincipal or similar
 public final class SecurityUtils {
 
     private SecurityUtils() {}
