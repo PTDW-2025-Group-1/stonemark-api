@@ -1,6 +1,7 @@
 package pt.estga.chatbot.telegram;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
@@ -11,7 +12,11 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pt.estga.chatbot.services.BotEngine;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
+import pt.estga.shared.enums.PrincipalType;
+import pt.estga.shared.models.AppPrincipal;
+import pt.estga.shared.utils.ServiceAccountUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +29,8 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
     private final BotEngine conversationService;
     private final TelegramAdapter telegramAdapter;
     private final Executor botExecutor;
+
+    private static final Long BOT_SERVICE_ACCOUNT_ID = 2L;
 
     public StonemarkTelegramBot(String botUsername,
                                 String botToken,
@@ -54,26 +61,42 @@ public class StonemarkTelegramBot extends TelegramWebhookBot {
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        // Run asynchronously with executor (SecurityContext is already propagated if using DelegatingSecurityContextExecutor)
+        // Run asynchronously with executor
         CompletableFuture.runAsync(() -> {
             try {
                 BotInput botInput = telegramAdapter.toBotInput(update);
                 if (botInput != null) {
                     List<BotResponse> botResponses = conversationService.handleInput(botInput);
                     if (botResponses != null) {
-                        for (BotResponse response : botResponses) {
-                            List<PartialBotApiMethod<?>> methods = telegramAdapter.toBotApiMethod(botInput.getChatId(), response);
-                            if (methods != null) {
-                                for (PartialBotApiMethod<?> method : methods) {
-                                    if (method instanceof BotApiMethod) execute((BotApiMethod<?>) method);
-                                    else if (method instanceof SendPhoto) execute((SendPhoto) method);
+                        // Use service account for sending messages back to Telegram
+                        AppPrincipal botPrincipal = AppPrincipal.builder()
+                                .id(BOT_SERVICE_ACCOUNT_ID)
+                                .type(PrincipalType.SERVICE)
+                                .identifier("TelegramBot")
+                                .password(null)
+                                .authorities(Collections.emptyList())
+                                .enabled(true)
+                                .accountNonLocked(true)
+                                .build();
+
+                        ServiceAccountUtils.runAsServiceAccount(botPrincipal, () -> {
+                            for (BotResponse response : botResponses) {
+                                List<PartialBotApiMethod<?>> methods = telegramAdapter.toBotApiMethod(botInput.getChatId(), response);
+                                if (methods != null) {
+                                    for (PartialBotApiMethod<?> method : methods) {
+                                        if (method instanceof BotApiMethod) execute((BotApiMethod<?>) method);
+                                        else if (method instanceof SendPhoto) execute((SendPhoto) method);
+                                    }
                                 }
                             }
-                        }
+                            return null;
+                        });
                     }
                 }
             } catch (Exception e) {
                 log.error("Error processing Telegram update", e);
+            } finally {
+                SecurityContextHolder.clearContext();
             }
         }, botExecutor);
 

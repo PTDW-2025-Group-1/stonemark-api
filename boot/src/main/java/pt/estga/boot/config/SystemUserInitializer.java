@@ -1,7 +1,5 @@
 package pt.estga.boot.config;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -9,47 +7,76 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.support.TransactionTemplate;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
+import pt.estga.user.entities.ServiceAccount;
+import pt.estga.user.entities.User;
+import pt.estga.user.enums.ServiceRole;
 import pt.estga.user.enums.TfaMethod;
-import pt.estga.user.repositories.UserRepository;
-
-import java.time.Instant;
+import pt.estga.user.services.ServiceAccountService;
+import pt.estga.user.services.UserService;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
 public class SystemUserInitializer {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ServiceAccountService serviceAccountService;
     private final PasswordEncoder passwordEncoder;
     private final TransactionTemplate transactionTemplate;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Bean
     public CommandLineRunner initSystemUser() {
-        return args -> {
-            transactionTemplate.execute(status -> {
-                if (userRepository.findById(0L).isEmpty()) {
-                    log.info("Initializing SYSTEM user with ID 0");
-                    
-                    // NOTE: We use a native query here because Hibernate's @GeneratedValue
-                    // ignores manually set IDs on the entity. To force the ID to be 0 (for System Auditing),
-                    // we must bypass Hibernate and insert directly into the database.
-                    entityManager.createNativeQuery(
-                            "INSERT INTO _user (id, first_name, last_name, username, password, role, enabled, account_locked, tfa_method, created_at) " +
-                            "VALUES (0, 'System', 'Administrator', 'system', ?1, ?2, true, false, ?3, ?4)")
-                            .setParameter(1, passwordEncoder.encode("system_password_change_me"))
-                            .setParameter(2, UserRole.ADMIN.name())
-                            .setParameter(3, TfaMethod.NONE.name())
-                            .setParameter(4, Instant.now())
-                            .executeUpdate();
-                            
-                    log.info("SYSTEM user initialized successfully.");
-                }
-                return null;
-            });
-        };
+        return args -> transactionTemplate.execute(status -> {
+            initServiceAccounts();
+            initSystemAdminUser();
+            return null;
+        });
+    }
+
+    private void initServiceAccounts() {
+        createServiceAccountIfNotExists(0L, "System", ServiceRole.SYSTEM);
+        createServiceAccountIfNotExists(1L, "WebClient", ServiceRole.WEBCLIENT);
+        createServiceAccountIfNotExists(2L, "TelegramBot", ServiceRole.CHATBOT);
+        createServiceAccountIfNotExists(3L, "WhatsAppBot", ServiceRole.CHATBOT);
+    }
+
+    private void createServiceAccountIfNotExists(Long id, String name, ServiceRole role) {
+        if (!serviceAccountService.existsById(id)) {
+            log.info("Initializing Service Account: {} with ID {}", name, id);
+
+            ServiceAccount serviceAccount = ServiceAccount.builder()
+                    .id(id)
+                    .name(name)
+                    .enabled(true)
+                    .secretHash(passwordEncoder.encode(name.toLowerCase() + "_secret"))
+                    .role(role)
+                    .build();
+
+            serviceAccountService.create(serviceAccount);
+            
+            log.info("Service Account {} initialized successfully.", name);
+        }
+    }
+
+    private void initSystemAdminUser() {
+        if (!userService.existsByUsername("system_admin")) {
+            log.info("Initializing System Admin user");
+            
+            User systemAdmin = User.builder()
+                    .firstName("System")
+                    .lastName("Administrator")
+                    .username("system_admin")
+                    .password(passwordEncoder.encode("system_password_change_me"))
+                    .role(UserRole.ADMIN)
+                    .enabled(true)
+                    .accountLocked(false)
+                    .tfaMethod(TfaMethod.NONE)
+                    .build();
+
+            userService.create(systemAdmin);
+            
+            log.info("System Admin user initialized successfully.");
+        }
     }
 }

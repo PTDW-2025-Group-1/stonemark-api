@@ -10,15 +10,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pt.estga.auth.dtos.AuthenticationResponseDto;
+import pt.estga.security.enums.TokenType;
 import pt.estga.security.services.AccessTokenService;
 import pt.estga.security.services.JwtService;
 import pt.estga.security.services.RefreshTokenService;
+import pt.estga.shared.enums.PrincipalType;
 import pt.estga.user.entities.User;
 import pt.estga.user.entities.UserContact;
 import pt.estga.user.entities.UserIdentity;
 import pt.estga.user.enums.ContactType;
 import pt.estga.user.enums.Provider;
-import pt.estga.user.enums.UserRole;
+import pt.estga.shared.enums.UserRole;
 import pt.estga.user.enums.TfaMethod;
 import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserIdentityService;
@@ -26,6 +28,7 @@ import pt.estga.user.services.UserService;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -92,8 +95,7 @@ class SocialAuthenticationServiceTest {
         when(userContactService.findByValue(USER_EMAIL)).thenReturn(Optional.empty());
         when(userService.create(any(User.class))).thenReturn(newUser);
         when(userIdentityService.createAndAssociate(any(User.class), eq(Provider.GOOGLE), eq(GOOGLE_ID))).thenReturn(newIdentity);
-        when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
+        when(jwtService.generateTokens(eq(PrincipalType.USER), eq(newUser.getId()), eq(newUser.getUsername()), any())).thenReturn(Map.of(TokenType.ACCESS, "accessToken", TokenType.REFRESH, "refreshToken"));
 
         Optional<AuthenticationResponseDto> response = socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN);
 
@@ -114,8 +116,7 @@ class SocialAuthenticationServiceTest {
         when(payload.getEmail()).thenReturn(USER_EMAIL);
         when(payload.getSubject()).thenReturn(GOOGLE_ID);
         when(userIdentityService.findByProviderAndValue(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.of(existingIdentity));
-        when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
+        when(jwtService.generateTokens(eq(PrincipalType.USER), eq(existingUser.getId()), eq(existingUser.getUsername()), any())).thenReturn(Map.of(TokenType.ACCESS, "accessToken", TokenType.REFRESH, "refreshToken"));
 
         Optional<AuthenticationResponseDto> response = socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN);
 
@@ -145,8 +146,7 @@ class SocialAuthenticationServiceTest {
         when(userIdentityService.findByProviderAndValue(Provider.GOOGLE, GOOGLE_ID)).thenReturn(Optional.empty());
         when(userContactService.findByValue(USER_EMAIL)).thenReturn(Optional.of(existingUserContact));
         when(userIdentityService.createAndAssociate(existingUser, Provider.GOOGLE, GOOGLE_ID)).thenReturn(newIdentity);
-        when(jwtService.generateAccessToken(any())).thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(any())).thenReturn("refreshToken");
+        when(jwtService.generateTokens(eq(PrincipalType.USER), eq(existingUser.getId()), eq(existingUser.getUsername()), any())).thenReturn(Map.of(TokenType.ACCESS, "accessToken", TokenType.REFRESH, "refreshToken"));
 
         Optional<AuthenticationResponseDto> response = socialAuthenticationService.authenticateWithGoogle(GOOGLE_TOKEN);
 

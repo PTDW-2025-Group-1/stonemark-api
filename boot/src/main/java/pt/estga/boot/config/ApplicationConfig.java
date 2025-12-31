@@ -19,7 +19,7 @@ import pt.estga.user.services.UserService;
 public class ApplicationConfig {
 
     private final UserService userService;
-    private final UserPrincipalFactory userPrincipalFactory;
+    private final AppPrincipalFactory principalFactory;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -27,7 +27,7 @@ public class ApplicationConfig {
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException(username));
 
-            return userPrincipalFactory.create(user);
+            return principalFactory.fromLoginUser(user);
         };
     }
 

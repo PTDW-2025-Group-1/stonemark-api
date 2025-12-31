@@ -1,23 +1,37 @@
 package pt.estga.security.services;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import pt.estga.security.enums.TokenType;
+import pt.estga.shared.enums.PrincipalType;
 
 import javax.crypto.SecretKey;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtServiceImpl implements JwtService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtServiceImpl.class);
+
+    private static final String PID_CLAIM = "pid";
+    private static final String TYPE_CLAIM = "type";
+    private static final String ROLES_CLAIM = "roles";
+    private static final String TOKEN_TYPE_CLAIM = "token_type";
 
     private final String secretKey;
     private final long accessTokenExpiration;
@@ -40,83 +54,124 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public Long getUserIdFromToken(String token) {
-        Claims claims = extractAllClaims(token);
-        if (claims == null) {
-            return null;
-        }
-        String subject = claims.getSubject();
-        if (subject == null) {
-            return null;
-        }
+    public PrincipalType getPrincipalType(String token) {
         try {
-            return Long.parseLong(subject);
-        } catch (NumberFormatException e) {
+            String type = extractAllClaims(token).get(TYPE_CLAIM, String.class);
+            if (type == null) return null;
+            return PrincipalType.valueOf(type);
+        } catch (Exception e) {
+            logger.error("Error extracting principal type from token", e);
             return null;
         }
     }
 
     @Override
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claims == null ? null : claimsResolver.apply(claims);
+    public Long getPrincipalId(String token) {
+        try {
+            Object pidObj = extractAllClaims(token).get(PID_CLAIM);
+            if (pidObj instanceof Number) {
+                return ((Number) pidObj).longValue();
+            }
+            return null;
+        } catch (Exception e) {
+            logger.error("Error extracting principal ID from token", e);
+            return null;
+        }
     }
 
     @Override
-    public String generateAccessToken(Long userId) {
-        Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, userId, accessTokenExpiration);
+    public String getSubject(String token) {
+        try {
+            return extractAllClaims(token).getSubject();
+        } catch (Exception e) {
+            logger.error("Error extracting subject from token", e);
+            return null;
+        }
     }
 
     @Override
-    public String generateRefreshToken(Long userId) {
-        Map<String, Object> extraClaims = new HashMap<>();
-        return buildToken(extraClaims, userId, refreshTokenExpiration);
+    public Collection<? extends GrantedAuthority> getAuthorities(String token) {
+        try {
+            List<?> roles = extractAllClaims(token).get(ROLES_CLAIM, List.class);
+            if (roles == null) return List.of();
+            
+            return roles.stream()
+                    .filter(obj -> obj instanceof String)
+                    .map(obj -> (String) obj)
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error extracting authorities from token", e);
+            return List.of();
+        }
     }
 
-    private String buildToken(
-            Map<String, Object> extraClaims,
-            Long userId,
-            long expiration
-    ) {
-        long current = System.currentTimeMillis();
+    @Override
+    public boolean isTokenValid(String token, TokenType expectedType) {
+        try {
+            Claims claims = extractAllClaims(token);
+            if (claims.getExpiration() == null || claims.getExpiration().before(new Date())) {
+                logger.warn("Token expired");
+                return false;
+            }
+            if (claims.getSubject() == null || claims.getSubject().isBlank()) {
+                logger.warn("Token subject is missing or blank");
+                return false;
+            }
+            boolean typeMatches = expectedType.name().equals(claims.get(TOKEN_TYPE_CLAIM, String.class));
+            if (!typeMatches) {
+                logger.warn("Token type mismatch. Expected: {}, Actual: {}", expectedType, claims.get(TOKEN_TYPE_CLAIM));
+            }
+            return typeMatches;
+        } catch (Exception e) {
+            logger.error("Error validating token", e);
+            return false;
+        }
+    }
+
+    @Override
+    public String generateAccessToken(PrincipalType type, Long principalId, String identifier, Collection<? extends GrantedAuthority> authorities) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(PID_CLAIM, principalId);
+        claims.put(TYPE_CLAIM, type.name());
+        claims.put(TOKEN_TYPE_CLAIM, TokenType.ACCESS.name());
+        claims.put(ROLES_CLAIM, authorities.stream().map(GrantedAuthority::getAuthority).toList());
+        return buildToken(claims, identifier, accessTokenExpiration);
+    }
+
+    @Override
+    public String generateRefreshToken(PrincipalType type, Long principalId, String identifier) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(PID_CLAIM, principalId);
+        claims.put(TYPE_CLAIM, type.name());
+        claims.put(TOKEN_TYPE_CLAIM, TokenType.REFRESH.name());
+        return buildToken(claims, identifier, refreshTokenExpiration);
+    }
+
+    @Override
+    public Map<TokenType, String> generateTokens(PrincipalType type, Long principalId, String identifier, Collection<? extends GrantedAuthority> authorities) {
+        Map<TokenType, String> tokens = new HashMap<>();
+        tokens.put(TokenType.ACCESS, generateAccessToken(type, principalId, identifier, authorities));
+        tokens.put(TokenType.REFRESH, generateRefreshToken(type, principalId, identifier));
+        return tokens;
+    }
+
+    private String buildToken(Map<String, Object> claims, String subject, long expirationMs) {
+        long now = System.currentTimeMillis();
         return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userId.toString())
-                .issuedAt(new Date(current))
-                .expiration(new Date(current + expiration))
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + expirationMs))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    @Override
-    public Boolean isTokenValid(String token, Long userId) {
-        if (userId == null) {
-            return false;
-        }
-        final Long extractedUserId = getUserIdFromToken(token);
-        return extractedUserId != null && (extractedUserId.equals(userId)) && !isTokenExpired(token);
-    }
-
-    private boolean isTokenExpired(String token) {
-        Date expiration = extractExpiration(token);
-        return expiration == null || expiration.before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
     private Claims extractAllClaims(String token) {
-        try {
-            return jwtParser.parseSignedClaims(token).getPayload();
-        } catch (JwtException e) {
-            return null;
-        }
+        return jwtParser.parseSignedClaims(token).getPayload();
     }
 
     private SecretKey getSigningKey() {
-        byte[] secretKeyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(secretKeyBytes);
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
     }
 }

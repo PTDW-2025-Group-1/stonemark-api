@@ -1,4 +1,4 @@
-package pt.estga.user.enums;
+package pt.estga.shared.enums;
 
 public enum UserRole {
     USER,

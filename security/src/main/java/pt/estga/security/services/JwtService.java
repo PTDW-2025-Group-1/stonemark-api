@@ -1,19 +1,28 @@
 package pt.estga.security.services;
 
-import io.jsonwebtoken.Claims;
+import org.springframework.security.core.GrantedAuthority;
+import pt.estga.security.enums.TokenType;
+import pt.estga.shared.enums.PrincipalType;
 
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.Map;
 
 public interface JwtService {
 
-    Long getUserIdFromToken(String token);
+    String generateAccessToken(PrincipalType type, Long principalId, String identifier, Collection<? extends GrantedAuthority> authorities);
 
-    <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
+    String generateRefreshToken(PrincipalType type, Long principalId, String identifier);
 
-    String generateAccessToken(Long userId);
+    Map<TokenType, String> generateTokens(PrincipalType type, Long principalId, String identifier, Collection<? extends GrantedAuthority> authorities);
 
-    String generateRefreshToken(Long userId);
+    PrincipalType getPrincipalType(String token);
 
-    Boolean isTokenValid(String token, Long userId);
+    Long getPrincipalId(String token);
+
+    String getSubject(String token);
+
+    Collection<? extends GrantedAuthority> getAuthorities(String token);
+
+    boolean isTokenValid(String token, TokenType expectedType);
 
 }
