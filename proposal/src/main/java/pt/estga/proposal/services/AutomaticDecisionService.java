@@ -3,6 +3,7 @@ package pt.estga.proposal.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
@@ -16,20 +17,30 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AutomaticProposalDecisionService {
+public class AutomaticDecisionService {
 
     private final ProposalDecisionAttemptRepository attemptRepo;
     private final MarkOccurrenceProposalRepository proposalRepo;
 
-    public void run(MarkOccurrenceProposal proposal) {
+    @Transactional
+    public ProposalDecisionAttempt rerunAutomaticDecision(Long proposalId) {
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+                .orElseThrow(() -> new RuntimeException("Proposal not found"));
+
+        return run(proposal);
+    }
+
+    @Transactional
+    public ProposalDecisionAttempt run(MarkOccurrenceProposal proposal) {
 
         DecisionOutcome outcome;
         boolean confident = false;
 
-        if (proposal.getPriority() > 150) {
+        // Simple logic for now - can be expanded with more complex rules
+        if (proposal.getPriority() != null && proposal.getPriority() > 150) {
             outcome = DecisionOutcome.ACCEPT;
             confident = true;
-        } else if (proposal.getPriority() < 10) {
+        } else if (proposal.getPriority() != null && proposal.getPriority() < 10) {
             outcome = DecisionOutcome.REJECT;
         } else {
             outcome = DecisionOutcome.INCONCLUSIVE;
@@ -47,6 +58,8 @@ public class AutomaticProposalDecisionService {
         attemptRepo.save(attempt);
 
         applyAsActiveDecision(proposal, attempt);
+        
+        return attempt;
     }
 
     private void applyAsActiveDecision(

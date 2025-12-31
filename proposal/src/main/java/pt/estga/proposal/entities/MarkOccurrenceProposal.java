@@ -14,8 +14,11 @@ import java.time.Instant;
 import java.util.List;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
 public class MarkOccurrenceProposal {
 
     @Id

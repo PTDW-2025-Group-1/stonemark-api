@@ -10,8 +10,11 @@ import pt.estga.proposal.enums.DecisionType;
 import java.time.Instant;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Builder
 public class ProposalDecisionAttempt {
 
     @Id

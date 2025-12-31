@@ -10,7 +10,7 @@ import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-import pt.estga.proposal.services.AutomaticProposalDecisionService;
+import pt.estga.proposal.services.AutomaticDecisionService;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 
 @Component
@@ -19,7 +19,7 @@ import pt.estga.proposal.services.MarkOccurrenceProposalService;
 public class ProposalEventListener {
 
     private final MarkOccurrenceProposalService proposalService;
-    private final AutomaticProposalDecisionService automaticDecisionService;
+    private final AutomaticDecisionService automaticDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
 
     @Async
