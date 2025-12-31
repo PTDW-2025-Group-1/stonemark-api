@@ -1,7 +1,6 @@
 package pt.estga.chatbot.services;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +12,8 @@ import pt.estga.chatbot.features.auth.AuthResponseProvider;
 import pt.estga.chatbot.features.auth.AuthenticationGuard;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.chatbot.models.BotResponse;
-import pt.estga.shared.models.ServiceAccountPrincipal;
+import pt.estga.shared.enums.PrincipalType;
+import pt.estga.shared.models.AppPrincipal;
 import pt.estga.user.enums.Provider;
 import pt.estga.user.services.UserIdentityService;
 
@@ -48,42 +48,64 @@ public class BotEngineImpl implements BotEngine {
 
     @Override
     public List<BotResponse> handleInput(BotInput input) {
-        ChatbotContext context = conversationContexts.get(input.getUserId(), k -> new ChatbotContext());
+        ChatbotContext context = getOrCreateContext(input.getUserId());
 
-        if (context.getDomainUserId() == null && authService.isAuthenticated(input.getUserId())) {
-            userIdentityService.findByProviderAndValue(Provider.TELEGRAM, input.getUserId())
-                    .ifPresent(userIdentity -> {
-                        context.setDomainUserId(userIdentity.getUser().getId());
-                        ServiceAccountPrincipal principal = ServiceAccountPrincipal.builder()
-                                .id(userIdentity.getUser().getId())
-                                .build();
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    });
-        }
+        authenticateUserIfPossible(context, input.getUserId());
 
-        // Handle global commands that reset the conversation
-        boolean isStartCommand = input.getText() != null && input.getText().startsWith("/start");
-        boolean isHelpCommand = input.getText() != null && input.getText().startsWith("/help");
-        boolean isOptionsCommand = input.getText() != null && input.getText().startsWith("/options");
-        boolean isBackToMenu = input.getCallbackData() != null && input.getCallbackData().equals(SharedCallbackData.BACK_TO_MAIN_MENU);
-
-        if (isStartCommand || isHelpCommand || isOptionsCommand || isBackToMenu) {
-            // Reset context and dispatch to the state machine.
-            context.setCurrentState(CoreState.START);
-            context.getProposalContext().clear();
+        if (isGlobalCommand(input)) {
+            resetContext(context);
         }
 
         if (context.getCurrentState() == null) {
             context.setCurrentState(CoreState.START);
         }
 
-        // Perform authentication check for stateful conversation.
         if (!authenticationGuard.isActionAllowed(input, context.getCurrentState())) {
             return authenticationGuardHandler.requireVerification(context);
         }
 
-        // Dispatch to the state machine for all other interactions.
         return conversationDispatcher.dispatch(context, input);
+    }
+
+    private ChatbotContext getOrCreateContext(String userId) {
+        return conversationContexts.get(userId, k -> new ChatbotContext());
+    }
+
+    private void authenticateUserIfPossible(ChatbotContext context, String userId) {
+        if (context.getDomainUserId() == null && authService.isAuthenticated(userId)) {
+            userIdentityService.findByProviderAndValue(Provider.TELEGRAM, userId)
+                    .ifPresent(userIdentity -> {
+                        var user = userIdentity.getUser();
+                        context.setDomainUserId(user.getId());
+                        AppPrincipal principal = AppPrincipal.builder()
+                                .id(user.getId())
+                                .type(PrincipalType.USER)
+                                .identifier(user.getUsername())
+                                .password(user.getPassword())
+                                .authorities(Collections.emptyList())
+                                .enabled(user.isEnabled())
+                                .accountNonLocked(!user.isAccountLocked())
+                                .build();
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, Collections.emptyList());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    });
+        }
+    }
+
+    private boolean isGlobalCommand(BotInput input) {
+        String text = input.getText();
+        String callbackData = input.getCallbackData();
+
+        boolean isStartCommand = text != null && text.startsWith("/start");
+        boolean isHelpCommand = text != null && text.startsWith("/help");
+        boolean isOptionsCommand = text != null && text.startsWith("/options");
+        boolean isBackToMenu = callbackData != null && callbackData.equals(SharedCallbackData.BACK_TO_MAIN_MENU);
+
+        return isStartCommand || isHelpCommand || isOptionsCommand || isBackToMenu;
+    }
+
+    private void resetContext(ChatbotContext context) {
+        context.setCurrentState(CoreState.START);
+        context.getProposalContext().clear();
     }
 }

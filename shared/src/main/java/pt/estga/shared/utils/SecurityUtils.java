@@ -1,16 +1,11 @@
 package pt.estga.shared.utils;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import pt.estga.shared.models.AuthenticatedPrincipal;
-import pt.estga.shared.models.ServiceAccountPrincipal;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public final class SecurityUtils {
 

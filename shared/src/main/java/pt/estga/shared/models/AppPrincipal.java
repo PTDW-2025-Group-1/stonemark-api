@@ -1,16 +1,21 @@
 package pt.estga.shared.models;
 
 import lombok.Builder;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import pt.estga.shared.enums.PrincipalType;
 
 import java.util.Collection;
 
 @Builder
-public class UserPrincipal implements UserDetails, AuthenticatedPrincipal {
+public class AppPrincipal implements UserDetails, AuthenticatedPrincipal {
 
     private final Long id;
-    private final String username;
+    @Getter
+    private final PrincipalType type;
+    @Getter
+    private final String identifier; // username OR service name
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
@@ -30,7 +35,7 @@ public class UserPrincipal implements UserDetails, AuthenticatedPrincipal {
     }
 
     @Override public String getUsername() {
-        return username;
+        return identifier;
     }
 
     @Override public boolean isAccountNonExpired() {

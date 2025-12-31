@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 
 import java.util.function.Function;
 
+@Deprecated
 public interface JwtService {
 
     Long getUserIdFromToken(String token);

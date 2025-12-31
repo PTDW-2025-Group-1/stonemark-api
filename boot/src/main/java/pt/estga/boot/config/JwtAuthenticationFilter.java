@@ -6,27 +6,25 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import pt.estga.security.services.AccessTokenService;
-import pt.estga.security.services.JwtService;
-import pt.estga.shared.utils.SecurityUtils;
-import pt.estga.user.services.UserService;
+import pt.estga.security.enums.TokenType;
+import pt.estga.security.services.NewJwtService;
+import pt.estga.shared.models.AppPrincipal;
 
 import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
-    private final AccessTokenService accessTokenService;
-    private final UserService userService;
-    private final UserPrincipalFactory userPrincipalFactory;
+    private final NewJwtService jwtService;
+    private final AppPrincipalFactory principalFactory;
 
     @Override
     protected void doFilterInternal(
@@ -41,24 +39,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String jwt = authHeader.substring(7);
-        if (SecurityUtils.getCurrentUserId().isPresent()) {
+        final String token = authHeader.substring(7);
+
+        // skip if already authenticated
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final Long userId = jwtService.getUserIdFromToken(jwt);
+        // Check if it's a refresh token request
+        boolean isRefreshRequest = request.getRequestURI().endsWith("/refresh");
+        TokenType expectedType = isRefreshRequest ? TokenType.REFRESH : TokenType.ACCESS;
 
-        if (userId != null && SecurityUtils.getCurrentUserId().isEmpty()) {
-            userService.findById(userId).ifPresent(user -> {
-                UserDetails userDetails = userPrincipalFactory.create(user);
-                if (jwtService.isTokenValid(jwt, userId) && accessTokenService.isTokenValid(jwt)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
-            });
+        // validate token
+        if (!jwtService.isTokenValid(token, expectedType)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // parse principal info
+        try {
+            var principalType = jwtService.getPrincipalType(token);
+            var principalId = jwtService.getPrincipalId(token);
+            var identifier = jwtService.getSubject(token);
+            var authorities = jwtService.getAuthorities(token);
+
+            AppPrincipal principal;
+
+            switch (principalType) {
+                case USER -> principal = principalFactory.fromJwtUser(principalId, identifier, authorities);
+                case SERVICE -> principal = principalFactory.fromJwtService(principalId, identifier, authorities);
+                default -> throw new IllegalStateException("Unsupported principal type: " + principalType);
+            }
+
+            var authToken = new UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    principal.getAuthorities()
+            );
+
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        } catch (Exception e) {
+            log.error("Could not set user authentication in security context", e);
         }
 
         filterChain.doFilter(request, response);

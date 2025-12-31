@@ -3,6 +3,7 @@ package pt.estga.shared.models;
 import lombok.Builder;
 
 @Builder
+@Deprecated
 public final class ServiceAccountPrincipal implements AuthenticatedPrincipal {
 
     private final Long id;
