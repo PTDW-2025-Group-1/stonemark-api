@@ -8,7 +8,7 @@ import pt.estga.shared.models.AuditActor;
 import pt.estga.shared.utils.SecurityUtils;
 
 @Configuration
-@EnableJpaAuditing
+@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class AuditingConfig {
 
     @Bean

@@ -38,9 +38,16 @@ public final class SecurityUtils {
         return Optional.empty();
     }
 
+    /**
+     * Retrieves the currently authenticated principal from the SecurityContext.
+     *
+     * @return An Optional containing the AppPrincipal if authenticated, or empty if not.
+     */
     public static Optional<AppPrincipal> currentPrincipal() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) return Optional.empty();
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
         if (!(auth.getPrincipal() instanceof AppPrincipal p)) return Optional.empty();
         return Optional.of(p);
     }

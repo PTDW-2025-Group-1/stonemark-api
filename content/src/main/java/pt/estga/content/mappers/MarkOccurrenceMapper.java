@@ -1,8 +1,10 @@
 package pt.estga.content.mappers;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MarkOccurrenceDetailedDto;
 import pt.estga.content.dtos.MarkOccurrenceListDto;
 import pt.estga.content.entities.MarkOccurrence;
@@ -23,6 +25,7 @@ public interface MarkOccurrenceMapper {
 
     MarkOccurrence toEntity(MarkOccurrenceDto dto);
 
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(MarkOccurrenceDto dto, @MappingTarget MarkOccurrence entity);
 
 }

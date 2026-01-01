@@ -7,7 +7,7 @@ import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.shared.entities.AuditedEntity;
+import pt.estga.shared.audit.AuditedEntity;
 import pt.estga.shared.utils.DoubleListConverter;
 
 import java.time.Instant;

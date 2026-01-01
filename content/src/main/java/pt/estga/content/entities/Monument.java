@@ -3,7 +3,7 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.shared.entities.AuditedEntity;
+import pt.estga.shared.audit.AuditedEntity;
 
 @Entity
 @NoArgsConstructor

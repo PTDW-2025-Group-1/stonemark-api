@@ -1,4 +1,4 @@
-package pt.estga.shared.entities;
+package pt.estga.shared.audit;
 
 import jakarta.persistence.*;
 import lombok.Getter;
