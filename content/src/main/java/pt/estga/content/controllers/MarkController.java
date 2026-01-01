@@ -52,10 +52,14 @@ public class MarkController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')")
-    public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
-        Mark mark = mapper.updateDtoToEntity(markDto);
-        mark.setId(id);
-        return mapper.toDto(service.update(mark));
+    public ResponseEntity<MarkDto> updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
+        return service.findById(id)
+                .map(existingMark -> {
+                    mapper.updateEntityFromDto(markDto, existingMark);
+                    Mark updatedMark = service.update(existingMark);
+                    return ResponseEntity.ok(mapper.toDto(updatedMark));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

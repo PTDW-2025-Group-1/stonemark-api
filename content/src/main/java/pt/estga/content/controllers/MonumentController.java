@@ -124,10 +124,13 @@ public class MonumentController {
             @PathVariable Long id,
             @Valid @RequestBody MonumentRequestDto monumentDto
     ) {
-        Monument monument = mapper.toEntity(monumentDto);
-        monument.setId(id);
-        Monument updatedMonument = service.update(monument);
-        return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
+        return service.findById(id)
+                .map(existingMonument -> {
+                    mapper.updateEntityFromDto(monumentDto, existingMonument);
+                    Monument updatedMonument = service.update(existingMonument);
+                    return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

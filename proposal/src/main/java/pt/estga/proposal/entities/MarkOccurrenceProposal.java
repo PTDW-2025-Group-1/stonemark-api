@@ -2,12 +2,12 @@ package pt.estga.proposal.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
+import pt.estga.shared.audit.AuditedEntity;
 import pt.estga.shared.utils.DoubleListConverter;
 
 import java.time.Instant;
@@ -19,7 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class MarkOccurrenceProposal {
+public class MarkOccurrenceProposal extends AuditedEntity {
 
     @Id
     @GeneratedValue
@@ -52,8 +52,6 @@ public class MarkOccurrenceProposal {
     @Builder.Default
     private Boolean submitted = false;
 
-    @CreatedBy
-    @Column(updatable = false)
     private Long submittedById;
 
     private Instant submittedAt;
