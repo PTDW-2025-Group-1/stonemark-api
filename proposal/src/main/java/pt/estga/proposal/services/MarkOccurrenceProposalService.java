@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.user.entities.User;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface MarkOccurrenceProposalService {
@@ -16,7 +15,7 @@ public interface MarkOccurrenceProposalService {
     
     Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId);
 
-    List<MarkOccurrenceProposal> findByUser(User user);
+    Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable);
 
     MarkOccurrenceProposal create(MarkOccurrenceProposal proposal);
 

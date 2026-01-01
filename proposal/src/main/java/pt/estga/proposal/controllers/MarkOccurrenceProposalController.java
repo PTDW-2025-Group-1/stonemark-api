@@ -2,16 +2,16 @@ package pt.estga.proposal.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 import pt.estga.user.entities.User;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/proposals/mark-occurrences")
@@ -23,12 +23,25 @@ public class MarkOccurrenceProposalController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MarkOccurrenceProposalDto>> findByUser(@PathVariable Long userId) {
+    public Page<MarkOccurrenceProposalListDto> findByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         User user = User.builder().id(userId).build();
-        List<MarkOccurrenceProposal> proposals = proposalService.findByUser(user);
-        return ResponseEntity.ok(proposals.stream()
-                .map(markOccurrenceProposalMapper::toDto)
-                .collect(Collectors.toList()));
+        Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
+        return proposals.map(markOccurrenceProposalMapper::toListDto);
+    }
+
+    @GetMapping("/user/{userId}/detailed")
+    public Page<MarkOccurrenceProposalDto> findDetailedByUser(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        User user = User.builder().id(userId).build();
+        Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
+        return proposals.map(markOccurrenceProposalMapper::toDto);
     }
 
     @GetMapping("/{proposalId}")
