@@ -7,7 +7,7 @@ import java.time.Instant;
 
 public record MarkOccurrenceProposalListDto(
         Long id,
-        MediaFileDto originalMediaFile, // todo put coverId
+        Long coverId,
         boolean isSubmitted,
         ProposalStatus status,
         Instant submittedAt

@@ -30,7 +30,7 @@ public class MarkOccurrenceProposalSubmissionService {
 
         proposal.setSubmitted(true);
         proposal.setSubmittedAt(Instant.now());
-        proposal.setStatus(ProposalStatus.PENDING);
+        proposal.setStatus(ProposalStatus.SUBMITTED);
 
         MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
         log.info("Proposal with ID: {} submitted successfully", proposalId);

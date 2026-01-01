@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.enums.ProposalStatus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,7 +17,6 @@ import java.util.Optional;
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.originalMediaFile " +
             "LEFT JOIN FETCH p.existingMonument " +
             "LEFT JOIN FETCH p.existingMark " +
             "WHERE p.submittedById = :userId")
@@ -25,7 +26,6 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 
-    @Query("SELECT COUNT(p) FROM MarkOccurrenceProposal p WHERE p.submittedById = :userId AND p.status = 'APPROVED'")
-    long countApprovedProposalsByUserId(@Param("userId") Long userId);
+    long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
 
 }

@@ -8,7 +8,7 @@ import pt.estga.proposal.enums.ProposalStatus;
 public record MarkOccurrenceProposalDto(
         Long id,
         Integer priority,
-        MediaFileDto originalMediaFile, // todo put coverId
+        Long coverId,
         MonumentResponseDto existingMonument,
         String monumentName,
         Double latitude,

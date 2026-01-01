@@ -6,9 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -56,7 +58,8 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     @Override
     public long countApprovedProposalsByUserId(Long userId) {
-        return repository.countApprovedProposalsByUserId(userId);
+        return repository.countBySubmittedByIdAndStatusIn(userId,
+                List.of(ProposalStatus.AUTO_ACCEPTED, ProposalStatus.MANUALLY_ACCEPTED));
     }
 
 }
