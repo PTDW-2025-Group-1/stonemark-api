@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MarkListDto;
 import pt.estga.content.dtos.MarkUpdateDto;
@@ -50,6 +51,7 @@ public class MarkController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
     public MarkDto updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
         Mark mark = mapper.updateDtoToEntity(markDto);
         mark.setId(id);
@@ -57,6 +59,7 @@ public class MarkController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<Void> deleteMark(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();

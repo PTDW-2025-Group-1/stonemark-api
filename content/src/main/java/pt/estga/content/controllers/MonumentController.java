@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MonumentListDto;
@@ -100,6 +101,7 @@ public class MonumentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<MonumentResponseDto> createMonument(
             @Valid @RequestBody MonumentRequestDto monumentDto
     ) {
@@ -117,6 +119,7 @@ public class MonumentController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<MonumentResponseDto> updateMonument(
             @PathVariable Long id,
             @Valid @RequestBody MonumentRequestDto monumentDto
@@ -128,6 +131,7 @@ public class MonumentController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<Void> deleteMonument(
             @PathVariable Long id
     ) {

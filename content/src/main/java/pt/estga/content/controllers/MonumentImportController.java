@@ -2,6 +2,7 @@ package pt.estga.content.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ public class MonumentImportController {
     private final MonumentMapper monumentMapper;
 
     @PostMapping("/overpass")
+    @PreAuthorize("hasRole('MODERATOR')")
     public List<MonumentResponseDto> importFromOverpass(@RequestBody String geoJson) throws JsonProcessingException {
         return monumentImportService.overpass(geoJson).stream().map(monumentMapper::toResponseDto).toList();
     }

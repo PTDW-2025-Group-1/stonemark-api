@@ -11,9 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.shared.utils.SecurityUtils;
 import pt.estga.shared.dtos.MessageResponseDto;
+import pt.estga.shared.models.AppPrincipal;
 import pt.estga.user.dtos.*;
 import pt.estga.user.entities.User;
 import pt.estga.user.mappers.UserMapper;
@@ -40,10 +41,9 @@ public class AccountController {
                             schema = @Schema(implementation = UserDto.class)))
     })
     @GetMapping("/profile")
-    public ResponseEntity<UserDto> getProfileInfo() {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
+    public ResponseEntity<UserDto> getProfileInfo(@AuthenticationPrincipal AppPrincipal principal) {
         User user = userService
-                .findByIdWithContacts(userId)
+                .findByIdWithContacts(principal.getId())
                 .orElseThrow();
         return ResponseEntity.ok(mapper.toDto(user));
     }
@@ -53,9 +53,8 @@ public class AccountController {
             summary = "Get account security status",
             description = "Returns information about available authentication methods."
     )
-    public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus() {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
-        User user = userService.findById(userId).orElseThrow();
+    public ResponseEntity<AccountSecurityStatusDto> getSecurityStatus(@AuthenticationPrincipal AppPrincipal principal) {
+        User user = userService.findById(principal.getId()).orElseThrow();
         return ResponseEntity.ok(accountService.getSecurityStatus(user));
     }
 
@@ -69,10 +68,10 @@ public class AccountController {
     })
     @PutMapping("/profile")
     public ResponseEntity<MessageResponseDto> updateProfile(
+            @AuthenticationPrincipal AppPrincipal principal,
             @Parameter(description = "Updated profile information", required = true)
             @Valid @RequestBody ProfileUpdateRequestDto request) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
-        User user = userService.findById(userId).orElseThrow();
+        User user = userService.findById(principal.getId()).orElseThrow();
         mapper.update(user, request);
         userService.update(user);
         return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
@@ -87,10 +86,10 @@ public class AccountController {
     })
     @PostMapping("/change-password")
     public ResponseEntity<MessageResponseDto> changePassword(
+            @AuthenticationPrincipal AppPrincipal principal,
             @Parameter(description = "Password change request details", required = true)
             @Valid @RequestBody PasswordChangeRequestDto request) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
-        User user = userService.findById(userId).orElseThrow();
+        User user = userService.findById(principal.getId()).orElseThrow();
         passwordService.changePassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been changed successfully."));
     }
@@ -104,10 +103,10 @@ public class AccountController {
     })
     @PostMapping("/set-password")
     public ResponseEntity<MessageResponseDto> setPassword(
+            @AuthenticationPrincipal AppPrincipal principal,
             @Parameter(description = "Password set request details", required = true)
             @Valid @RequestBody PasswordSetRequestDto request) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow();
-        User user = userService.findById(userId).orElseThrow();
+        User user = userService.findById(principal.getId()).orElseThrow();
         passwordService.setPassword(user, request);
         return ResponseEntity.ok(new MessageResponseDto("Your password has been set successfully."));
     }
