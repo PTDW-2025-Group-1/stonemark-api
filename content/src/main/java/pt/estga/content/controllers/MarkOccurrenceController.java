@@ -139,10 +139,14 @@ public class MarkOccurrenceController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')")
-    public MarkOccurrenceDto updateMarkOccurrence(@PathVariable Long id, @RequestBody MarkOccurrenceDto markOccurrenceDto) {
-        MarkOccurrence markOccurrence = mapper.toEntity(markOccurrenceDto);
-        markOccurrence.setId(id);
-        return mapper.toDto(service.update(markOccurrence));
+    public ResponseEntity<MarkOccurrenceDto> updateMarkOccurrence(@PathVariable Long id, @RequestBody MarkOccurrenceDto markOccurrenceDto) {
+        return service.findById(id)
+                .map(existingMarkOccurrence -> {
+                    mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
+                    MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence);
+                    return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

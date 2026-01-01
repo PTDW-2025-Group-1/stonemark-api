@@ -2,11 +2,11 @@ package pt.estga.content.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import pt.estga.content.dtos.MarkOccurrenceDetailedDto;
 import pt.estga.content.dtos.MarkOccurrenceListDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.dtos.MarkOccurrenceDto;
-import pt.estga.user.entities.User;
 
 @Mapper(componentModel = "spring", uses = {MarkMapper.class, MonumentMapper.class})
 public interface MarkOccurrenceMapper {
@@ -22,5 +22,7 @@ public interface MarkOccurrenceMapper {
     MarkOccurrenceDetailedDto toDetailedDto(MarkOccurrence entity);
 
     MarkOccurrence toEntity(MarkOccurrenceDto dto);
+
+    void updateEntityFromDto(MarkOccurrenceDto dto, @MappingTarget MarkOccurrence entity);
 
 }

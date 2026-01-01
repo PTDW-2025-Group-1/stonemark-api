@@ -2,7 +2,9 @@ package pt.estga.shared.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import pt.estga.shared.models.AuditActor;
@@ -16,24 +18,26 @@ public abstract class AuditedEntity {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    protected Instant createdAt;
 
+    @CreatedBy
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "id", column = @Column(name = "created_by_id")),
-            @AttributeOverride(name = "type", column = @Column(name = "created_by_type")),
-            @AttributeOverride(name = "identifier", column = @Column(name = "created_by_identifier"))
+            @AttributeOverride(name = "id", column = @Column(name = "created_by_id", updatable = false)),
+            @AttributeOverride(name = "type", column = @Column(name = "created_by_type", updatable = false)),
+            @AttributeOverride(name = "identifier", column = @Column(name = "created_by_identifier", updatable = false))
     })
-    private AuditActor createdBy;
+    protected AuditActor createdBy;
 
     @LastModifiedDate
-    private Instant lastModifiedAt;
+    protected Instant lastModifiedAt;
 
+    @LastModifiedBy
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "id", column = @Column(name = "modified_by_id")),
             @AttributeOverride(name = "type", column = @Column(name = "modified_by_type")),
             @AttributeOverride(name = "identifier", column = @Column(name = "modified_by_identifier"))
     })
-    private AuditActor modifiedBy;
+    protected AuditActor modifiedBy;
 }
