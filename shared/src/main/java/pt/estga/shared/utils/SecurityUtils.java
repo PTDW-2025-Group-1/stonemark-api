@@ -6,12 +6,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import pt.estga.shared.enums.UserRole;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
+import pt.estga.shared.models.AppPrincipal;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-// Todo: refactor usages in controllers to @AuthenticatedPrincipal or similar
 public final class SecurityUtils {
 
     private SecurityUtils() {}
@@ -36,6 +36,13 @@ public final class SecurityUtils {
         }
 
         return Optional.empty();
+    }
+
+    public static Optional<AppPrincipal> currentPrincipal() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return Optional.empty();
+        if (!(auth.getPrincipal() instanceof AppPrincipal p)) return Optional.empty();
+        return Optional.of(p);
     }
 
     public static Collection<? extends GrantedAuthority> mapUserRolesToAuthorities(UserRole role) {

@@ -19,7 +19,6 @@ public interface MarkOccurrenceMapper {
 
     @Mapping(target = "coverId", source = "cover.id")
     @Mapping(target = "markId", source = "mark.id")
-    @Mapping(target = "proposerId", source = "proposer.id")
     MarkOccurrenceDetailedDto toDetailedDto(MarkOccurrence entity);
 
     MarkOccurrence toEntity(MarkOccurrenceDto dto);

@@ -3,22 +3,18 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.shared.entities.FullAuditEntity;
+import pt.estga.shared.entities.AuditedEntity;
 import pt.estga.shared.utils.DoubleListConverter;
 
 import java.util.List;
 
-@NamedEntityGraph(
-        name = "MyEntity.withMedia",
-        attributeNodes = @NamedAttributeNode("cover")
-)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class Mark extends FullAuditEntity {
+public class Mark extends AuditedEntity {
 
     @Id
     @GeneratedValue

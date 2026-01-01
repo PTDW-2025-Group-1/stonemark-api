@@ -3,10 +3,10 @@ package pt.estga.content.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.shared.entities.FullAuditEntity;
+import pt.estga.shared.entities.AuditedEntity;
 import pt.estga.shared.utils.DoubleListConverter;
-import pt.estga.user.entities.User;
 
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class MarkOccurrence extends FullAuditEntity {
+public class MarkOccurrence extends AuditedEntity {
 
     @Id
     @GeneratedValue
@@ -34,7 +34,8 @@ public class MarkOccurrence extends FullAuditEntity {
     @Column(columnDefinition = "TEXT")
     private List<Double> embedding;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User proposer;
+    private Long authorId;
+    private String authorName;
+    private Instant publishedAt;
 
 }
