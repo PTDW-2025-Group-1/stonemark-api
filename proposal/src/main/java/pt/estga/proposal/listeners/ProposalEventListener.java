@@ -13,7 +13,6 @@ import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.services.AutomaticDecisionService;
-import pt.estga.proposal.services.MonumentCreationService;
 import pt.estga.proposal.services.ProposalScoringService;
 
 @Component
@@ -23,7 +22,6 @@ public class ProposalEventListener {
 
     private final AutomaticDecisionService automaticDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
-    private final MonumentCreationService monumentCreationService;
     private final ProposalScoringService proposalScoringService;
     private final MonumentService monumentService;
 
@@ -38,9 +36,6 @@ public class ProposalEventListener {
         proposal.setStatus(ProposalStatus.SUBMITTED);
 
         proposalRepo.save(proposal);
-
-        // Ensure monument exists (creates if needed and links to proposal)
-        monumentCreationService.ensureMonumentExists(proposal);
 
         automaticDecisionService.run(proposal);
     }

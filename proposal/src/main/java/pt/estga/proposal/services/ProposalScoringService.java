@@ -2,7 +2,9 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.shared.utils.StringSimilarityUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +57,24 @@ public class ProposalScoringService {
         }
         if (proposal.getOriginalMediaFile() != null) {
             score += 10;
+        }
+
+        // Boost if suggested monument name resembles the found/linked monument name
+        Monument existingMonument = proposal.getExistingMonument();
+        if (existingMonument != null && proposal.getMonumentName() != null) {
+            String suggestedName = proposal.getMonumentName();
+            String actualName = existingMonument.getName();
+            
+            if (StringSimilarityUtils.containsIgnoreCase(suggestedName, actualName)) {
+                score += 15;
+            } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > 0.7) {
+                score += 10;
+            } else {
+                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, 3, 2);
+                if (matchCount > 0) {
+                    score += 5 * matchCount;
+                }
+            }
         }
 
         return Math.min(score, 100); // Normalize to 0-100

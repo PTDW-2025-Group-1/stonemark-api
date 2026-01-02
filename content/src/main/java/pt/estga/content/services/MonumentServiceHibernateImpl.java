@@ -45,7 +45,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
-        return repository.findByCoordinatesInRange(latitude, longitude, range);
+        return repository.findByLatitudeBetweenAndLongitudeBetween(latitude - range, latitude + range, longitude - range, longitude + range);
     }
 
     public List<Monument> findLatest(int limit) {

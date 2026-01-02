@@ -7,23 +7,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pt.estga.content.dtos.MonumentResponseDto;
-import pt.estga.content.mappers.MonumentMapper;
+import pt.estga.content.dtos.MonumentOverpassImportRequest;
 import pt.estga.content.services.MonumentImportService;
-
-import java.util.List;
+import pt.estga.shared.dtos.MessageResponseDto;
 
 @RestController
-@RequestMapping("/api/v1/import/monuments")
+@RequestMapping("/api/v1/monuments/import/")
+@PreAuthorize("hasRole('MODERATOR')")
 @RequiredArgsConstructor
 public class MonumentImportController {
 
     private final MonumentImportService monumentImportService;
-    private final MonumentMapper monumentMapper;
 
     @PostMapping("/overpass")
-    @PreAuthorize("hasRole('MODERATOR')")
-    public List<MonumentResponseDto> importFromOverpass(@RequestBody String geoJson) throws JsonProcessingException {
-        return monumentImportService.overpass(geoJson).stream().map(monumentMapper::toResponseDto).toList();
+    public MessageResponseDto importFromOverpass(@RequestBody MonumentOverpassImportRequest request) throws JsonProcessingException {
+        int count = monumentImportService.overpass(request.monumentData(), request.division());
+        return new MessageResponseDto("Imported " + count + " monuments successfully.");
     }
 }

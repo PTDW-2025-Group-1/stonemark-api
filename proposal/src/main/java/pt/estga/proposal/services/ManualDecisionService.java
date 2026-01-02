@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.content.dtos.GeocodingResultDto;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
@@ -25,6 +27,7 @@ public class ManualDecisionService {
     private final ProposalDecisionAttemptRepository attemptRepo;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final ApplicationEventPublisher eventPublisher;
+    private final MonumentCreationService monumentCreationService;
 
     @Transactional
     public ProposalDecisionAttempt createManualDecision(Long proposalId, DecisionOutcome outcome, String notes, Long moderatorId) {
@@ -35,6 +38,11 @@ public class ManualDecisionService {
                     log.error("Proposal with ID {} not found during manual decision creation", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);
                 });
+
+        // If accepting and it's a new monument, ensure monument is created
+        if (outcome == DecisionOutcome.ACCEPT && proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+             throw new IllegalStateException("Cannot approve proposal for new monument without creating the monument first.");
+        }
 
         ProposalDecisionAttempt attempt = ProposalDecisionAttempt.builder()
                 .proposal(proposal)
@@ -64,5 +72,22 @@ public class ManualDecisionService {
         }
 
         return attempt;
+    }
+    
+    /**
+     * Helper to get autofill data for the frontend to show in the "Create Monument" dialog.
+     */
+    public GeocodingResultDto getMonumentAutofillData(Long proposalId) {
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Proposal not found"));
+        return monumentCreationService.getAutofillData(proposal);
+    }
+    
+    /**
+     * Action to create the monument, to be called before approval.
+     */
+    @Transactional
+    public void createMonumentForProposal(Long proposalId, Monument monument) {
+        monumentCreationService.createMonumentFromProposal(proposalId, monument);
     }
 }

@@ -17,6 +17,7 @@ import java.time.Instant;
 public class MarkOccurrenceProposalSubmissionService {
 
     private final MarkOccurrenceProposalService proposalService;
+    private final ProposalScoringService scoringService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -27,6 +28,14 @@ public class MarkOccurrenceProposalSubmissionService {
                     log.error("Proposal with ID {} not found during submission", proposalId);
                     return new RuntimeException("Proposal not found");
                 });
+
+        // Calculate scores before submission
+        Integer priority = scoringService.calculatePriority(proposal);
+        Integer credibility = scoringService.calculateCredibilityScore(proposal);
+        
+        proposal.setPriority(priority);
+        proposal.setCredibilityScore(credibility);
+        log.debug("Calculated scores for proposal {}: Priority={}, Credibility={}", proposalId, priority, credibility);
 
         proposal.setSubmitted(true);
         proposal.setSubmittedAt(Instant.now());

@@ -13,7 +13,8 @@ public class ReverseGeocodingService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public GeocodingResultDto reverseGeocode(double lat, double lon) {
-        String url = "https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat="
+        // Added extratags=1 to get more details like description, wikipedia, etc.
+        String url = "https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&extratags=1&lat="
                 + lat + "&lon=" + lon;
 
         JsonNode response = restTemplate.getForObject(url, JsonNode.class);
@@ -38,10 +39,20 @@ public class ReverseGeocodingService {
             else if (addr.has("historic")) name = addr.get("historic").asText();
         }
 
+        String description = null;
+        JsonNode extratags = response.path("extratags");
+        if (extratags.has("description")) {
+            description = extratags.get("description").asText();
+        } else if (extratags.has("wikipedia")) {
+            // Fallback to wikipedia link if description is missing, or maybe just note it
+            // For now, let's just take description if available.
+        }
+
         return GeocodingResultDto.builder()
                 .name(name)
                 .address(address)
                 .city(city)
+                .description(description)
                 .build();
     }
 }

@@ -3,14 +3,14 @@ package pt.estga.proposal.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.dtos.GeocodingResultDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
 import pt.estga.content.services.ReverseGeocodingService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-
-import java.util.Optional;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -21,64 +21,45 @@ public class MonumentCreationService {
     private final ReverseGeocodingService reverseGeocodingService;
     private final MarkOccurrenceProposalRepository proposalRepo;
 
-    public void ensureMonumentExists(MarkOccurrenceProposal proposal) {
+    /**
+     * Creates a monument from the proposal data.
+     * This should be called by a moderator during the approval process.
+     */
+    @Transactional
+    public Monument createMonumentFromProposal(Long proposalId, Monument monument) {
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Proposal not found"));
+
         if (proposal.getExistingMonument() != null) {
-            return;
+            return proposal.getExistingMonument();
         }
 
-        String monumentName = proposal.getMonumentName();
-        String address = null;
-        String city = null;
+        log.info("Creating new monument '{}' from proposal ID: {}", monument.getName(), proposalId);
 
-        // Fetch geocoding info if coordinates are available
-        if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
+        // Ensure lat/long from proposal are used if not provided in the monument object (though they should be)
+        if (monument.getLatitude() == null) monument.setLatitude(proposal.getLatitude());
+        if (monument.getLongitude() == null) monument.setLongitude(proposal.getLongitude());
+        
+        monument.setActive(true); // Active as it is being created by a moderator
+
+        Monument savedMonument = monumentService.create(monument);
+        
+        proposal.setExistingMonument(savedMonument);
+        proposal.setMonumentName(monument.getName()); // Update in case it changed
+        proposalRepo.save(proposal);
+        
+        log.info("Created new monument with ID: {}", savedMonument.getId());
+        return savedMonument;
+    }
+    
+    public GeocodingResultDto getAutofillData(MarkOccurrenceProposal proposal) {
+         if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
             try {
-                GeocodingResultDto geocodingResult = reverseGeocodingService.reverseGeocode(proposal.getLatitude(), proposal.getLongitude());
-                if (geocodingResult != null) {
-                    if (monumentName == null) {
-                        monumentName = geocodingResult.getName();
-                    }
-                    address = geocodingResult.getAddress();
-                    city = geocodingResult.getCity();
-                }
+                return reverseGeocodingService.reverseGeocode(proposal.getLatitude(), proposal.getLongitude());
             } catch (Exception e) {
-                log.error("Failed to fetch geocoding info for monument creation", e);
+                log.error("Failed to fetch geocoding info", e);
             }
         }
-
-        if (monumentName == null) {
-            log.warn("Cannot create monument for proposal ID {}: No name provided or found.", proposal.getId());
-            return;
-        }
-        
-        // Update proposal with found name if it was missing
-        if (proposal.getMonumentName() == null) {
-            proposal.setMonumentName(monumentName);
-        }
-
-        Optional<Monument> existingMonument = monumentService.findByName(monumentName);
-
-        if (existingMonument.isPresent()) {
-            log.info("Monument with name '{}' already exists. Linking proposal to existing monument.", monumentName);
-            proposal.setExistingMonument(existingMonument.get());
-            proposalRepo.save(proposal);
-        } else {
-            log.info("Creating new monument '{}' from proposal ID: {}", monumentName, proposal.getId());
-
-            Monument newMonument = Monument.builder()
-                    .name(monumentName)
-                    .latitude(proposal.getLatitude())
-                    .longitude(proposal.getLongitude())
-                    .description(proposal.getUserNotes())
-                    .address(address)
-                    .city(city)
-                    .active(false) // Created but not active until proposal is approved
-                    .build();
-
-            Monument savedMonument = monumentService.create(newMonument);
-            proposal.setExistingMonument(savedMonument);
-            proposalRepo.save(proposal);
-            log.info("Created new monument with ID: {}", savedMonument.getId());
-        }
+        return null;
     }
 }

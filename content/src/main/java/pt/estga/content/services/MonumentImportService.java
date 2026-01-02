@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pt.estga.content.dtos.AdministrativeDivisionDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 
@@ -12,100 +13,78 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MonumentImportService {
 
     private final MonumentRepository repository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<Monument> overpass(String query) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(query);
-        JsonNode features = rootNode.path("features");
+    public int overpass(
+            String monumentJson,
+            AdministrativeDivisionDto division
+    ) throws JsonProcessingException {
+
+        JsonNode root = objectMapper.readTree(monumentJson);
+        JsonNode elements = root.path("elements");
 
         Map<String, Monument> monumentMap = new LinkedHashMap<>();
 
-        if (features.isArray()) {
-            for (JsonNode feature : features) {
-                JsonNode properties = feature.path("properties");
-                JsonNode geometry = feature.path("geometry");
-
-                if (properties.isObject() && geometry.isObject()) {
-                    String name = properties.path("name").asText(null);
-                    if (name == null || name.isBlank()) continue;
-
-                    String description = properties.path("description").asText(null);
-                    String website = properties.path("heritage:website").asText(null);
-                    String protectionTitle = properties.path("protection_title").asText(null);
-
-                    JsonNode coordinates = geometry.path("coordinates");
-                    if (coordinates.isArray() && coordinates.size() >= 2) {
-                        double longitude = coordinates.get(0).asDouble();
-                        double latitude = coordinates.get(1).asDouble();
-
-                        // Resolve address and city locally from OSM tags to avoid API rate limits
-                        String city = resolveCity(properties);
-                        String address = resolveAddress(properties);
-
-                        // Create a transient monument object
-                        Monument monumentFromJson = new Monument();
-                        monumentFromJson.setName(name);
-                        monumentFromJson.setDescription(description);
-                        monumentFromJson.setLatitude(latitude);
-                        monumentFromJson.setLongitude(longitude);
-                        monumentFromJson.setWebsite(website);
-                        monumentFromJson.setProtectionTitle(protectionTitle);
-                        monumentFromJson.setAddress(address);
-                        monumentFromJson.setCity(city);
-
-                        monumentMap.put(name, monumentFromJson);
-                    }
-                }
-            }
+        if (!elements.isArray()) {
+            return 0;
         }
 
-        List<Monument> monumentsToSave = new ArrayList<>();
+        for (JsonNode element : elements) {
+
+            JsonNode tags = element.path("tags");
+            if (!tags.isObject()) continue;
+
+            String name = tags.path("name").asText(null);
+            if (name == null || name.isBlank()) continue;
+
+            double lat = element.path("lat").asDouble(Double.NaN);
+            double lon = element.path("lon").asDouble(Double.NaN);
+            if (Double.isNaN(lat) || Double.isNaN(lon)) continue;
+
+            Monument monument = new Monument();
+            monument.setName(name);
+            monument.setDescription(tags.path("description").asText(null));
+            monument.setLatitude(lat);
+            monument.setLongitude(lon);
+            monument.setWebsite(tags.path("website").asText(null));
+            monument.setProtectionTitle(tags.path("protection_title").asText(null));
+
+            // Explicit administrative division (no guessing)
+            monument.setDistrict(division.district());
+            monument.setMunicipality(division.municipality());
+            monument.setParish(division.parish());
+
+            monumentMap.put(name, monument);
+        }
+
+        List<Monument> toSave = new ArrayList<>();
         for (Monument m : monumentMap.values()) {
-            Optional<Monument> existing = repository.findByName(m.getName());
-            monumentsToSave.add(getMonumentToSave(m, existing));
+            repository.findByName(m.getName())
+                    .ifPresentOrElse(
+                            existing -> toSave.add(update(existing, m)),
+                            () -> toSave.add(m)
+                    );
         }
 
-        return repository.saveAll(monumentsToSave);
+        repository.saveAll(toSave);
+        return toSave.size();
     }
 
-    private String resolveCity(JsonNode properties) {
-        if (properties.has("addr:city")) return properties.get("addr:city").asText();
-        if (properties.has("addr:town")) return properties.get("addr:town").asText();
-        if (properties.has("addr:village")) return properties.get("addr:village").asText();
-        if (properties.has("addr:hamlet")) return properties.get("addr:hamlet").asText();
-        return null;
-    }
-
-    private String resolveAddress(JsonNode properties) {
-        if (properties.has("addr:full")) return properties.get("addr:full").asText();
-        
-        String street = properties.path("addr:street").asText(null);
-        if (street != null) {
-            String number = properties.path("addr:housenumber").asText(null);
-            return street + (number != null ? " " + number : "");
-        }
-        return null;
-    }
-
-    private static Monument getMonumentToSave(Monument fromJson, Optional<Monument> existing) {
-        if (existing.isPresent()) {
-            Monument m = existing.get();
-            m.setDescription(fromJson.getDescription());
-            m.setLatitude(fromJson.getLatitude());
-            m.setLongitude(fromJson.getLongitude());
-            m.setWebsite(fromJson.getWebsite());
-            m.setProtectionTitle(fromJson.getProtectionTitle());
-            m.setAddress(fromJson.getAddress());
-            m.setCity(fromJson.getCity());
-            return m;
-        }
-        return fromJson;
+    private Monument update(Monument existing, Monument incoming) {
+        existing.setDescription(incoming.getDescription());
+        existing.setLatitude(incoming.getLatitude());
+        existing.setLongitude(incoming.getLongitude());
+        existing.setWebsite(incoming.getWebsite());
+        existing.setProtectionTitle(incoming.getProtectionTitle());
+        existing.setDistrict(incoming.getDistrict());
+        existing.setMunicipality(incoming.getMunicipality());
+        existing.setParish(incoming.getParish());
+        return existing;
     }
 }

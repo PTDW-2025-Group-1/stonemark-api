@@ -17,15 +17,16 @@ public class Monument extends AuditedEntity {
     @GeneratedValue
     private Long id;
 
-    @Column(unique = true)
     private String name;
+    private String protectionTitle;
     private String description;
     private Double latitude;
     private Double longitude;
     private String website;
-    private String protectionTitle;
+    private String district;
+    private String municipality;
+    private String parish;
     private String address;
-    private String city;
 
     @Builder.Default
     private Boolean active = true;
