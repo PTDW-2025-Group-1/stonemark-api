@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.content.dtos.AdministrativeDivisionDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 
@@ -21,10 +20,7 @@ public class MonumentImportService {
     private final MonumentRepository repository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public int overpass(
-            String monumentJson,
-            AdministrativeDivisionDto division
-    ) throws JsonProcessingException {
+    public int overpass(String monumentJson) throws JsonProcessingException {
 
         JsonNode root = objectMapper.readTree(monumentJson);
         JsonNode elements = root.path("elements");
@@ -55,10 +51,9 @@ public class MonumentImportService {
             monument.setWebsite(tags.path("website").asText(null));
             monument.setProtectionTitle(tags.path("protection_title").asText(null));
 
-            // Explicit administrative division (no guessing)
-            monument.setDistrict(division.district());
-            monument.setMunicipality(division.municipality());
-            monument.setParish(division.parish());
+            // Note: Administrative division is no longer set here as per request to separate concerns
+            // It might be set later or inferred from coordinates if needed, 
+            // but the request specifically asked to "refactor monument import service to treat only monuments"
 
             monumentMap.put(name, monument);
         }
@@ -82,9 +77,7 @@ public class MonumentImportService {
         existing.setLongitude(incoming.getLongitude());
         existing.setWebsite(incoming.getWebsite());
         existing.setProtectionTitle(incoming.getProtectionTitle());
-        existing.setDistrict(incoming.getDistrict());
-        existing.setMunicipality(incoming.getMunicipality());
-        existing.setParish(incoming.getParish());
+        // We do not update district/municipality/parish here anymore as they are not passed in
         return existing;
     }
 }

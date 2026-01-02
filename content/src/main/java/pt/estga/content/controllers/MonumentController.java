@@ -64,14 +64,24 @@ public class MonumentController {
         return service.searchByName(query, pageable).map(mapper::toListDto);
     }
 
-    @GetMapping("/filter")
-    public Page<MonumentListDto> filterMonumentsByCity(
-            @RequestParam String city,
+    @PostMapping("/search/polygon")
+    public Page<MonumentListDto> searchMonumentsByPolygon(
+            @RequestBody String geoJson,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByCity(city, pageable).map(mapper::toListDto);
+        return service.findByPolygon(geoJson, pageable).map(mapper::toListDto);
+    }
+
+    @GetMapping("/division/{divisionId}")
+    public Page<MonumentListDto> getMonumentsByDivision(
+            @PathVariable Long divisionId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+        return service.findByDivisionId(divisionId, pageable).map(mapper::toListDto);
     }
 
     @GetMapping("/latest")

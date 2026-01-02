@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import pt.estga.content.entities.AdministrativeDivision;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class MonumentServiceHibernateImpl implements MonumentService {
 
     private final MonumentRepository repository;
+    private final AdministrativeDivisionService administrativeDivisionService;
 
     @Override
     public Page<Monument> findAll(Pageable pageable) {
@@ -64,8 +66,25 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
-    public Page<Monument> findByCity(String city, Pageable pageable) {
-        return repository.findByCityIgnoreCaseAndActiveTrue(city, pageable);
+    public Page<Monument> findByPolygon(String geoJson, Pageable pageable) {
+        return repository.findByPolygon(geoJson, pageable);
+    }
+
+    @Override
+    public Page<Monument> findByDivisionId(Long divisionId, Pageable pageable) {
+        Optional<AdministrativeDivision> division = administrativeDivisionService.findById(divisionId);
+        if (division.isPresent()) {
+            // Assuming the division name is stored in the monument's district, municipality, or parish field
+            // Or we could use the geometry of the division to search by polygon
+            String geometryJson = division.get().getGeometryJson();
+            if (geometryJson != null && !geometryJson.isEmpty()) {
+                return repository.findByPolygon(geometryJson, pageable);
+            } else {
+                // Fallback to name search if geometry is missing
+                return repository.findByDivisionName(division.get().getName(), pageable);
+            }
+        }
+        return Page.empty(pageable);
     }
 
     @Override

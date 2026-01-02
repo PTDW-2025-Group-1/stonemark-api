@@ -27,7 +27,9 @@ public interface MonumentService {
 
     Page<Monument> searchByName(String query, Pageable pageable);
 
-    Page<Monument> findByCity(String city, Pageable pageable);
+    Page<Monument> findByPolygon(String geoJson, Pageable pageable);
+
+    Page<Monument> findByDivisionId(Long divisionId, Pageable pageable);
 
     Monument create(Monument monument);
 
