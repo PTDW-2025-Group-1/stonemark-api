@@ -22,8 +22,6 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
             "WHERE p.submittedById = :userId")
     Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
-    List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
-
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);

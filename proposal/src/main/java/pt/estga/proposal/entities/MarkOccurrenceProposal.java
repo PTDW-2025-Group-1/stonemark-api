@@ -48,6 +48,8 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     private SubmissionSource submissionSource;
 
     private Integer priority;
+    
+    private Integer credibilityScore;
 
     @Builder.Default
     private Boolean submitted = false;

@@ -27,6 +27,9 @@ public class Monument extends AuditedEntity {
     private String address;
     private String city;
 
+    @Builder.Default
+    private Boolean active = true;
+
     @OneToOne
     private MediaFile cover;
 

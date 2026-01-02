@@ -20,7 +20,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Page<Monument> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+        return repository.findByActiveTrue(pageable);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     public List<Monument> findLatest(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return repository.findAll(pageable).getContent();
+        return repository.findByActiveTrue(pageable).getContent();
     }
 
     @Override
@@ -60,12 +60,12 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Page<Monument> searchByName(String query, Pageable pageable) {
-        return repository.findByNameContainingIgnoreCase(query, pageable);
+        return repository.findByNameContainingIgnoreCaseAndActiveTrue(query, pageable);
     }
 
     @Override
     public Page<Monument> findByCity(String city, Pageable pageable) {
-        return repository.findByCityIgnoreCase(city, pageable);
+        return repository.findByCityIgnoreCaseAndActiveTrue(city, pageable);
     }
 
     @Override

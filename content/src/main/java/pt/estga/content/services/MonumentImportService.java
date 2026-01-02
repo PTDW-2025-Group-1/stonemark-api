@@ -19,7 +19,6 @@ import java.util.Optional;
 public class MonumentImportService {
 
     private final MonumentRepository repository;
-    private final ReverseGeocodingService reverseGeocodingService;
 
     public List<Monument> overpass(String query) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -46,9 +45,9 @@ public class MonumentImportService {
                         double longitude = coordinates.get(0).asDouble();
                         double latitude = coordinates.get(1).asDouble();
 
-                        // Novo: resolver endereço e cidade
-                        String address = reverseGeocodingService.getAddress(latitude, longitude);
-                        String city = reverseGeocodingService.getCity(latitude, longitude);
+                        // Resolve address and city locally from OSM tags to avoid API rate limits
+                        String city = resolveCity(properties);
+                        String address = resolveAddress(properties);
 
                         // Create a transient monument object
                         Monument monumentFromJson = new Monument();
@@ -74,6 +73,25 @@ public class MonumentImportService {
         }
 
         return repository.saveAll(monumentsToSave);
+    }
+
+    private String resolveCity(JsonNode properties) {
+        if (properties.has("addr:city")) return properties.get("addr:city").asText();
+        if (properties.has("addr:town")) return properties.get("addr:town").asText();
+        if (properties.has("addr:village")) return properties.get("addr:village").asText();
+        if (properties.has("addr:hamlet")) return properties.get("addr:hamlet").asText();
+        return null;
+    }
+
+    private String resolveAddress(JsonNode properties) {
+        if (properties.has("addr:full")) return properties.get("addr:full").asText();
+        
+        String street = properties.path("addr:street").asText(null);
+        if (street != null) {
+            String number = properties.path("addr:housenumber").asText(null);
+            return street + (number != null ? " " + number : "");
+        }
+        return null;
     }
 
     private static Monument getMonumentToSave(Monument fromJson, Optional<Monument> existing) {
