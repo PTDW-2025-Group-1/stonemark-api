@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 
@@ -30,6 +31,17 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     Optional<MarkOccurrenceProposal> findByIdWithDetails(@Param("id") Long id);
 
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
+
+    @Query("""
+    SELECT new pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto(
+        SUM(CASE WHEN p.status IN ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED') THEN 1 ELSE 0 END),
+        SUM(CASE WHEN p.status IN ('SUBMITTED', 'UNDER_REVIEW') THEN 1 ELSE 0 END),
+        SUM(CASE WHEN p.status IN ('AUTO_REJECTED', 'MANUALLY_REJECTED') THEN 1 ELSE 0 END)
+    )
+    FROM MarkOccurrenceProposal p
+    WHERE p.submittedById = :userId
+    """)
+    MarkOccurrenceProposalStatsDto getStatsByUserId(@Param("userId") Long userId);
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
 
