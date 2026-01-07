@@ -2,8 +2,8 @@ package pt.estga.proposal.dtos;
 
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.dtos.MonumentResponseDto;
-import pt.estga.file.dtos.MediaFileDto;
 import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.enums.SubmissionSource;
 
 public record MarkOccurrenceProposalDto(
         Long id,
@@ -16,6 +16,7 @@ public record MarkOccurrenceProposalDto(
         MarkDto existingMark,
         boolean newMark,
         String userNotes,
+        SubmissionSource submissionSource,
         boolean isSubmitted,
         ProposalStatus status
 ) {
