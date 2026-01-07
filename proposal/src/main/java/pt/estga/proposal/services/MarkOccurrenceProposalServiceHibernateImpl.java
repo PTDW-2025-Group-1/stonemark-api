@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
@@ -55,6 +56,10 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
         repository.delete(proposal);
     }
 
+    @Override
+    public MarkOccurrenceProposalStatsDto getStatsByUser(User user) {
+        return repository.getStatsByUserId(user.getId());
+    }
 
     @Override
     public long countApprovedProposalsByUserId(Long userId) {

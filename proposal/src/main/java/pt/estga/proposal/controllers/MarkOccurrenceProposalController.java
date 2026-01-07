@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
@@ -42,6 +43,14 @@ public class MarkOccurrenceProposalController {
         User user = User.builder().id(userId).build();
         Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
         return proposals.map(markOccurrenceProposalMapper::toDto);
+    }
+
+    @GetMapping("/user/{userId}/stats")
+    public ResponseEntity<MarkOccurrenceProposalStatsDto> getUserStats(
+            @PathVariable Long userId
+    ) {
+        User user = User.builder().id(userId).build();
+        return ResponseEntity.ok(proposalService.getStatsByUser(user));
     }
 
     @GetMapping("/{proposalId}")
