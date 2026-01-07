@@ -27,7 +27,7 @@ public class MarkOccurrenceProposalController {
     public Page<MarkOccurrenceProposalListDto> findByUser(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         User user = User.builder().id(userId).build();
         Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
@@ -38,7 +38,7 @@ public class MarkOccurrenceProposalController {
     public Page<MarkOccurrenceProposalDto> findDetailedByUser(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         User user = User.builder().id(userId).build();
         Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));

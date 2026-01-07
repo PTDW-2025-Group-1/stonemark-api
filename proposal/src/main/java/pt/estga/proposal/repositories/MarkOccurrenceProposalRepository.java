@@ -26,6 +26,13 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
             "LEFT JOIN FETCH p.existingMonument " +
             "LEFT JOIN FETCH p.existingMark " +
+            "WHERE p.id = :id")
+    Optional<MarkOccurrenceProposal> findByIdDetailed(@Param("id") Long id);
+
+    List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.existingMonument " +
+            "LEFT JOIN FETCH p.existingMark " +
             "LEFT JOIN FETCH p.originalMediaFile " +
             "WHERE p.id = :id")
     Optional<MarkOccurrenceProposal> findByIdWithDetails(@Param("id") Long id);
