@@ -27,8 +27,33 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
     private final ProposalDecisionAttemptRepository decisionRepository;
 
     @Override
+    public List<ProposalModeratorViewDto> getAllProposals() {
+        List<MarkOccurrenceProposal> proposals = proposalRepository.findAllDetailed();
+
+        return proposals.stream()
+                .map(proposal -> {
+                    ActiveDecisionViewDto activeDecisionDto = getActiveDecisionViewDto(proposal);
+
+                    return new ProposalModeratorViewDto(
+                            proposal.getId(),
+                            proposal.getStatus(),
+                            proposal.getPriority(),
+                            proposal.getSubmissionSource(),
+                            proposal.getSubmittedById(),
+                            proposal.getSubmittedAt(),
+                            proposal.getMonumentName(),
+                            proposal.getLatitude(),
+                            proposal.getLongitude(),
+                            proposal.getUserNotes(),
+                            activeDecisionDto
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public ProposalModeratorViewDto getProposal(Long id) {
-        MarkOccurrenceProposal proposal = proposalRepository.findById(id)
+        MarkOccurrenceProposal proposal = proposalRepository.findByIdDetailed(id)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found", id);
                     return new ResourceNotFoundException("Proposal not found with id: " + id);

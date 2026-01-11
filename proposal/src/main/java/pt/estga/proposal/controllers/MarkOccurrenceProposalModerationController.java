@@ -37,6 +37,17 @@ public class MarkOccurrenceProposalModerationController {
 
     // ==== Read Operations ====
 
+    @Operation(summary = "Get all proposals for moderation",
+            description = "Retrieves all proposals that require moderation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.",
+                    content = @Content(schema = @Schema(implementation = ProposalModeratorViewDto.class)))
+    })
+    @GetMapping
+    public ResponseEntity<List<ProposalModeratorViewDto>> getAllProposals() {
+        return ResponseEntity.ok(queryService.getAllProposals());
+    }
+
     @Operation(summary = "Get proposal details for moderation",
                description = "Retrieves detailed information about a proposal for moderation purposes.")
     @ApiResponses(value = {

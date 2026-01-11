@@ -17,6 +17,12 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
+    @Query("SELECT DISTINCT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.activeDecision ad " +
+            "LEFT JOIN FETCH ad.detectedMark " +
+            "LEFT JOIN FETCH ad.detectedMonument")
+    List<MarkOccurrenceProposal> findAllDetailed();
+
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
             "LEFT JOIN FETCH p.existingMonument " +
             "LEFT JOIN FETCH p.existingMark " +
@@ -26,6 +32,9 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
             "LEFT JOIN FETCH p.existingMonument " +
             "LEFT JOIN FETCH p.existingMark " +
+            "LEFT JOIN FETCH p.activeDecision ad " +
+            "LEFT JOIN FETCH ad.detectedMark " +
+            "LEFT JOIN FETCH ad.detectedMonument " +
             "WHERE p.id = :id")
     Optional<MarkOccurrenceProposal> findByIdDetailed(@Param("id") Long id);
 
