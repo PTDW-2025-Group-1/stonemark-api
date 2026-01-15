@@ -19,6 +19,8 @@ public interface MarkOccurrenceService {
 
     Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable);
 
+    List<MarkOccurrence> findByMarkIdForMap(Long markId);
+
     List<MarkOccurrence> findLatest(int limit);
 
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);

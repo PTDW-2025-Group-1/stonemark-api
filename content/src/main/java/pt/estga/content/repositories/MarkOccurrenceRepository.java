@@ -19,6 +19,9 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
 
     Page<MarkOccurrence> findAllByMarkId(Long markId, Pageable pageable);
 
+    @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.monument WHERE mo.mark.id = :markId")
+    List<MarkOccurrence> findAllByMarkIdForMap(@Param("markId") Long markId);
+
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
 
     @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.mark JOIN FETCH mo.monument ORDER BY mo.createdAt DESC")
