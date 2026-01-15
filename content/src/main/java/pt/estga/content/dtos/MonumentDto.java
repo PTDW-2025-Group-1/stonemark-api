@@ -6,5 +6,8 @@ public record MonumentDto(
         String description,
         Double latitude,
         Double longitude,
+        String street,
+        String houseNumber,
+        AdministrativeDivisionDto parish,
         Long coverId
 ) { }

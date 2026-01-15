@@ -7,7 +7,7 @@ public record MonumentRequestDto(
         String website,
         Double latitude,
         Double longitude,
-        String address,
-        String city
-) {
-}
+        String street,
+        String houseNumber,
+        Long parishId
+) { }

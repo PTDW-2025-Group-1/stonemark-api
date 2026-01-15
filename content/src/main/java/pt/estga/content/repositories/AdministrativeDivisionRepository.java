@@ -22,6 +22,11 @@ public interface AdministrativeDivisionRepository extends JpaRepository<Administ
             "WHERE p.id = :parentId AND c.admin_level = :childLevel", nativeQuery = true)
     List<AdministrativeDivision> findChildrenByParentId(@Param("parentId") Long parentId, @Param("childLevel") int childLevel);
 
+    @Query(value = "SELECT p.* FROM administrative_division p " +
+            "JOIN administrative_division c ON ST_Intersects(p.geometry, c.geometry) " +
+            "WHERE c.id = :childId AND p.admin_level = :parentLevel", nativeQuery = true)
+    Optional<AdministrativeDivision> findParentByChildId(@Param("childId") Long childId, @Param("parentLevel") int parentLevel);
+
     @Query(value = "SELECT * FROM administrative_division d " +
             "WHERE ST_Contains(d.geometry, ST_SetSRID(ST_Point(:longitude, :latitude), 4326)) " +
             "ORDER BY d.admin_level ASC", nativeQuery = true)

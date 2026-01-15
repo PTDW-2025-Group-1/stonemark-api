@@ -24,10 +24,13 @@ public class ReverseGeocodingService {
         String address = response.path("display_name").asText(null);
         
         JsonNode addr = response.path("address");
-        String city = addr.has("city") ? addr.get("city").asText()
-                : addr.has("town") ? addr.get("town").asText()
-                : addr.has("village") ? addr.get("village").asText()
+
+        String street = addr.has("road") ? addr.get("road").asText()
+                : addr.has("pedestrian") ? addr.get("pedestrian").asText()
+                : addr.has("street") ? addr.get("street").asText()
                 : null;
+        
+        String houseNumber = addr.has("house_number") ? addr.get("house_number").asText() : null;
 
         String name = null;
         if (response.has("name")) {
@@ -51,8 +54,9 @@ public class ReverseGeocodingService {
         return GeocodingResultDto.builder()
                 .name(name)
                 .address(address)
-                .city(city)
                 .description(description)
+                .street(street)
+                .houseNumber(houseNumber)
                 .build();
     }
 }

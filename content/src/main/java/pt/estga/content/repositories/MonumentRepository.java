@@ -16,13 +16,6 @@ import java.util.Optional;
 public interface MonumentRepository extends JpaRepository<Monument, Long> {
     Optional<Monument> findByName(String name);
 
-    @Query("SELECT m FROM Monument m WHERE m.name LIKE %:name% AND m.active = true")
-    List<Monument> findByNameContaining(@Param("name") String name);
-
-    List<Monument> findByLatitudeBetweenAndLongitudeBetween(double minLat, double maxLat, double minLon, double maxLon);
-
-    Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
-
     Page<Monument> findByNameContainingIgnoreCaseAndActiveTrue(String name, Pageable pageable);
 
     Page<Monument> findByActiveTrue(Pageable pageable);
@@ -32,4 +25,7 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
 
     @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
     Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
+
+    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_MakeEnvelope(:longitude1, :latitude1, :longitude2, :latitude2, 4326))", nativeQuery = true)
+    List<Monument> findByLatitudeBetweenAndLongitudeBetween(@Param("latitude1") double latitude1, @Param("latitude2") double latitude2, @Param("longitude1") double longitude1, @Param("longitude2") double longitude2);
 }

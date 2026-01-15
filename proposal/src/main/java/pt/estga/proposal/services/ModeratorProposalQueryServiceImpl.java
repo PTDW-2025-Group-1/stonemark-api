@@ -3,6 +3,8 @@ package pt.estga.proposal.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.dtos.ActiveDecisionViewDto;
@@ -10,6 +12,7 @@ import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
+import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
@@ -34,6 +37,37 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                     return new ResourceNotFoundException("Proposal not found with id: " + id);
                 });
 
+        return toModeratorViewDto(proposal);
+    }
+
+    @Override
+    public List<DecisionHistoryItem> getDecisionHistory(Long proposalId) {
+        return decisionRepository.findByProposalIdOrderByDecidedAtDesc(proposalId)
+                .stream()
+                .map(decision -> new DecisionHistoryItem(
+                        decision.getId(),
+                        decision.getType(),
+                        decision.getOutcome(),
+                        decision.getConfident(),
+                        decision.getDecidedAt(),
+                        decision.getDecidedBy(),
+                        decision.getNotes()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ProposalModeratorViewDto> getAllProposals(List<ProposalStatus> statuses, Pageable pageable) {
+        Page<MarkOccurrenceProposal> page;
+        if (statuses != null && !statuses.isEmpty()) {
+            page = proposalRepository.findByStatusIn(statuses, pageable);
+        } else {
+            page = proposalRepository.findAll(pageable);
+        }
+        return page.map(this::toModeratorViewDto);
+    }
+
+    private ProposalModeratorViewDto toModeratorViewDto(MarkOccurrenceProposal proposal) {
         ActiveDecisionViewDto activeDecisionDto = getActiveDecisionViewDto(proposal);
 
         return new ProposalModeratorViewDto(
@@ -68,21 +102,5 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
             );
         }
         return activeDecisionDto;
-    }
-
-    @Override
-    public List<DecisionHistoryItem> getDecisionHistory(Long proposalId) {
-        return decisionRepository.findByProposalIdOrderByDecidedAtDesc(proposalId)
-                .stream()
-                .map(decision -> new DecisionHistoryItem(
-                        decision.getId(),
-                        decision.getType(),
-                        decision.getOutcome(),
-                        decision.getConfident(),
-                        decision.getDecidedAt(),
-                        decision.getDecidedBy(),
-                        decision.getNotes()
-                ))
-                .collect(Collectors.toList());
     }
 }

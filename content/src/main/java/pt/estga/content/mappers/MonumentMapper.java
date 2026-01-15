@@ -9,7 +9,7 @@ import pt.estga.content.dtos.*;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.mappers.MediaFileMapper;
 
-@Mapper(componentModel = "spring", uses = {MediaFileMapper.class})
+@Mapper(componentModel = "spring", uses = {MediaFileMapper.class, AdministrativeDivisionMapper.class})
 public interface MonumentMapper {
 
     @Mapping(source = "cover.id", target = "coverId")
@@ -23,9 +23,11 @@ public interface MonumentMapper {
 
     MonumentMapDto toMapDto(Monument monument);
 
+    @Mapping(source = "parishId", target = "parish.id")
     Monument toEntity(MonumentRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(source = "parishId", target = "parish.id")
     void updateEntityFromDto(MonumentRequestDto dto, @MappingTarget Monument entity);
 
 }

@@ -43,6 +43,10 @@ public class AdministrativeDivisionService {
         return repository.findChildrenByParentId(parentId, childLevel);
     }
 
+    public Optional<AdministrativeDivision> findParent(Long childId, int parentLevel) {
+        return repository.findParentByChildId(childId, parentLevel);
+    }
+
     public List<AdministrativeDivision> findByCoordinates(double latitude, double longitude) {
         return repository.findByCoordinates(latitude, longitude);
     }

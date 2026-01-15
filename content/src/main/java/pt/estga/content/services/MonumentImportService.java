@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pt.estga.content.entities.AdministrativeDivision;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 
@@ -13,12 +14,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MonumentImportService {
 
     private final MonumentRepository repository;
+    private final AdministrativeDivisionService administrativeDivisionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public int importFromGeoJson(InputStream inputStream) throws IOException {
@@ -57,6 +60,18 @@ public class MonumentImportService {
             monument.setLongitude(lon);
             monument.setWebsite(properties.path("website").asText(null));
             monument.setProtectionTitle(properties.path("protection_title").asText(null));
+            
+            monument.setStreet(properties.path("addr:street").asText(null));
+            monument.setHouseNumber(properties.path("addr:housenumber").asText(null));
+
+            // Try to find parish by coordinates
+            List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(lat, lon);
+            // Assuming adminLevel 8 is Parish
+            Optional<AdministrativeDivision> parish = divisions.stream()
+                    .filter(d -> d.getAdminLevel() == 8)
+                    .findFirst();
+            
+            parish.ifPresent(monument::setParish);
 
             monumentMap.put(name, monument);
         }
@@ -80,6 +95,9 @@ public class MonumentImportService {
         existing.setLongitude(incoming.getLongitude());
         existing.setWebsite(incoming.getWebsite());
         existing.setProtectionTitle(incoming.getProtectionTitle());
+        existing.setStreet(incoming.getStreet());
+        existing.setHouseNumber(incoming.getHouseNumber());
+        existing.setParish(incoming.getParish());
         return existing;
     }
 }

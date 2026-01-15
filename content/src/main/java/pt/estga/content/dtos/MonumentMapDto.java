@@ -7,6 +7,7 @@ public record MonumentMapDto(
         Double latitude,
         Double longitude,
         String protectionTitle,
-        String website
+        String website,
+        AdministrativeDivisionDto parish
 ) {
 }

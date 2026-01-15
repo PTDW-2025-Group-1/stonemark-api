@@ -7,5 +7,7 @@ public record GeocodingResultDto(
     String name,
     String address,
     String city,
-    String description
+    String description,
+    String street,
+    String houseNumber
 ) {}

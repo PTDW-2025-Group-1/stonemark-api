@@ -10,8 +10,9 @@ public record MonumentResponseDto(
         String website,
         Double latitude,
         Double longitude,
-        String address,
-        String city,
+        String street,
+        String houseNumber,
+        AdministrativeDivisionDto parish,
         Long coverId,
         Instant createdAt,
         Instant lastModifiedAt

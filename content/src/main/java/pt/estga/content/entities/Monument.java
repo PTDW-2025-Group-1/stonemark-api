@@ -23,7 +23,12 @@ public class Monument extends AuditedEntity {
     private Double latitude;
     private Double longitude;
     private String website;
-    private String address;
+
+    private String street;
+    private String houseNumber;
+
+    @ManyToOne
+    private AdministrativeDivision parish;
 
     @Builder.Default
     private Boolean active = true;

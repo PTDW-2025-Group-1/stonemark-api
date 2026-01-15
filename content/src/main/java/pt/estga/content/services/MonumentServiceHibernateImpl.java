@@ -28,22 +28,9 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Optional<Monument> findById(Long id) {
-        return repository.findById(id);
-    }
-
-    @Override
-    public Optional<Monument> findByName(String name) {
-        return repository.findByName(name);
-    }
-
-    @Override
-    public List<Monument> findByNameContaining(String name) {
-        return repository.findByNameContaining(name);
-    }
-
-    @Override
-    public Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude) {
-        return repository.findByLatitudeAndLongitude(latitude, longitude);
+        Optional<Monument> monument = repository.findById(id);
+        monument.ifPresent(this::setParishByCoordinates);
+        return monument;
     }
 
     @Override
@@ -85,16 +72,28 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Monument create(Monument monument) {
+        setParishByCoordinates(monument);
         return repository.save(monument);
     }
 
     @Override
     public Monument update(Monument monument) {
+        setParishByCoordinates(monument);
         return repository.save(monument);
     }
 
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    private void setParishByCoordinates(Monument m) {
+        if (m.getParish() == null && m.getLatitude() != null && m.getLongitude() != null) {
+            List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
+            divisions.stream()
+                    .filter(d -> d.getAdminLevel() == 8)
+                    .findFirst()
+                    .ifPresent(m::setParish);
+        }
     }
 }

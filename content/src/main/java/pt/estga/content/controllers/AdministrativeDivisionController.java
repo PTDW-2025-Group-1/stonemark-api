@@ -22,6 +22,14 @@ public class AdministrativeDivisionController {
     private final AdministrativeDivisionService service;
     private final AdministrativeDivisionMapper mapper;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AdministrativeDivisionDto> getById(@PathVariable Long id) {
+        return service.findById(id)
+                .map(mapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/districts")
     public ResponseEntity<List<AdministrativeDivisionDto>> getDistricts() {
         List<AdministrativeDivision> districts = service.findByAdminLevel(6);
@@ -52,6 +60,22 @@ public class AdministrativeDivisionController {
         List<AdministrativeDivision> parishes = service.findChildren(municipalityId, 8);
         log.info("Parishes: {}", parishes);
         return ResponseEntity.ok(mapper.toDtoList(parishes));
+    }
+
+    @GetMapping("/municipalities/{municipalityId}/district")
+    public ResponseEntity<AdministrativeDivisionDto> getDistrictByMunicipality(@PathVariable Long municipalityId) {
+        return service.findParent(municipalityId, 6)
+                .map(mapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/parishes/{parishId}/municipality")
+    public ResponseEntity<AdministrativeDivisionDto> getMunicipalityByParish(@PathVariable Long parishId) {
+        return service.findParent(parishId, 7)
+                .map(mapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/coordinates")

@@ -101,7 +101,7 @@ public class MonumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonumentResponseDto> getMonument(
+    public ResponseEntity<MonumentResponseDto> getMonumentById(
             @PathVariable Long id
     ) {
         return service.findById(id)

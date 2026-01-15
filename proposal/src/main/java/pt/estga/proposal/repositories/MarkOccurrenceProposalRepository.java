@@ -26,4 +26,6 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
 
+    Page<MarkOccurrenceProposal> findByStatusIn(Collection<ProposalStatus> statuses, Pageable pageable);
+
 }

@@ -51,6 +51,12 @@ public class MonumentCreationService {
         log.info("Created new monument with ID: {}", savedMonument.getId());
         return savedMonument;
     }
+
+    public GeocodingResultDto getAutofillData(Long proposalId) {
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Proposal not found"));
+        return getAutofillData(proposal);
+    }
     
     public GeocodingResultDto getAutofillData(MarkOccurrenceProposal proposal) {
          if (proposal.getLatitude() != null && proposal.getLongitude() != null) {

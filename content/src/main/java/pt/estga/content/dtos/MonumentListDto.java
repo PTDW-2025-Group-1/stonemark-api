@@ -4,6 +4,7 @@ public record MonumentListDto(
         Long id,
         Long coverId,
         String name,
-        String city
+        String city,
+        AdministrativeDivisionDto parish
 ) {
 }
