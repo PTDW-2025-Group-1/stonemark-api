@@ -41,6 +41,7 @@ public class SecurityConfig {
     };
     private static final String[] PUBLIC_ROUTES = {
             "/api/v1/auth/**",
+            "/api/v1/divisions/**",
             "/api/v1/monuments/**",
             "/api/v1/marks/**",
             "/api/v1/mark-occurrences/**",

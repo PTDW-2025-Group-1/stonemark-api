@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record AdministrativeDivisionDto(
-    String district,
-    String municipality,
-    String parish
+    Long id,
+    String name,
+    int adminLevel
 ) {}

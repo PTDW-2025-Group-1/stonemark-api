@@ -1,5 +1,6 @@
 package pt.estga.content.repositories;
 
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,6 +30,6 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_GeomFromGeoJSON(:geoJson)) AND m.active = true", nativeQuery = true)
     Page<Monument> findByPolygon(@Param("geoJson") String geoJson, Pageable pageable);
 
-    @Query("SELECT m FROM Monument m WHERE m.active = true AND (m.district = :divisionName OR m.municipality = :divisionName OR m.parish = :divisionName)")
-    Page<Monument> findByDivisionName(@Param("divisionName") String divisionName, Pageable pageable);
+    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
+    Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
 }

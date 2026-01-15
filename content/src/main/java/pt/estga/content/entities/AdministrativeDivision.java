@@ -2,6 +2,7 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.locationtech.jts.geom.Geometry;
 import pt.estga.shared.audit.AuditedEntity;
 
 @Entity
@@ -20,14 +21,13 @@ public class AdministrativeDivision extends AuditedEntity {
 
     /**
      * Administrative level of the division.
-     * 6: District / province (distrito)
-     * 8: Municipality / county (concelho)
-     * 10: Parish / commune (freguesia)
+     * 6: District (distrito)
+     * 7: Municipality (concelho)
+     * 8: Parish (freguesia)
      */
-    private String adminLevel;
-    private String borderType;
+    private int adminLevel;
 
-    @Column(columnDefinition = "TEXT")
-    private String geometryJson;
+    @Column(columnDefinition = "geometry")
+    private Geometry geometry;
 
 }

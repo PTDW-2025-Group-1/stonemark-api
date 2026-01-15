@@ -23,9 +23,6 @@ public class Monument extends AuditedEntity {
     private Double latitude;
     private Double longitude;
     private String website;
-    private String district;
-    private String municipality;
-    private String parish;
     private String address;
 
     @Builder.Default

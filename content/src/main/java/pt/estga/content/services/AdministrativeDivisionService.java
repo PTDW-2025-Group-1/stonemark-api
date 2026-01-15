@@ -27,12 +27,24 @@ public class AdministrativeDivisionService {
         return repository.findByName(name);
     }
 
-    public Optional<AdministrativeDivision> findByNameAndAdminLevel(String name, String adminLevel) {
+    public Optional<AdministrativeDivision> findByNameAndAdminLevel(String name, int adminLevel) {
         return repository.findByNameAndAdminLevel(name, adminLevel);
     }
 
     public List<AdministrativeDivision> findAllByNameIn(Collection<String> names) {
         return repository.findAllByNameIn(names);
+    }
+
+    public List<AdministrativeDivision> findByAdminLevel(int adminLevel) {
+        return repository.findByAdminLevel(adminLevel);
+    }
+
+    public List<AdministrativeDivision> findChildren(Long parentId, int childLevel) {
+        return repository.findChildrenByParentId(parentId, childLevel);
+    }
+
+    public List<AdministrativeDivision> findByCoordinates(double latitude, double longitude) {
+        return repository.findByCoordinates(latitude, longitude);
     }
 
     public AdministrativeDivision create(AdministrativeDivision division) {

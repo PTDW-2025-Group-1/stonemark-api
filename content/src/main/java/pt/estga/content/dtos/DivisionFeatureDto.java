@@ -7,6 +7,5 @@ import lombok.Builder;
 public record DivisionFeatureDto(
     String name,
     String adminLevel,
-    String borderType,
     JsonNode geometry
 ) {}

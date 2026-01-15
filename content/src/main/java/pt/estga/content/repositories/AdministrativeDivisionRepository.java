@@ -1,6 +1,8 @@
 package pt.estga.content.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.content.entities.AdministrativeDivision;
 
@@ -11,6 +13,17 @@ import java.util.Optional;
 @Repository
 public interface AdministrativeDivisionRepository extends JpaRepository<AdministrativeDivision, Long> {
     Optional<AdministrativeDivision> findByName(String name);
-    Optional<AdministrativeDivision> findByNameAndAdminLevel(String name, String adminLevel);
+    Optional<AdministrativeDivision> findByNameAndAdminLevel(String name, int adminLevel);
     List<AdministrativeDivision> findAllByNameIn(Collection<String> names);
+    List<AdministrativeDivision> findByAdminLevel(int adminLevel);
+
+    @Query(value = "SELECT c.* FROM administrative_division c " +
+            "JOIN administrative_division p ON ST_Intersects(c.geometry, p.geometry) " +
+            "WHERE p.id = :parentId AND c.admin_level = :childLevel", nativeQuery = true)
+    List<AdministrativeDivision> findChildrenByParentId(@Param("parentId") Long parentId, @Param("childLevel") int childLevel);
+
+    @Query(value = "SELECT * FROM administrative_division d " +
+            "WHERE ST_Contains(d.geometry, ST_SetSRID(ST_Point(:longitude, :latitude), 4326)) " +
+            "ORDER BY d.admin_level ASC", nativeQuery = true)
+    List<AdministrativeDivision> findByCoordinates(@Param("latitude") double latitude, @Param("longitude") double longitude);
 }

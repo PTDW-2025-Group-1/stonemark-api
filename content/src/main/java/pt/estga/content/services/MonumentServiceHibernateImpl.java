@@ -1,6 +1,7 @@
 package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -74,14 +75,9 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     public Page<Monument> findByDivisionId(Long divisionId, Pageable pageable) {
         Optional<AdministrativeDivision> division = administrativeDivisionService.findById(divisionId);
         if (division.isPresent()) {
-            // Assuming the division name is stored in the monument's district, municipality, or parish field
-            // Or we could use the geometry of the division to search by polygon
-            String geometryJson = division.get().getGeometryJson();
-            if (geometryJson != null && !geometryJson.isEmpty()) {
-                return repository.findByPolygon(geometryJson, pageable);
-            } else {
-                // Fallback to name search if geometry is missing
-                return repository.findByDivisionName(division.get().getName(), pageable);
+            Geometry geometry = division.get().getGeometry();
+            if (geometry != null) {
+                return repository.findByGeometry(geometry, pageable);
             }
         }
         return Page.empty(pageable);

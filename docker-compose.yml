@@ -1,7 +1,7 @@
 services:
   database:
     container_name: stonemark-db
-    image: pgvector/pgvector:pg16
+    build: ./postgres
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
