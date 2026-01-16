@@ -1,5 +1,7 @@
 package pt.estga.content.dtos;
 
+import pt.estga.administrative.dto.AdministrativeDivisionDto;
+
 import java.time.Instant;
 
 public record MonumentResponseDto(

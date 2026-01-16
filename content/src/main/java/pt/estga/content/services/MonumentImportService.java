@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.content.entities.AdministrativeDivision;
+import pt.estga.administrative.entities.AdministrativeDivision;
+import pt.estga.administrative.services.AdministrativeDivisionService;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 

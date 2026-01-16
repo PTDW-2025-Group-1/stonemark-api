@@ -1,15 +1,13 @@
-package pt.estga.content.services;
+package pt.estga.administrative.services;
 
-import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import pt.estga.content.entities.AdministrativeDivision;
-import pt.estga.content.repositories.AdministrativeDivisionRepository;
+import pt.estga.administrative.entities.AdministrativeDivision;
+import pt.estga.administrative.repositories.AdministrativeDivisionRepository;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -19,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for importing administrative divisions from OSM PBF files.
@@ -39,8 +38,8 @@ public class DivisionImportService {
 
     private final AdministrativeDivisionRepository repository;
     private final ObjectMapper objectMapper;
+    private final DivisionParentMappingWorker parentMappingWorker;
 
-    @Transactional
     public int importFromPbf(InputStream pbfStream) throws Exception {
 
         Path pbfFile = Files.createTempFile("portugal-admin-", ".osm.pbf");
@@ -56,8 +55,6 @@ public class DivisionImportService {
 
         pb.redirectErrorStream(true);
         Process process = pb.start();
-
-        repository.deleteAllInBatch();
 
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream())
@@ -84,7 +81,8 @@ public class DivisionImportService {
             }
 
             int adminLevel = props.path("admin_level").asInt(-1);
-            if (adminLevel != 6 && adminLevel != 7 && adminLevel != 8) {
+            // Allow level 4 (Autonomous Regions), 6 (Districts), 7 (Municipalities), 8 (Parishes)
+            if (adminLevel != 4 && adminLevel != 6 && adminLevel != 7 && adminLevel != 8) {
                 continue;
             }
 
@@ -93,14 +91,59 @@ public class DivisionImportService {
                 continue;
             }
 
+            // Extract OSM ID
+            long osmId = 0;
+            if (feature.hasNonNull("id")) {
+                osmId = feature.get("id").asLong();
+            } else if (props.hasNonNull("id")) {
+                osmId = props.get("id").asLong();
+            } else if (props.hasNonNull("@id")) {
+                osmId = props.get("@id").asLong();
+            }
+
+            if (osmId == 0) {
+                log.warn("Skipping division '{}' because no valid OSM ID was found.", name);
+                continue;
+            }
+
+            // Filter out level 4 that are not Azores or Madeira by ID
+            // Azores: 1629146, Madeira: 1629145
+            if (adminLevel == 4) {
+                if (osmId == 1629146 || osmId == 1629145) {
+                    // Treat them as level 6 (Districts) to simplify hierarchy
+                    adminLevel = 6;
+                } else {
+                    log.info("Skipping level 4 division '{}' (ID: {}) as it is not Azores or Madeira.", name, osmId);
+                    continue;
+                }
+            }
+
             Geometry geometry = geoJsonReader.read(objectMapper.writeValueAsString(geomNode));
             geometry.setSRID(4326);
+            
+            // Fix invalid geometries
+            if (!geometry.isValid()) {
+                geometry = geometry.buffer(0);
+            }
 
-            AdministrativeDivision div = AdministrativeDivision.builder()
-                    .name(name)
-                    .adminLevel(adminLevel)
-                    .geometry(geometry)
-                    .build();
+            // Check if exists
+            Optional<AdministrativeDivision> existingOpt = repository.findById(osmId);
+            AdministrativeDivision div;
+
+            if (existingOpt.isPresent()) {
+                div = existingOpt.get();
+                div.setName(name);
+                div.setAdminLevel(adminLevel);
+                div.setGeometry(geometry);
+                // Parent will be recalculated later
+            } else {
+                div = AdministrativeDivision.builder()
+                        .id(osmId)
+                        .name(name)
+                        .adminLevel(adminLevel)
+                        .geometry(geometry)
+                        .build();
+            }
 
             batch.add(div);
             count++;
@@ -121,6 +164,10 @@ public class DivisionImportService {
         }
 
         Files.deleteIfExists(pbfFile);
+
+        // Trigger parent mapping asynchronously
+        parentMappingWorker.calculateParents();
+
         return count;
     }
 

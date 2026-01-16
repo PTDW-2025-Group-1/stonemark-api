@@ -22,6 +22,13 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
             "WHERE p.submittedById = :userId")
     Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.existingMonument " +
+            "LEFT JOIN FETCH p.existingMark " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
+            "WHERE p.id = :id")
+    Optional<MarkOccurrenceProposal> findByIdWithDetails(@Param("id") Long id);
+
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);

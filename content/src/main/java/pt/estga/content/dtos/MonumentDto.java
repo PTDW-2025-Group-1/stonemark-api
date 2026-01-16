@@ -1,5 +1,7 @@
 package pt.estga.content.dtos;
 
+import pt.estga.administrative.dto.AdministrativeDivisionDto;
+
 public record MonumentDto(
         Long id,
         String name,

@@ -26,7 +26,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     @Override
     public Optional<MarkOccurrenceProposal> findById(Long id) {
-        return repository.findById(id);
+        return repository.findByIdWithDetails(id);
     }
 
     @Override

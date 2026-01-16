@@ -31,7 +31,7 @@ import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/proposals/mark-occurrences")
+@RequestMapping("api/v1/proposals/mark-occurrences/moderation")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('REVIEWER')")
 @Tag(name = "Proposal Moderation", description = "Endpoints for proposal moderation actions.")

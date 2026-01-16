@@ -4,7 +4,7 @@ filter only necessary data (administrative boundaries):
 
 osmium tags-filter portugal-latest.osm.pbf \
 r/boundary=administrative \
-r/admin_level=6,7,8 \
+r/admin_level=4,6,7,8 \
 -o portugal-admin.osm.pbf
 
 

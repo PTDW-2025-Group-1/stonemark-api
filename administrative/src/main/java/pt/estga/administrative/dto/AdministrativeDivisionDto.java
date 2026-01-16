@@ -1,10 +1,10 @@
-package pt.estga.content.dtos;
+package pt.estga.administrative.dto;
 
 import lombok.Builder;
 
 @Builder
 public record AdministrativeDivisionDto(
-    Long id,
+    Long osmId,
     String name,
     int adminLevel
 ) {}

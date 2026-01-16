@@ -1,8 +1,7 @@
-package pt.estga.content.mappers;
+package pt.estga.administrative.mappers;
 
 import org.mapstruct.Mapper;
-import pt.estga.content.dtos.AdministrativeDivisionDto;
-import pt.estga.content.entities.AdministrativeDivision;
+import pt.estga.administrative.dto.AdministrativeDivisionDto;import pt.estga.administrative.entities.AdministrativeDivision;
 
 import java.util.List;
 

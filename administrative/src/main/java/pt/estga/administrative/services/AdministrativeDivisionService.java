@@ -1,9 +1,9 @@
-package pt.estga.content.services;
+package pt.estga.administrative.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.content.entities.AdministrativeDivision;
-import pt.estga.content.repositories.AdministrativeDivisionRepository;
+import pt.estga.administrative.entities.AdministrativeDivision;
+import pt.estga.administrative.repositories.AdministrativeDivisionRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,14 +23,6 @@ public class AdministrativeDivisionService {
         return repository.findById(id);
     }
 
-    public Optional<AdministrativeDivision> findByName(String name) {
-        return repository.findByName(name);
-    }
-
-    public Optional<AdministrativeDivision> findByNameAndAdminLevel(String name, int adminLevel) {
-        return repository.findByNameAndAdminLevel(name, adminLevel);
-    }
-
     public List<AdministrativeDivision> findAllByNameIn(Collection<String> names) {
         return repository.findAllByNameIn(names);
     }
@@ -39,12 +31,12 @@ public class AdministrativeDivisionService {
         return repository.findByAdminLevel(adminLevel);
     }
 
-    public List<AdministrativeDivision> findChildren(Long parentId, int childLevel) {
-        return repository.findChildrenByParentId(parentId, childLevel);
+    public List<AdministrativeDivision> findChildren(Long parentId) {
+        return repository.findByParentId(parentId);
     }
 
-    public Optional<AdministrativeDivision> findParent(Long childId, int parentLevel) {
-        return repository.findParentByChildId(childId, parentLevel);
+    public Optional<AdministrativeDivision> findParent(Long childId) {
+        return repository.findById(childId).map(AdministrativeDivision::getParent);
     }
 
     public List<AdministrativeDivision> findByCoordinates(double latitude, double longitude) {

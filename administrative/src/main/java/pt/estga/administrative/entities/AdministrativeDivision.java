@@ -1,4 +1,4 @@
-package pt.estga.content.entities;
+package pt.estga.administrative.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +14,6 @@ import pt.estga.shared.audit.AuditedEntity;
 public class AdministrativeDivision extends AuditedEntity {
 
     @Id
-    @GeneratedValue
     private Long id;
 
     private String name;
@@ -29,5 +28,8 @@ public class AdministrativeDivision extends AuditedEntity {
 
     @Column(columnDefinition = "geometry")
     private Geometry geometry;
+
+    @ManyToOne
+    private AdministrativeDivision parent;
 
 }
