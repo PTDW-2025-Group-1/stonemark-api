@@ -8,7 +8,6 @@ import pt.estga.proposal.enums.SubmissionSource;
 public record MarkOccurrenceProposalDto(
         Long id,
         Integer priority,
-        SubmissionSource submissionSource,
         Long coverId,
         MonumentResponseDto existingMonument,
         String monumentName,

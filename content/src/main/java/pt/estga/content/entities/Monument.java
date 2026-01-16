@@ -31,7 +31,7 @@ public class Monument extends AuditedEntity {
     private String street;
     private String houseNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private AdministrativeDivision parish;
 
     @ManyToOne(fetch = FetchType.LAZY)

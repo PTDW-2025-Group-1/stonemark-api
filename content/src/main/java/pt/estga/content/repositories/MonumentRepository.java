@@ -34,4 +34,7 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
 
     @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range)", nativeQuery = true)
     List<Monument> findByCoordinatesInRange(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("range") double range);
+
+    @Query("SELECT m FROM MarkOccurrence mo JOIN mo.monument m GROUP BY m ORDER BY COUNT(m) DESC")
+    List<Monument> findPopular(Pageable pageable);
 }

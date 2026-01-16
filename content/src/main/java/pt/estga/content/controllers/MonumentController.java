@@ -84,6 +84,14 @@ public class MonumentController {
         return service.findByDivisionId(id, pageable).map(mapper::toListDto);
     }
 
+    @GetMapping("/popular")
+    public List<MonumentListDto> getPopularMonuments(
+            @RequestParam(defaultValue = "6") int limit
+    ) {
+        int safeLimit = Math.min(limit, 50);
+        return mapper.toListDto(service.findPopular(safeLimit));
+    }
+
     @GetMapping("/latest")
     public List<MonumentListDto> getLatestMonuments(
             @RequestParam(defaultValue = "6") int limit

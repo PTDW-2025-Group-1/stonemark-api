@@ -1,10 +1,10 @@
 package pt.estga.content.dtos;
 
+import pt.estga.territory.dtos.AdministrativeDivisionDto;
+
 public record MonumentListDto(
         Long id,
         String name,
-        Long parishId,
-        Long municipalityId,
-        Long districtId,
+        AdministrativeDivisionDto parish,
         Long coverId
 ) { }

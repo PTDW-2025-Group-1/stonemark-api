@@ -2,6 +2,7 @@ package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Geometry;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -98,6 +99,12 @@ public class MonumentServiceHibernateImpl implements MonumentService {
             updateCounters(monument, null);
             repository.deleteById(id);
         });
+    }
+
+    @Override
+    @Cacheable("popularMonuments")
+    public List<Monument> findPopular(int limit) {
+        return repository.findPopular(PageRequest.of(0, limit));
     }
 
     private void updateCounters(Monument oldMonument, Monument newMonument) {
