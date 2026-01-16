@@ -13,6 +13,8 @@ import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.dtos.MarkOccurrenceDto;
 import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentListDto;
+import pt.estga.content.dtos.MarkOccurrenceListDto;
+import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.dtos.MarkOccurrenceMapDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkMapper;
@@ -58,6 +60,14 @@ public class MarkOccurrenceController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
         return service.findByMarkId(markId, pageable)
                 .map(mapper::toDto);
+    }
+
+    @GetMapping("/map/by-mark/{markId}")
+    public List<MarkOccurrenceMapDto> getOccurrencesForMapByMark(@PathVariable Long markId) {
+        return service.findByMarkIdForMap(markId)
+                .stream()
+                .map(mapper::toMapDto)
+                .toList();
     }
 
     @GetMapping("/map/by-mark/{markId}")
