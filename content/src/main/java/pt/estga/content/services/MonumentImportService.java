@@ -4,15 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.index.strtree.STRtree;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
-import pt.estga.territory.entities.AdministrativeDivision;
-import pt.estga.territory.entities.LogicalLevel;
 import pt.estga.territory.services.AdministrativeDivisionService;
 
 import java.io.IOException;
@@ -21,7 +16,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +25,8 @@ public class MonumentImportService {
     private final MonumentRepository repository;
     private final AdministrativeDivisionService administrativeDivisionService;
     private final ObjectMapper objectMapper;
-    private final GeometryFactory geometryFactory = new GeometryFactory();
 
+    @Transactional
     public int importFromGeoJson(InputStream inputStream) throws IOException {
 
         JsonNode root = objectMapper.readTree(inputStream);
@@ -42,27 +36,24 @@ public class MonumentImportService {
             return 0;
         }
 
-        // Phase 1: Build an in-memory spatial index of all parishes.
-        log.info("Building parish spatial index...");
-        STRtree parishIndex = new STRtree();
-        List<AdministrativeDivision> parishes = administrativeDivisionService.findByOsmAdminLevel(8);
-        for (AdministrativeDivision parish : parishes) {
-            if (parish.getGeometry() != null) {
-                parishIndex.insert(parish.getGeometry().getEnvelopeInternal(), parish);
-            }
-        }
-        parishIndex.build();
-        log.info("Parish index built with {} parishes.", parishes.size());
-
-        // Phase 2: Process monuments from GeoJSON
+        // Phase 1: Process monuments from GeoJSON
         Map<String, Monument> monumentMap = new LinkedHashMap<>();
 
         for (JsonNode feature : features) {
             JsonNode properties = feature.path("properties");
             if (!properties.isObject()) continue;
 
+            String externalId = feature.path("id").asText(null);
+            if (externalId == null || externalId.isBlank()) {
+                log.error("Found a feature with a missing or blank 'id'. Halting import. Feature: {}", feature.toString());
+                throw new IllegalArgumentException("Found a feature with a missing or blank 'id'. All features must have a unique 'id'.");
+            }
+
             String name = properties.path("name").asText(null);
-            if (name == null || name.isBlank()) continue;
+            if (name == null || name.isBlank()) {
+                log.warn("Skipping feature with externalId '{}' because it has no name.", externalId);
+                continue;
+            }
 
             JsonNode geometry = feature.path("geometry");
             if (!geometry.isObject()) continue;
@@ -75,6 +66,7 @@ public class MonumentImportService {
             if (Double.isNaN(lat) || Double.isNaN(lon)) continue;
 
             Monument monument = new Monument();
+            monument.setExternalId(externalId);
             monument.setName(name);
             monument.setDescription(properties.path("description").asText(null));
             monument.setLatitude(lat);
@@ -84,19 +76,19 @@ public class MonumentImportService {
             monument.setStreet(properties.path("addr:street").asText(null));
             monument.setHouseNumber(properties.path("addr:housenumber").asText(null));
 
-            // Find parish using the in-memory spatial index (no DB call here)
-            findParish(parishIndex, lon, lat).ifPresent(monument::setParish);
+            // Set all divisions (parish, municipality, district) using standard service logic
+            setDivisions(monument);
 
-            if (monumentMap.containsKey(name)) {
-                log.warn("Duplicate monument name found: '{}'. The last entry will be used. Consider a more robust unique identifier.", name);
+            if (monumentMap.containsKey(externalId)) {
+                log.warn("Duplicate monument external ID found: '{}'. The last entry will be used.", externalId);
             }
-            monumentMap.put(name, monument);
+            monumentMap.put(externalId, monument);
         }
 
-        // Phase 3: Persist monuments
+        // Phase 2: Persist monuments
         List<Monument> toSave = new ArrayList<>();
         for (Monument incoming : monumentMap.values()) {
-            repository.findByName(incoming.getName())
+            repository.findByExternalId(incoming.getExternalId())
                     .ifPresentOrElse(
                             existing -> {
                                 incoming.setId(existing.getId()); // Set ID to trigger an update
@@ -106,18 +98,17 @@ public class MonumentImportService {
                     );
         }
 
-        repository.saveAll(toSave);
-        return toSave.size();
+        List<Monument> savedMonuments = repository.saveAll(toSave);
+
+        // Phase 3: Recalculate all monument counts
+        log.info("Recalculating all monument counts in administrative divisions...");
+        administrativeDivisionService.recalculateAllMonumentsCounts();
+        log.info("Monument counts updated.");
+
+        return savedMonuments.size();
     }
 
-    private Optional<AdministrativeDivision> findParish(STRtree parishIndex, double lon, double lat) {
-        Point monumentLocation = geometryFactory.createPoint(new Coordinate(lon, lat));
-        
-        @SuppressWarnings("unchecked")
-        List<AdministrativeDivision> potentialParishes = parishIndex.query(monumentLocation.getEnvelopeInternal());
-
-        return potentialParishes.stream()
-                .filter(parish -> parish.getGeometry().contains(monumentLocation))
-                .findFirst();
+    private void setDivisions(Monument m) {
+        MonumentServiceHibernateImpl.setDivisions(m, administrativeDivisionService);
     }
 }

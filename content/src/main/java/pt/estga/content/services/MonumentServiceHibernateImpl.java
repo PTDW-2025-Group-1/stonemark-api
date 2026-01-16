@@ -7,12 +7,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.territory.entities.AdministrativeDivision;
 import pt.estga.territory.services.AdministrativeDivisionService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -28,8 +30,9 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Monument> findById(Long id) {
-        return repository.findById(id);
+        return repository.findByIdWithDivisions(id);
     }
 
     @Override
@@ -70,42 +73,74 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
+    @Transactional
     public Monument create(Monument monument) {
-        setParishByCoordinates(monument);
-        return repository.save(monument);
+        setDivisions(monument);
+        Monument savedMonument = repository.save(monument);
+        updateCounters(null, savedMonument);
+        return savedMonument;
     }
 
     @Override
+    @Transactional
     public Monument update(Monument monument) {
-        setParishByCoordinates(monument);
-        return repository.save(monument);
+        Optional<Monument> existingMonument = repository.findByIdWithDivisions(monument.getId());
+        setDivisions(monument);
+        Monument updatedMonument = repository.save(monument);
+        existingMonument.ifPresent(value -> updateCounters(value, updatedMonument));
+        return updatedMonument;
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        repository.findByIdWithDivisions(id).ifPresent(monument -> {
+            updateCounters(monument, null);
+            repository.deleteById(id);
+        });
     }
 
-    private void setParishByCoordinates(Monument m) {
-        if (m.getLatitude() != null && m.getLongitude() != null && (m.getParish() == null || m.getMunicipality() == null || m.getDistrict() == null)) {
+    private void updateCounters(Monument oldMonument, Monument newMonument) {
+        AdministrativeDivision oldParish = oldMonument != null ? oldMonument.getParish() : null;
+        AdministrativeDivision newParish = newMonument != null ? newMonument.getParish() : null;
+        updateDivisionCounter(oldParish, newParish);
+
+        AdministrativeDivision oldMunicipality = oldMonument != null ? oldMonument.getMunicipality() : null;
+        AdministrativeDivision newMunicipality = newMonument != null ? newMonument.getMunicipality() : null;
+        updateDivisionCounter(oldMunicipality, newMunicipality);
+
+        AdministrativeDivision oldDistrict = oldMonument != null ? oldMonument.getDistrict() : null;
+        AdministrativeDivision newDistrict = newMonument != null ? newMonument.getDistrict() : null;
+        updateDivisionCounter(oldDistrict, newDistrict);
+    }
+
+    private void updateDivisionCounter(AdministrativeDivision oldDivision, AdministrativeDivision newDivision) {
+        if (Objects.equals(oldDivision, newDivision)) {
+            return;
+        }
+        if (oldDivision != null) {
+            administrativeDivisionService.decrementMonumentsCount(oldDivision.getId());
+        }
+        if (newDivision != null) {
+            administrativeDivisionService.incrementMonumentsCount(newDivision.getId());
+        }
+    }
+
+    private void setDivisions(Monument m) {
+        setDivisions(m, administrativeDivisionService);
+    }
+
+    static void setDivisions(Monument m, AdministrativeDivisionService administrativeDivisionService) {
+        if (m.getLatitude() != null && m.getLongitude() != null) {
             List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
+            m.setParish(null);
+        m.setMunicipality(null);
+        m.setDistrict(null);
             for (AdministrativeDivision division : divisions) {
                 switch (division.getOsmAdminLevel()) {
-                    case 6:
-                        if (m.getDistrict() == null) {
-                            m.setDistrict(division);
-                        }
-                        break;
-                    case 7:
-                        if (m.getMunicipality() == null) {
-                            m.setMunicipality(division);
-                        }
-                        break;
-                    case 8:
-                        if (m.getParish() == null) {
-                            m.setParish(division);
-                        }
-                        break;
+                    case 6 -> m.setDistrict(division);
+                    case 7 -> m.setMunicipality(division);
+                    case 8 -> m.setParish(division);
                 }
             }
         }

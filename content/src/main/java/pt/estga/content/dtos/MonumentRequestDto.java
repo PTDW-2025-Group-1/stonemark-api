@@ -1,13 +1,18 @@
 package pt.estga.content.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record MonumentRequestDto(
-        String name,
+        @NotBlank String name,
         String description,
         String protectionTitle,
         String website,
-        Double latitude,
-        Double longitude,
+        @NotNull Double latitude,
+        @NotNull Double longitude,
         String street,
         String houseNumber,
-        Long parishId
+        Long parishId,
+        Long municipalityId,
+        Long districtId
 ) { }

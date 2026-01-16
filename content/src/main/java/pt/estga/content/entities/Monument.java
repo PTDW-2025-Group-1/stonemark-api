@@ -18,6 +18,9 @@ public class Monument extends AuditedEntity {
     @GeneratedValue
     private Long id;
 
+    @Column(unique = true)
+    private String externalId;
+
     private String name;
     private String protectionTitle;
     private String description;

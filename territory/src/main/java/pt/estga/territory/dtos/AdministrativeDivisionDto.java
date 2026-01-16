@@ -7,7 +7,6 @@ public record AdministrativeDivisionDto(
     Long id,
     Integer osmAdminLevel,
     String name,
-    String namePt,
-    int adminLevel,
-    Long parentId
+    Long parentId,
+    Integer monumentsCount
 ) {}

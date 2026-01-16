@@ -15,6 +15,8 @@ public record MonumentResponseDto(
         String street,
         String houseNumber,
         AdministrativeDivisionDto parish,
+        AdministrativeDivisionDto municipality,
+        AdministrativeDivisionDto district,
         Long coverId,
         Instant createdAt,
         Instant lastModifiedAt

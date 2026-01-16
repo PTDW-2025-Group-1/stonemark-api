@@ -14,7 +14,13 @@ import java.util.Optional;
 
 @Repository
 public interface MonumentRepository extends JpaRepository<Monument, Long> {
+
+    @Query("SELECT m FROM Monument m LEFT JOIN FETCH m.parish LEFT JOIN FETCH m.municipality LEFT JOIN FETCH m.district WHERE m.id = :id")
+    Optional<Monument> findByIdWithDivisions(Long id);
+
     Optional<Monument> findByName(String name);
+
+    Optional<Monument> findByExternalId(String externalId);
 
     Page<Monument> findByNameContainingIgnoreCaseAndActiveTrue(String name, Pageable pageable);
 

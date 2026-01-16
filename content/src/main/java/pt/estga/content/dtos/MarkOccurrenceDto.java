@@ -1,8 +1,14 @@
 package pt.estga.content.dtos;
 
-public record MarkOccurrenceDto (
+import java.time.Instant;
+
+public record MarkOccurrenceDto(
     Long id,
-    Long coverId,
+    Long markId,
     MarkDto mark,
-    MonumentDto monument
+    MonumentDto monument,
+    Long coverId,
+    Long authorId,
+    String authorName,
+    Instant publishedAt
 ) { }

@@ -27,4 +27,7 @@ public class AdministrativeDivision extends AuditedEntity {
     private AdministrativeDivision parent;
 
     private String countryCode;
+
+    private int monumentsCount = 0;
+
 }

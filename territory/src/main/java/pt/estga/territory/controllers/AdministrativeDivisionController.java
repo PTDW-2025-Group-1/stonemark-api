@@ -31,20 +31,41 @@ public class AdministrativeDivisionController {
     }
 
     @GetMapping("/districts")
-    public ResponseEntity<List<AdministrativeDivisionDto>> getDistricts() {
-        List<AdministrativeDivision> districts = service.findByOsmAdminLevel(6);
+    public ResponseEntity<List<AdministrativeDivisionDto>> getDistricts(
+            @RequestParam(required = false) boolean withMonuments
+    ) {
+        List<AdministrativeDivision> districts;
+        if (withMonuments) {
+            districts = service.findWithMonuments(6);
+        } else {
+            districts = service.findByOsmAdminLevel(6);
+        }
         return ResponseEntity.ok(mapper.toDtoList(districts));
     }
 
     @GetMapping("/municipalities")
-    public ResponseEntity<List<AdministrativeDivisionDto>> getMunicipalities() {
-        List<AdministrativeDivision> municipalities = service.findByOsmAdminLevel(7);
+    public ResponseEntity<List<AdministrativeDivisionDto>> getMunicipalities(
+            @RequestParam(required = false) boolean withMonuments
+    ) {
+        List<AdministrativeDivision> municipalities;
+        if (withMonuments) {
+            municipalities = service.findWithMonuments(7);
+        } else {
+            municipalities = service.findByOsmAdminLevel(7);
+        }
         return ResponseEntity.ok(mapper.toDtoList(municipalities));
     }
 
     @GetMapping("/parishes")
-    public ResponseEntity<List<AdministrativeDivisionDto>> getParishes() {
-        List<AdministrativeDivision> parishes = service.findByOsmAdminLevel(8);
+    public ResponseEntity<List<AdministrativeDivisionDto>> getParishes(
+            @RequestParam(required = false) boolean withMonuments
+    ) {
+        List<AdministrativeDivision> parishes;
+        if (withMonuments) {
+            parishes = service.findWithMonuments(8);
+        } else {
+            parishes = service.findByOsmAdminLevel(8);
+        }
         return ResponseEntity.ok(mapper.toDtoList(parishes));
     }
 

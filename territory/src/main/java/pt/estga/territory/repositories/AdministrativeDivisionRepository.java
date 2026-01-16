@@ -1,6 +1,7 @@
 package pt.estga.territory.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,4 +31,25 @@ public interface AdministrativeDivisionRepository extends JpaRepository<Administ
             "ORDER BY d.osm_admin_level ASC", nativeQuery = true)
     List<AdministrativeDivision> findByCoordinates(@Param("latitude") double latitude, @Param("longitude") double longitude);
 
+    @Query("SELECT d FROM AdministrativeDivision d WHERE d.osmAdminLevel = :adminLevel AND d.monumentsCount > 0")
+    List<AdministrativeDivision> findWithMonuments(@Param("adminLevel") int adminLevel);
+
+    @Modifying
+    @Query("UPDATE AdministrativeDivision d SET d.monumentsCount = d.monumentsCount + 1 WHERE d.id = :divisionId")
+    void incrementMonumentsCount(@Param("divisionId") Long divisionId);
+
+    @Modifying
+    @Query("UPDATE AdministrativeDivision d SET d.monumentsCount = d.monumentsCount - 1 WHERE d.id = :divisionId AND d.monumentsCount > 0")
+    void decrementMonumentsCount(@Param("divisionId") Long divisionId);
+
+    @Modifying
+    @Query(value = """
+        UPDATE administrative_division d
+        SET monuments_count = (
+            SELECT COUNT(m.id)
+            FROM monument m
+            WHERE m.parish_id = d.id OR m.municipality_id = d.id OR m.district_id = d.id
+        )
+    """, nativeQuery = true)
+    void recalculateAllMonumentsCounts();
 }

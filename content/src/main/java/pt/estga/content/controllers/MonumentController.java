@@ -89,10 +89,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
-        return service.findLatest(safeLimit)
-                .stream()
-                .map(mapper::toListDto)
-                .toList();
+        return mapper.toListDto(service.findLatest(safeLimit));
     }
 
     @GetMapping("/count")

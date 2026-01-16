@@ -2,6 +2,7 @@ package pt.estga.territory.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.territory.entities.AdministrativeDivision;
 import pt.estga.territory.repositories.AdministrativeDivisionRepository;
 
@@ -57,5 +58,24 @@ public class AdministrativeDivisionService {
 
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    public List<AdministrativeDivision> findWithMonuments(int adminLevel) {
+        return repository.findWithMonuments(adminLevel);
+    }
+
+    @Transactional
+    public void incrementMonumentsCount(Long divisionId) {
+        repository.incrementMonumentsCount(divisionId);
+    }
+
+    @Transactional
+    public void decrementMonumentsCount(Long divisionId) {
+        repository.decrementMonumentsCount(divisionId);
+    }
+
+    @Transactional
+    public void recalculateAllMonumentsCounts() {
+        repository.recalculateAllMonumentsCounts();
     }
 }
