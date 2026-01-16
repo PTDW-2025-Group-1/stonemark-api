@@ -2,6 +2,7 @@ package pt.estga.proposal.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,27 +25,18 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     List<MarkOccurrenceProposal> findAllDetailed();
 
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.existingMonument " +
+            "LEFT JOIN FETCH p.existingMonument m " +
+            "LEFT JOIN FETCH m.district " +
+            "LEFT JOIN FETCH m.parish " +
+            "LEFT JOIN FETCH m.municipality " +
             "LEFT JOIN FETCH p.existingMark " +
             "WHERE p.submittedById = :userId")
     Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.existingMonument " +
-            "LEFT JOIN FETCH p.existingMark " +
-            "LEFT JOIN FETCH p.activeDecision ad " +
-            "LEFT JOIN FETCH ad.detectedMark " +
-            "LEFT JOIN FETCH ad.detectedMonument " +
-            "WHERE p.id = :id")
-    Optional<MarkOccurrenceProposal> findByIdDetailed(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"existingMonument.district", "existingMonument.parish", "existingMonument.municipality", "existingMark", "activeDecision.detectedMark", "activeDecision.detectedMonument.district", "activeDecision.detectedMonument.parish", "activeDecision.detectedMonument.municipality"})
+    Optional<MarkOccurrenceProposal> findById(Long id);
 
     List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
-    @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.existingMonument " +
-            "LEFT JOIN FETCH p.existingMark " +
-            "LEFT JOIN FETCH p.originalMediaFile " +
-            "WHERE p.id = :id")
-    Optional<MarkOccurrenceProposal> findByIdWithDetails(@Param("id") Long id);
 
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 

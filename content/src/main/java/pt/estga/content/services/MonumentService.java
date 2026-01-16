@@ -11,6 +11,8 @@ public interface MonumentService {
 
     Page<Monument> findAll(Pageable pageable);
 
+    Page<Monument> findAllWithDivisions(Pageable pageable);
+
     Optional<Monument> findById(Long id);
 
     List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range);
