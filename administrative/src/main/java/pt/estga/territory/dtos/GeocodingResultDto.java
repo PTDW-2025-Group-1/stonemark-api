@@ -1,4 +1,4 @@
-package pt.estga.content.dtos;
+package pt.estga.territory.dtos;
 
 import lombok.Builder;
 

@@ -1,9 +1,10 @@
-package pt.estga.administrative.services;
+package pt.estga.territory.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.administrative.entities.AdministrativeDivision;
-import pt.estga.administrative.repositories.AdministrativeDivisionRepository;
+import pt.estga.territory.entities.AdministrativeDivision;
+import pt.estga.territory.entities.LogicalLevel;
+import pt.estga.territory.repositories.AdministrativeDivisionRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +20,7 @@ public class AdministrativeDivisionService {
         return repository.findAll();
     }
 
-    public Optional<AdministrativeDivision> findById(Long id) {
+    public Optional<AdministrativeDivision> findById(String id) {
         return repository.findById(id);
     }
 
@@ -27,15 +28,21 @@ public class AdministrativeDivisionService {
         return repository.findAllByNameIn(names);
     }
 
-    public List<AdministrativeDivision> findByAdminLevel(int adminLevel) {
-        return repository.findByAdminLevel(adminLevel);
+    public List<AdministrativeDivision> findByOsmAdminLevel(int adminLevel) {
+        return repository.findByOsmAdminLevel(adminLevel);
+    }
+    
+    public List<AdministrativeDivision> findByLogicalLevel(LogicalLevel level) {
+        return repository.findByLogicalLevel(level);
     }
 
-    public List<AdministrativeDivision> findChildren(Long parentId) {
-        return repository.findByParentId(parentId);
+    public List<AdministrativeDivision> findChildren(String parentId) {
+        // Assuming a method like findByParent_Id exists in the repository
+        // to query children by their parent's composite ID.
+        return repository.findByParent_Id(parentId);
     }
 
-    public Optional<AdministrativeDivision> findParent(Long childId) {
+    public Optional<AdministrativeDivision> findParent(String childId) {
         return repository.findById(childId).map(AdministrativeDivision::getParent);
     }
 
@@ -55,7 +62,7 @@ public class AdministrativeDivisionService {
         return repository.saveAll(divisions);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         repository.deleteById(id);
     }
 }

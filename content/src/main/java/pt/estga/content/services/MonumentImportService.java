@@ -3,11 +3,17 @@ package pt.estga.content.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.index.strtree.STRtree;
 import org.springframework.stereotype.Service;
-import pt.estga.administrative.entities.AdministrativeDivision;
-import pt.estga.administrative.services.AdministrativeDivisionService;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.territory.entities.AdministrativeDivision;
+import pt.estga.territory.entities.LogicalLevel;
+import pt.estga.territory.services.AdministrativeDivisionService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,25 +25,39 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MonumentImportService {
 
     private final MonumentRepository repository;
     private final AdministrativeDivisionService administrativeDivisionService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public int importFromGeoJson(InputStream inputStream) throws IOException {
 
         JsonNode root = objectMapper.readTree(inputStream);
         JsonNode features = root.path("features");
 
-        Map<String, Monument> monumentMap = new LinkedHashMap<>();
-
         if (!features.isArray()) {
             return 0;
         }
 
-        for (JsonNode feature : features) {
+        // Phase 1: Build an in-memory spatial index of all parishes.
+        log.info("Building parish spatial index...");
+        STRtree parishIndex = new STRtree();
+        List<AdministrativeDivision> parishes = administrativeDivisionService.findByLogicalLevel(LogicalLevel.PARISH);
+        for (AdministrativeDivision parish : parishes) {
+            if (parish.getGeometry() != null) {
+                parishIndex.insert(parish.getGeometry().getEnvelopeInternal(), parish);
+            }
+        }
+        parishIndex.build();
+        log.info("Parish index built with {} parishes.", parishes.size());
 
+        // Phase 2: Process monuments from GeoJSON
+        Map<String, Monument> monumentMap = new LinkedHashMap<>();
+
+        for (JsonNode feature : features) {
             JsonNode properties = feature.path("properties");
             if (!properties.isObject()) continue;
 
@@ -61,28 +81,28 @@ public class MonumentImportService {
             monument.setLongitude(lon);
             monument.setWebsite(properties.path("website").asText(null));
             monument.setProtectionTitle(properties.path("protection_title").asText(null));
-            
             monument.setStreet(properties.path("addr:street").asText(null));
             monument.setHouseNumber(properties.path("addr:housenumber").asText(null));
 
-            // Try to find parish by coordinates
-            List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(lat, lon);
-            // Assuming adminLevel 8 is Parish
-            Optional<AdministrativeDivision> parish = divisions.stream()
-                    .filter(d -> d.getAdminLevel() == 8)
-                    .findFirst();
-            
-            parish.ifPresent(monument::setParish);
+            // Find parish using the in-memory spatial index (no DB call here)
+            findParish(parishIndex, lon, lat).ifPresent(monument::setParish);
 
+            if (monumentMap.containsKey(name)) {
+                log.warn("Duplicate monument name found: '{}'. The last entry will be used. Consider a more robust unique identifier.", name);
+            }
             monumentMap.put(name, monument);
         }
 
+        // Phase 3: Persist monuments
         List<Monument> toSave = new ArrayList<>();
-        for (Monument m : monumentMap.values()) {
-            repository.findByName(m.getName())
+        for (Monument incoming : monumentMap.values()) {
+            repository.findByName(incoming.getName())
                     .ifPresentOrElse(
-                            existing -> toSave.add(update(existing, m)),
-                            () -> toSave.add(m)
+                            existing -> {
+                                incoming.setId(existing.getId()); // Set ID to trigger an update
+                                toSave.add(incoming);
+                            },
+                            () -> toSave.add(incoming)
                     );
         }
 
@@ -90,15 +110,14 @@ public class MonumentImportService {
         return toSave.size();
     }
 
-    private Monument update(Monument existing, Monument incoming) {
-        existing.setDescription(incoming.getDescription());
-        existing.setLatitude(incoming.getLatitude());
-        existing.setLongitude(incoming.getLongitude());
-        existing.setWebsite(incoming.getWebsite());
-        existing.setProtectionTitle(incoming.getProtectionTitle());
-        existing.setStreet(incoming.getStreet());
-        existing.setHouseNumber(incoming.getHouseNumber());
-        existing.setParish(incoming.getParish());
-        return existing;
+    private Optional<AdministrativeDivision> findParish(STRtree parishIndex, double lon, double lat) {
+        Point monumentLocation = geometryFactory.createPoint(new Coordinate(lon, lat));
+        
+        @SuppressWarnings("unchecked")
+        List<AdministrativeDivision> potentialParishes = parishIndex.query(monumentLocation.getEnvelopeInternal());
+
+        return potentialParishes.stream()
+                .filter(parish -> parish.getGeometry().contains(monumentLocation))
+                .findFirst();
     }
 }

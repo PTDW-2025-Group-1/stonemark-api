@@ -1,10 +1,10 @@
-package pt.estga.content.services;
+package pt.estga.territory.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pt.estga.content.dtos.GeocodingResultDto;
+import pt.estga.territory.dtos.GeocodingResultDto;
 
 @Service
 @RequiredArgsConstructor

@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.content.dtos.GeocodingResultDto;
+import pt.estga.territory.dtos.GeocodingResultDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.mappers.MonumentMapper;

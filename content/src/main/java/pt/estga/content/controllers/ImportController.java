@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import pt.estga.administrative.services.DivisionImportService;
+import pt.estga.territory.services.DivisionImportService;
 import pt.estga.content.services.MonumentImportService;
 import pt.estga.shared.dtos.MessageResponseDto;
 
@@ -35,9 +35,7 @@ public class ImportController {
             count = divisionImportService.importFromPbf(is);
         }
 
-        return new MessageResponseDto(
-                "Administrative divisions fully replaced. Imported " + count + " entries."
-        );
+        return new MessageResponseDto("Administrative divisions fully replaced. Imported " + count + " entries.");
     }
 
     @PostMapping("/monuments/geojson")

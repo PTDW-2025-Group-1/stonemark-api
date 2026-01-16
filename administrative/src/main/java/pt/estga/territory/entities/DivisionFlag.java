@@ -1,0 +1,13 @@
+package pt.estga.territory.entities;
+
+public enum DivisionFlag {
+    TINY_AREA,
+    MULTI_PARENT_CANDIDATE,
+    INVALID_GEOMETRY,
+    ORPHAN,
+    ADMIN_LEVEL_MISMATCH,
+    LOGICAL_LEVEL_SKIP_CANDIDATE,
+    INVALID_PARENT_AREA,
+    MANUAL_PARENT_OVERRIDE,
+    GEOMETRY_PARENT_MISMATCH
+}

@@ -76,7 +76,7 @@ public class MonumentController {
 
     @GetMapping("/division/{divisionId}")
     public Page<MonumentListDto> getMonumentsByDivision(
-            @PathVariable Long divisionId,
+            @PathVariable String divisionId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {

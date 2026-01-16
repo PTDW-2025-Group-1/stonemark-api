@@ -23,7 +23,7 @@ public interface MonumentService {
 
     Page<Monument> findByPolygon(String geoJson, Pageable pageable);
 
-    Page<Monument> findByDivisionId(Long divisionId, Pageable pageable);
+    Page<Monument> findByDivisionId(String divisionId, Pageable pageable);
 
     Monument create(Monument monument);
 

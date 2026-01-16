@@ -1,6 +1,6 @@
 package pt.estga.content.dtos;
 
-import pt.estga.administrative.dto.AdministrativeDivisionDto;
+import pt.estga.territory.dtos.AdministrativeDivisionDto;
 
 import java.time.Instant;
 

@@ -8,8 +8,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.*;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.mappers.MediaFileMapper;
+import pt.estga.territory.mappers.AdministrativeDivisionMapper;
 
-@Mapper(componentModel = "spring", uses = {MediaFileMapper.class, pt.estga.administrative.mappers.AdministrativeDivisionMapper.class})
+@Mapper(componentModel = "spring", uses = {MediaFileMapper.class, AdministrativeDivisionMapper.class})
 public interface MonumentMapper {
 
     @Mapping(source = "cover.id", target = "coverId")

@@ -1,13 +1,16 @@
-package pt.estga.administrative.mappers;
+package pt.estga.territory.mappers;
 
 import org.mapstruct.Mapper;
-import pt.estga.administrative.dto.AdministrativeDivisionDto;import pt.estga.administrative.entities.AdministrativeDivision;
+import org.mapstruct.Mapping;
+import pt.estga.territory.dtos.AdministrativeDivisionDto;
+import pt.estga.territory.entities.AdministrativeDivision;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface AdministrativeDivisionMapper {
 
+    @Mapping(target = "parentId", source = "parent.id")
     AdministrativeDivisionDto toDto(AdministrativeDivision entity);
 
     List<AdministrativeDivisionDto> toDtoList(List<AdministrativeDivision> entities);

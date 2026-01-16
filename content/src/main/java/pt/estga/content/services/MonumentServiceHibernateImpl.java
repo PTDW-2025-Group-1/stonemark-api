@@ -7,10 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import pt.estga.administrative.entities.AdministrativeDivision;
-import pt.estga.administrative.services.AdministrativeDivisionService;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.territory.entities.AdministrativeDivision;
+import pt.estga.territory.entities.LogicalLevel;
+import pt.estga.territory.services.AdministrativeDivisionService;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,13 +30,15 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Optional<Monument> findById(Long id) {
-        Optional<Monument> monument = repository.findById(id);
-        monument.ifPresent(this::setParishByCoordinates);
-        return monument;
+        // A find method should be read-only and not have side effects.
+        // Parish assignment should happen during creation/update.
+        return repository.findById(id);
     }
 
     @Override
     public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
+        // TODO: This is an inaccurate bounding-box search.
+        // Replace with a proper spatial query using ST_DWithin for accurate distance searches.
         return repository.findByLatitudeBetweenAndLongitudeBetween(latitude - range, latitude + range, longitude - range, longitude + range);
     }
 
@@ -60,7 +63,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
-    public Page<Monument> findByDivisionId(Long divisionId, Pageable pageable) {
+    public Page<Monument> findByDivisionId(String divisionId, Pageable pageable) {
         Optional<AdministrativeDivision> division = administrativeDivisionService.findById(divisionId);
         if (division.isPresent()) {
             Geometry geometry = division.get().getGeometry();
@@ -92,7 +95,8 @@ public class MonumentServiceHibernateImpl implements MonumentService {
         if (m.getParish() == null && m.getLatitude() != null && m.getLongitude() != null) {
             List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
             divisions.stream()
-                    .filter(d -> d.getAdminLevel() == 8)
+                    // Use the correct LogicalLevel enum instead of a magic number
+                    .filter(d -> d.getLogicalLevel() == LogicalLevel.PARISH)
                     .findFirst()
                     .ifPresent(m::setParish);
         }
