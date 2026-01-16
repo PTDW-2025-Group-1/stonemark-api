@@ -1,12 +1,18 @@
 package pt.estga.proposal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ManualDecisionRequest;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
+import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.services.AutomaticDecisionService;
 import pt.estga.proposal.services.DecisionActivationService;
 import pt.estga.proposal.services.ManualDecisionService;
@@ -37,15 +44,18 @@ public class MarkOccurrenceProposalModerationController {
 
     // ==== Read Operations ====
 
-    @Operation(summary = "Get all proposals for moderation",
-            description = "Retrieves all proposals that require moderation.")
+    @Operation(summary = "List proposals for moderation",
+               description = "Retrieves a paginated list of proposals, optionally filtered by status.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.",
-                    content = @Content(schema = @Schema(implementation = ProposalModeratorViewDto.class)))
+            @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.")
     })
     @GetMapping
-    public ResponseEntity<List<ProposalModeratorViewDto>> getAllProposals() {
-        return ResponseEntity.ok(queryService.getAllProposals());
+    public ResponseEntity<Page<ProposalModeratorViewDto>> getAllProposals(
+            @Parameter(description = "Filter by proposal status")
+            @RequestParam(required = false) List<ProposalStatus> status,
+            @ParameterObject @PageableDefault(sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(queryService.getAllProposals(status, pageable));
     }
 
     @Operation(summary = "Get proposal details for moderation",

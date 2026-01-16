@@ -82,6 +82,14 @@ public class OpenApiConfig {
     }
 
     @Bean
+    public GroupedOpenApi imports() {
+        return GroupedOpenApi.builder()
+                .group("Imports")
+                .pathsToMatch("/api/v1/import/**")
+                .build();
+    }
+
+    @Bean
     public OpenAPI securedOpenAPI() {
         return new OpenAPI()
                 .addServersItem(new Server().url(baseUrl))

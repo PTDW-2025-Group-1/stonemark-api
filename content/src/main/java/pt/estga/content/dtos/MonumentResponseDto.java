@@ -1,5 +1,7 @@
 package pt.estga.content.dtos;
 
+import pt.estga.territory.dtos.AdministrativeDivisionDto;
+
 import java.time.Instant;
 
 public record MonumentResponseDto(
@@ -10,8 +12,11 @@ public record MonumentResponseDto(
         String website,
         Double latitude,
         Double longitude,
-        String address,
-        String city,
+        String street,
+        String houseNumber,
+        AdministrativeDivisionDto parish,
+        AdministrativeDivisionDto municipality,
+        AdministrativeDivisionDto district,
         Long coverId,
         Instant createdAt,
         Instant lastModifiedAt

@@ -1,10 +1,26 @@
 package pt.estga.content.dtos;
 
+import pt.estga.territory.dtos.AdministrativeDivisionDto;
+
+import java.time.Instant;
+
 public record MonumentDto(
         Long id,
         String name,
         String description,
         Double latitude,
         Double longitude,
-        Long coverId
+        String street,
+        String houseNumber,
+        AdministrativeDivisionDto parish,
+        AdministrativeDivisionDto municipality,
+        AdministrativeDivisionDto district,
+        Long coverId,
+        String protectionTitle,
+        String website,
+        Long parishId,
+        Long municipalityId,
+        Long districtId,
+        Instant createdAt,
+        Instant lastModifiedAt
 ) { }

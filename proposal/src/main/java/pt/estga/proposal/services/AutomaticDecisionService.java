@@ -2,6 +2,7 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
@@ -9,6 +10,7 @@ import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
 import pt.estga.proposal.enums.DecisionType;
 import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
@@ -22,6 +24,7 @@ public class AutomaticDecisionService {
 
     private final ProposalDecisionAttemptRepository attemptRepo;
     private final MarkOccurrenceProposalRepository proposalRepo;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ProposalDecisionAttempt rerunAutomaticDecision(Long proposalId) {
@@ -42,8 +45,12 @@ public class AutomaticDecisionService {
         DecisionOutcome outcome;
         boolean confident = false;
 
-        // Simple logic for now - can be expanded with more complex rules
-        if (proposal.getPriority() != null && proposal.getPriority() > 150) {
+        // If the proposal requires a new monument, it must be reviewed manually
+        if (proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+            log.info("Proposal ID {} requires new monument creation. Marking as inconclusive for manual review.", proposal.getId());
+            outcome = DecisionOutcome.INCONCLUSIVE;
+            confident = true; // Confidently sending to manual review
+        } else if (proposal.getPriority() != null && proposal.getPriority() > 150) {
             outcome = DecisionOutcome.ACCEPT;
             confident = true;
         } else if (proposal.getPriority() != null && proposal.getPriority() < 10) {
@@ -83,8 +90,17 @@ public class AutomaticDecisionService {
                     ? ProposalStatus.AUTO_ACCEPTED
                     : ProposalStatus.AUTO_REJECTED
             );
+
+            if (attempt.getOutcome() == DecisionOutcome.ACCEPT) {
+                eventPublisher.publishEvent(new ProposalAcceptedEvent(this, proposal));
+            }
         } else {
-            proposal.setStatus(ProposalStatus.UNDER_REVIEW);
+            // If it's inconclusive because of a new monument, we might want a specific status
+            if (proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+                proposal.setStatus(ProposalStatus.PENDING_MONUMENT_CREATION);
+            } else {
+                proposal.setStatus(ProposalStatus.UNDER_REVIEW);
+            }
         }
 
         proposalRepo.save(proposal);

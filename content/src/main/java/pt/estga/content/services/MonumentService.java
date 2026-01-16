@@ -13,12 +13,6 @@ public interface MonumentService {
 
     Optional<Monument> findById(Long id);
 
-    Optional<Monument> findByName(String name);
-
-    List<Monument> findByNameContaining(String name);
-
-    Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
-
     List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range);
 
     List<Monument> findLatest(int limit);
@@ -27,7 +21,9 @@ public interface MonumentService {
 
     Page<Monument> searchByName(String query, Pageable pageable);
 
-    Page<Monument> findByCity(String city, Pageable pageable);
+    Page<Monument> findByPolygon(String geoJson, Pageable pageable);
+
+    Page<Monument> findByDivisionId(Long id, Pageable pageable);
 
     Monument create(Monument monument);
 
@@ -35,4 +31,5 @@ public interface MonumentService {
 
     void deleteById(Long id);
 
+    List<Monument> findPopular(int limit);
 }

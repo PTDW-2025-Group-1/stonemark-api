@@ -64,14 +64,32 @@ public class MonumentController {
         return service.searchByName(query, pageable).map(mapper::toListDto);
     }
 
-    @GetMapping("/filter")
-    public Page<MonumentListDto> filterMonumentsByCity(
-            @RequestParam String city,
+    @PostMapping("/search/polygon")
+    public Page<MonumentListDto> searchMonumentsByPolygon(
+            @RequestBody String geoJson,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByCity(city, pageable).map(mapper::toListDto);
+        return service.findByPolygon(geoJson, pageable).map(mapper::toListDto);
+    }
+
+    @GetMapping("/division/{id}")
+    public Page<MonumentListDto> getMonumentsByDivision(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
+        return service.findByDivisionId(id, pageable).map(mapper::toListDto);
+    }
+
+    @GetMapping("/popular")
+    public List<MonumentListDto> getPopularMonuments(
+            @RequestParam(defaultValue = "6") int limit
+    ) {
+        int safeLimit = Math.min(limit, 50);
+        return mapper.toListDto(service.findPopular(safeLimit));
     }
 
     @GetMapping("/latest")
@@ -79,10 +97,7 @@ public class MonumentController {
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
-        return service.findLatest(safeLimit)
-                .stream()
-                .map(mapper::toListDto)
-                .toList();
+        return mapper.toListDto(service.findLatest(safeLimit));
     }
 
     @GetMapping("/count")
@@ -91,7 +106,7 @@ public class MonumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonumentResponseDto> getMonument(
+    public ResponseEntity<MonumentResponseDto> getMonumentById(
             @PathVariable Long id
     ) {
         return service.findById(id)

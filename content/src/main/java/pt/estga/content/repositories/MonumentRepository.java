@@ -1,5 +1,6 @@
 package pt.estga.content.repositories;
 
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,20 +14,27 @@ import java.util.Optional;
 
 @Repository
 public interface MonumentRepository extends JpaRepository<Monument, Long> {
+
+    @Query("SELECT m FROM Monument m LEFT JOIN FETCH m.parish LEFT JOIN FETCH m.municipality LEFT JOIN FETCH m.district WHERE m.id = :id")
+    Optional<Monument> findByIdWithDivisions(Long id);
+
     Optional<Monument> findByName(String name);
 
-    @Query("SELECT m FROM Monument m WHERE m.name LIKE %:name%")
-    List<Monument> findByNameContaining(@Param("name") String name);
+    Optional<Monument> findByExternalId(String externalId);
 
-    @Query("SELECT m FROM Monument m WHERE m.latitude BETWEEN :lat - :range AND :lat + :range AND m.longitude BETWEEN :lon - :range AND :lon + :range")
-    List<Monument> findByCoordinatesInRange(@Param("lat") double latitude, @Param("lon") double longitude, @Param("range") double range);
+    Page<Monument> findByNameContainingIgnoreCaseAndActiveTrue(String name, Pageable pageable);
 
-    List<Monument> findByLatitudeBetweenAndLongitudeBetween(double minLat, double maxLat, double minLon, double maxLon);
+    Page<Monument> findByActiveTrue(Pageable pageable);
 
-    Optional<Monument> findByLatitudeAndLongitude(double latitude, double longitude);
+    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_GeomFromGeoJSON(:geoJson)) AND m.active = true", nativeQuery = true)
+    Page<Monument> findByPolygon(@Param("geoJson") String geoJson, Pageable pageable);
 
-    Page<Monument> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
+    Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
 
-    Page<Monument> findByCityIgnoreCase(String city, Pageable pageable);
+    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range)", nativeQuery = true)
+    List<Monument> findByCoordinatesInRange(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("range") double range);
 
+    @Query("SELECT m FROM MarkOccurrence mo JOIN mo.monument m GROUP BY m ORDER BY COUNT(m) DESC")
+    List<Monument> findPopular(Pageable pageable);
 }

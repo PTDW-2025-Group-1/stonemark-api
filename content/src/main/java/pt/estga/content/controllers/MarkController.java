@@ -8,8 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pt.estga.content.dtos.MarkListDto;
-import pt.estga.content.dtos.MarkUpdateDto;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
@@ -25,12 +23,12 @@ public class MarkController {
     private final MarkMapper mapper;
 
     @GetMapping
-    public Page<MarkListDto> getMarks(
+    public Page<MarkDto> getMarks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toListDto);
+        return service.findAll(pageable).map(mapper::toDto);
     }
 
     @GetMapping("/details")
@@ -52,7 +50,7 @@ public class MarkController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<MarkDto> updateMark(@PathVariable Long id, @RequestBody MarkUpdateDto markDto) {
+    public ResponseEntity<MarkDto> updateMark(@PathVariable Long id, @RequestBody MarkDto markDto) {
         return service.findById(id)
                 .map(existingMark -> {
                     mapper.updateEntityFromDto(markDto, existingMark);

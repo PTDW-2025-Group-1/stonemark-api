@@ -39,6 +39,12 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     Optional<MarkOccurrenceProposal> findByIdDetailed(@Param("id") Long id);
 
     List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.existingMonument " +
+            "LEFT JOIN FETCH p.existingMark " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
+            "WHERE p.id = :id")
+    Optional<MarkOccurrenceProposal> findByIdWithDetails(@Param("id") Long id);
 
     Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
 
@@ -54,5 +60,7 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     MarkOccurrenceProposalStatsDto getStatsByUserId(@Param("userId") Long userId);
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
+
+    Page<MarkOccurrenceProposal> findByStatusIn(Collection<ProposalStatus> statuses, Pageable pageable);
 
 }

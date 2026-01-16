@@ -1,93 +1,114 @@
 package pt.estga.content.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
+import pt.estga.territory.services.AdministrativeDivisionService;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MonumentImportService {
 
     private final MonumentRepository repository;
-    private final ReverseGeocodingService reverseGeocodingService;
+    private final AdministrativeDivisionService administrativeDivisionService;
+    private final ObjectMapper objectMapper;
 
-    public List<Monument> overpass(String query) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(query);
-        JsonNode features = rootNode.path("features");
+    @Transactional
+    public int importFromGeoJson(InputStream inputStream) throws IOException {
 
+        JsonNode root = objectMapper.readTree(inputStream);
+        JsonNode features = root.path("features");
+
+        if (!features.isArray()) {
+            return 0;
+        }
+
+        // Phase 1: Process monuments from GeoJSON
         Map<String, Monument> monumentMap = new LinkedHashMap<>();
 
-        if (features.isArray()) {
-            for (JsonNode feature : features) {
-                JsonNode properties = feature.path("properties");
-                JsonNode geometry = feature.path("geometry");
+        for (JsonNode feature : features) {
+            JsonNode properties = feature.path("properties");
+            if (!properties.isObject()) continue;
 
-                if (properties.isObject() && geometry.isObject()) {
-                    String name = properties.path("name").asText(null);
-                    if (name == null || name.isBlank()) continue;
-
-                    String description = properties.path("description").asText(null);
-                    String website = properties.path("heritage:website").asText(null);
-                    String protectionTitle = properties.path("protection_title").asText(null);
-
-                    JsonNode coordinates = geometry.path("coordinates");
-                    if (coordinates.isArray() && coordinates.size() >= 2) {
-                        double longitude = coordinates.get(0).asDouble();
-                        double latitude = coordinates.get(1).asDouble();
-
-                        // Novo: resolver endereço e cidade
-                        String address = reverseGeocodingService.getAddress(latitude, longitude);
-                        String city = reverseGeocodingService.getCity(latitude, longitude);
-
-                        // Create a transient monument object
-                        Monument monumentFromJson = new Monument();
-                        monumentFromJson.setName(name);
-                        monumentFromJson.setDescription(description);
-                        monumentFromJson.setLatitude(latitude);
-                        monumentFromJson.setLongitude(longitude);
-                        monumentFromJson.setWebsite(website);
-                        monumentFromJson.setProtectionTitle(protectionTitle);
-                        monumentFromJson.setAddress(address);
-                        monumentFromJson.setCity(city);
-
-                        monumentMap.put(name, monumentFromJson);
-                    }
-                }
+            String externalId = feature.path("id").asText(null);
+            if (externalId == null || externalId.isBlank()) {
+                log.error("Found a feature with a missing or blank 'id'. Halting import. Feature: {}", feature.toString());
+                throw new IllegalArgumentException("Found a feature with a missing or blank 'id'. All features must have a unique 'id'.");
             }
+
+            String name = properties.path("name").asText(null);
+            if (name == null || name.isBlank()) {
+                log.warn("Skipping feature with externalId '{}' because it has no name.", externalId);
+                continue;
+            }
+
+            JsonNode geometry = feature.path("geometry");
+            if (!geometry.isObject()) continue;
+
+            JsonNode coordinates = geometry.path("coordinates");
+            if (!coordinates.isArray() || coordinates.size() != 2) continue;
+
+            double lon = coordinates.get(0).asDouble(Double.NaN);
+            double lat = coordinates.get(1).asDouble(Double.NaN);
+            if (Double.isNaN(lat) || Double.isNaN(lon)) continue;
+
+            Monument monument = new Monument();
+            monument.setExternalId(externalId);
+            monument.setName(name);
+            monument.setDescription(properties.path("description").asText(null));
+            monument.setLatitude(lat);
+            monument.setLongitude(lon);
+            monument.setWebsite(properties.path("website").asText(null));
+            monument.setProtectionTitle(properties.path("protection_title").asText(null));
+            monument.setStreet(properties.path("addr:street").asText(null));
+            monument.setHouseNumber(properties.path("addr:housenumber").asText(null));
+
+            // Set all divisions (parish, municipality, district) using standard service logic
+            setDivisions(monument);
+
+            if (monumentMap.containsKey(externalId)) {
+                log.warn("Duplicate monument external ID found: '{}'. The last entry will be used.", externalId);
+            }
+            monumentMap.put(externalId, monument);
         }
 
-        List<Monument> monumentsToSave = new ArrayList<>();
-        for (Monument m : monumentMap.values()) {
-            Optional<Monument> existing = repository.findByName(m.getName());
-            monumentsToSave.add(getMonumentToSave(m, existing));
+        // Phase 2: Persist monuments
+        List<Monument> toSave = new ArrayList<>();
+        for (Monument incoming : monumentMap.values()) {
+            repository.findByExternalId(incoming.getExternalId())
+                    .ifPresentOrElse(
+                            existing -> {
+                                incoming.setId(existing.getId()); // Set ID to trigger an update
+                                toSave.add(incoming);
+                            },
+                            () -> toSave.add(incoming)
+                    );
         }
 
-        return repository.saveAll(monumentsToSave);
+        List<Monument> savedMonuments = repository.saveAll(toSave);
+
+        // Phase 3: Recalculate all monument counts
+        log.info("Recalculating all monument counts in administrative divisions...");
+        administrativeDivisionService.recalculateAllMonumentsCounts();
+        log.info("Monument counts updated.");
+
+        return savedMonuments.size();
     }
 
-    private static Monument getMonumentToSave(Monument fromJson, Optional<Monument> existing) {
-        if (existing.isPresent()) {
-            Monument m = existing.get();
-            m.setDescription(fromJson.getDescription());
-            m.setLatitude(fromJson.getLatitude());
-            m.setLongitude(fromJson.getLongitude());
-            m.setWebsite(fromJson.getWebsite());
-            m.setProtectionTitle(fromJson.getProtectionTitle());
-            m.setAddress(fromJson.getAddress());
-            m.setCity(fromJson.getCity());
-            return m;
-        }
-        return fromJson;
+    private void setDivisions(Monument m) {
+        MonumentServiceHibernateImpl.setDivisions(m, administrativeDivisionService);
     }
 }
