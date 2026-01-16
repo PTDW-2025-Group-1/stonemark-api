@@ -1,7 +1,6 @@
 package pt.estga.proposal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ManualDecisionRequest;
+import pt.estga.proposal.dtos.ProposalModeratorListDto;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.services.AutomaticDecisionService;
@@ -28,6 +28,7 @@ import pt.estga.proposal.services.ModeratorProposalQueryService;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 
+import java.lang.reflect.Parameter;
 import java.util.List;
 
 @RestController
@@ -50,8 +51,7 @@ public class MarkOccurrenceProposalModerationController {
             @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.")
     })
     @GetMapping
-    public ResponseEntity<Page<ProposalModeratorViewDto>> getAllProposals(
-            @Parameter(description = "Filter by proposal status")
+    public ResponseEntity<Page<ProposalModeratorListDto>> getAllProposals(
             @RequestParam(required = false) List<ProposalStatus> status,
             @ParameterObject @PageableDefault(sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {

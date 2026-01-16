@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.dtos.ActiveDecisionViewDto;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
+import pt.estga.proposal.dtos.ProposalModeratorListDto;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
@@ -30,28 +31,14 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
     private final ProposalDecisionAttemptRepository decisionRepository;
 
     @Override
-    public List<ProposalModeratorViewDto> getAllProposals() {
-        List<MarkOccurrenceProposal> proposals = proposalRepository.findAllDetailed();
-
-        return proposals.stream()
-                .map(proposal -> {
-                    ActiveDecisionViewDto activeDecisionDto = getActiveDecisionViewDto(proposal);
-
-                    return new ProposalModeratorViewDto(
-                            proposal.getId(),
-                            proposal.getStatus(),
-                            proposal.getPriority(),
-                            proposal.getSubmissionSource(),
-                            proposal.getSubmittedById(),
-                            proposal.getSubmittedAt(),
-                            proposal.getMonumentName(),
-                            proposal.getLatitude(),
-                            proposal.getLongitude(),
-                            proposal.getUserNotes(),
-                            activeDecisionDto
-                    );
-                })
-                .collect(Collectors.toList());
+    public Page<ProposalModeratorListDto> getAllProposals(List<ProposalStatus> statuses, Pageable pageable) {
+        Page<MarkOccurrenceProposal> page;
+        if (statuses != null && !statuses.isEmpty()) {
+            page = proposalRepository.findByStatusIn(statuses, pageable);
+        } else {
+            page = proposalRepository.findAll(pageable);
+        }
+        return page.map(this::toModeratorListDto);
     }
 
     @Override
@@ -81,19 +68,28 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Page<ProposalModeratorViewDto> getAllProposals(List<ProposalStatus> statuses, Pageable pageable) {
-        Page<MarkOccurrenceProposal> page;
-        if (statuses != null && !statuses.isEmpty()) {
-            page = proposalRepository.findByStatusIn(statuses, pageable);
-        } else {
-            page = proposalRepository.findAll(pageable);
-        }
-        return page.map(this::toModeratorViewDto);
+    private ProposalModeratorListDto toModeratorListDto(MarkOccurrenceProposal proposal) {
+
+        String monumentName = proposal.getExistingMonument() != null
+                ? proposal.getExistingMonument().getName()
+                : proposal.getMonumentName();
+
+        return new ProposalModeratorListDto(
+                proposal.getId(),
+                proposal.getStatus(),
+                proposal.getPriority(),
+                proposal.getSubmissionSource(),
+                proposal.getSubmittedAt(),
+                monumentName
+        );
     }
 
     private ProposalModeratorViewDto toModeratorViewDto(MarkOccurrenceProposal proposal) {
         ActiveDecisionViewDto activeDecisionDto = getActiveDecisionViewDto(proposal);
+
+        String monumentName = proposal.getExistingMonument() != null
+                ? proposal.getExistingMonument().getName()
+                : proposal.getMonumentName();
 
         return new ProposalModeratorViewDto(
                 proposal.getId(),
@@ -102,7 +98,7 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                 proposal.getSubmissionSource(),
                 proposal.getSubmittedById(),
                 proposal.getSubmittedAt(),
-                proposal.getMonumentName(),
+                monumentName,
                 proposal.getLatitude(),
                 proposal.getLongitude(),
                 proposal.getUserNotes(),

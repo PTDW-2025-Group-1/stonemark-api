@@ -18,11 +18,7 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
-    @Query("SELECT DISTINCT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.activeDecision ad " +
-            "LEFT JOIN FETCH ad.detectedMark " +
-            "LEFT JOIN FETCH ad.detectedMonument")
-    List<MarkOccurrenceProposal> findAllDetailed();
+    Page<MarkOccurrenceProposal> findAll(Pageable pageable);
 
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
             "LEFT JOIN FETCH p.existingMonument m " +
