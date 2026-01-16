@@ -74,14 +74,14 @@ public class MonumentController {
         return service.findByPolygon(geoJson, pageable).map(mapper::toListDto);
     }
 
-    @GetMapping("/division/{divisionId}")
+    @GetMapping("/division/{id}")
     public Page<MonumentListDto> getMonumentsByDivision(
-            @PathVariable String divisionId,
+            @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByDivisionId(divisionId, pageable).map(mapper::toListDto);
+        return service.findByDivisionId(id, pageable).map(mapper::toListDto);
     }
 
     @GetMapping("/latest")

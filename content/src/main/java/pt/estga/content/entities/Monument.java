@@ -28,8 +28,14 @@ public class Monument extends AuditedEntity {
     private String street;
     private String houseNumber;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private AdministrativeDivision parish;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AdministrativeDivision municipality;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private AdministrativeDivision district;
 
     @Builder.Default
     private Boolean active = true;

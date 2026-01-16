@@ -45,7 +45,7 @@ public class MonumentImportService {
         // Phase 1: Build an in-memory spatial index of all parishes.
         log.info("Building parish spatial index...");
         STRtree parishIndex = new STRtree();
-        List<AdministrativeDivision> parishes = administrativeDivisionService.findByLogicalLevel(LogicalLevel.PARISH);
+        List<AdministrativeDivision> parishes = administrativeDivisionService.findByOsmAdminLevel(8);
         for (AdministrativeDivision parish : parishes) {
             if (parish.getGeometry() != null) {
                 parishIndex.insert(parish.getGeometry().getEnvelopeInternal(), parish);

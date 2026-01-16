@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.territory.entities.AdministrativeDivision;
-import pt.estga.territory.entities.LogicalLevel;
 import pt.estga.territory.services.AdministrativeDivisionService;
 
 import java.util.List;
@@ -30,16 +29,12 @@ public class MonumentServiceHibernateImpl implements MonumentService {
 
     @Override
     public Optional<Monument> findById(Long id) {
-        // A find method should be read-only and not have side effects.
-        // Parish assignment should happen during creation/update.
         return repository.findById(id);
     }
 
     @Override
     public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
-        // TODO: This is an inaccurate bounding-box search.
-        // Replace with a proper spatial query using ST_DWithin for accurate distance searches.
-        return repository.findByLatitudeBetweenAndLongitudeBetween(latitude - range, latitude + range, longitude - range, longitude + range);
+        return repository.findByCoordinatesInRange(latitude, longitude, range);
     }
 
     public List<Monument> findLatest(int limit) {
@@ -63,8 +58,8 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
-    public Page<Monument> findByDivisionId(String divisionId, Pageable pageable) {
-        Optional<AdministrativeDivision> division = administrativeDivisionService.findById(divisionId);
+    public Page<Monument> findByDivisionId(Long id, Pageable pageable) {
+        Optional<AdministrativeDivision> division = administrativeDivisionService.findById(id);
         if (division.isPresent()) {
             Geometry geometry = division.get().getGeometry();
             if (geometry != null) {
@@ -92,13 +87,27 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     private void setParishByCoordinates(Monument m) {
-        if (m.getParish() == null && m.getLatitude() != null && m.getLongitude() != null) {
+        if (m.getLatitude() != null && m.getLongitude() != null && (m.getParish() == null || m.getMunicipality() == null || m.getDistrict() == null)) {
             List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
-            divisions.stream()
-                    // Use the correct LogicalLevel enum instead of a magic number
-                    .filter(d -> d.getLogicalLevel() == LogicalLevel.PARISH)
-                    .findFirst()
-                    .ifPresent(m::setParish);
+            for (AdministrativeDivision division : divisions) {
+                switch (division.getOsmAdminLevel()) {
+                    case 6:
+                        if (m.getDistrict() == null) {
+                            m.setDistrict(division);
+                        }
+                        break;
+                    case 7:
+                        if (m.getMunicipality() == null) {
+                            m.setMunicipality(division);
+                        }
+                        break;
+                    case 8:
+                        if (m.getParish() == null) {
+                            m.setParish(division);
+                        }
+                        break;
+                }
+            }
         }
     }
 }

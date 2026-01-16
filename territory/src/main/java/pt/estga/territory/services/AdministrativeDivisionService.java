@@ -3,7 +3,6 @@ package pt.estga.territory.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.territory.entities.AdministrativeDivision;
-import pt.estga.territory.entities.LogicalLevel;
 import pt.estga.territory.repositories.AdministrativeDivisionRepository;
 
 import java.util.Collection;
@@ -20,7 +19,7 @@ public class AdministrativeDivisionService {
         return repository.findAll();
     }
 
-    public Optional<AdministrativeDivision> findById(String id) {
+    public Optional<AdministrativeDivision> findById(Long id) {
         return repository.findById(id);
     }
 
@@ -31,18 +30,12 @@ public class AdministrativeDivisionService {
     public List<AdministrativeDivision> findByOsmAdminLevel(int adminLevel) {
         return repository.findByOsmAdminLevel(adminLevel);
     }
-    
-    public List<AdministrativeDivision> findByLogicalLevel(LogicalLevel level) {
-        return repository.findByLogicalLevel(level);
+
+    public List<AdministrativeDivision> findChildren(Long parentId) {
+        return repository.findByParentId(parentId);
     }
 
-    public List<AdministrativeDivision> findChildren(String parentId) {
-        // Assuming a method like findByParent_Id exists in the repository
-        // to query children by their parent's composite ID.
-        return repository.findByParent_Id(parentId);
-    }
-
-    public Optional<AdministrativeDivision> findParent(String childId) {
+    public Optional<AdministrativeDivision> findParent(Long childId) {
         return repository.findById(childId).map(AdministrativeDivision::getParent);
     }
 
@@ -62,7 +55,7 @@ public class AdministrativeDivisionService {
         return repository.saveAll(divisions);
     }
 
-    public void deleteById(String id) {
+    public void deleteById(Long id) {
         repository.deleteById(id);
     }
 }

@@ -26,6 +26,6 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
     Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
 
-    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_MakeEnvelope(:longitude1, :latitude1, :longitude2, :latitude2, 4326))", nativeQuery = true)
-    List<Monument> findByLatitudeBetweenAndLongitudeBetween(@Param("latitude1") double latitude1, @Param("latitude2") double latitude2, @Param("longitude1") double longitude1, @Param("longitude2") double longitude2);
+    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range)", nativeQuery = true)
+    List<Monument> findByCoordinatesInRange(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("range") double range);
 }

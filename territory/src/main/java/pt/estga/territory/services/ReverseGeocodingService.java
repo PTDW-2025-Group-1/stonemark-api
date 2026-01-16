@@ -22,14 +22,14 @@ public class ReverseGeocodingService {
         if (response == null) return null;
 
         String address = response.path("display_name").asText(null);
-        
+
         JsonNode addr = response.path("address");
 
         String street = addr.has("road") ? addr.get("road").asText()
                 : addr.has("pedestrian") ? addr.get("pedestrian").asText()
                 : addr.has("street") ? addr.get("street").asText()
                 : null;
-        
+
         String houseNumber = addr.has("house_number") ? addr.get("house_number").asText() : null;
 
         String name = null;

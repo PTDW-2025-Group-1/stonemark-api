@@ -36,7 +36,7 @@
         <module>verification</module>
         <module>report</module>
         <module>security</module>
-        <module>administrative</module>
+        <module>territory</module>
     </modules>
     <scm>
 		<connection/>

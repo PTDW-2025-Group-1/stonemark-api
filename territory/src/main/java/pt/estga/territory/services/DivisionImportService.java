@@ -9,7 +9,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
 import org.springframework.stereotype.Service;
 import pt.estga.territory.entities.AdministrativeDivision;
-import pt.estga.territory.entities.OsmType;
 import pt.estga.territory.repositories.AdministrativeDivisionRepository;
 
 import java.io.BufferedReader;
@@ -23,13 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Service for importing administrative divisions from OSM PBF files.
- *
- * <p>This service uses the `osmium` command-line tool to extract administrative boundaries
- * from a PBF file and convert them to GeoJSON sequences. The GeoJSON features are then
- * parsed and saved to the database.</p>
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +29,7 @@ public class DivisionImportService {
 
     private final AdministrativeDivisionRepository repository;
     private final ObjectMapper objectMapper;
-    private final DivisionParentMappingWorker parentMappingWorker;
+    private final DivisionParentMatchingService divisionParentMatchingService;
 
     public int importFromPbf(InputStream pbfStream) throws Exception {
 
@@ -45,8 +37,6 @@ public class DivisionImportService {
         try {
             Files.copy(pbfStream, pbfFile, StandardCopyOption.REPLACE_EXISTING);
 
-            // Osmium command to export administrative boundaries as a GeoJSON sequence.
-            // The --attributes flag includes OSM metadata in the properties of the GeoJSON features.
             ProcessBuilder pb = new ProcessBuilder(
                     "osmium", "export",
                     pbfFile.toAbsolutePath().toString(),
@@ -71,7 +61,6 @@ public class DivisionImportService {
                 if (line.isBlank()) {
                     continue;
                 }
-                // The GeoJSON Text Sequence format uses a record separator (0x1E) before each feature.
                 if (line.charAt(0) == 0x1E) {
                     line = line.substring(1);
                 }
@@ -99,78 +88,49 @@ public class DivisionImportService {
                 int adminLevel = props.path("admin_level").asInt(-1);
 
                 String name = resolveName(props);
-                String namePt = resolveNamePt(props);
                 
-                if ((name == null || name.isBlank()) && (namePt == null || namePt.isBlank())) {
+                if (name == null || name.isBlank()) {
+                    continue;
+                }
+                
+                if (adminLevel != 6 && adminLevel != 7 && adminLevel != 8) {
                     continue;
                 }
 
-                // --- Start of OSM ID and Type parsing ---
-                // The OSM ID and type are included in the feature's properties because of the --attributes flag.
-                // They are prefixed with '@' to avoid conflicts with OSM tags.
                 long osmId = props.path("@id").asLong(0);
                 String typeStr = props.path("@type").asText();
-                OsmType osmType;
 
                 if (osmId == 0 || typeStr.isBlank()) {
                     log.warn("Skipping division '{}' because of missing OSM ID or type from properties. ID: {}, Type: {}", name, osmId, typeStr);
                     continue;
                 }
 
-                try {
-                    osmType = OsmType.valueOf(typeStr.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    log.warn("Skipping division '{}' due to invalid OSM type: {}", name, typeStr);
-                    continue;
-                }
-                // --- End of OSM ID and Type parsing ---
-                
-                // Construct the composite ID used by the application
-                String compositeId = osmType + ":" + osmId;
-
                 Geometry geometry = geoJsonReader.read(objectMapper.writeValueAsString(geomNode));
                 geometry.setSRID(4326);
                 
                 if (!geometry.isValid()) {
-                    log.warn("Fixing invalid geometry for OSM ID: {}", compositeId);
+                    log.warn("Fixing invalid geometry for OSM ID: {}", osmId);
                     geometry = geometry.buffer(0);
                     if (!geometry.isValid()) {
-                        log.error("Geometry still invalid after buffer(0) for OSM ID: {}", compositeId);
+                        log.error("Geometry still invalid after buffer(0) for OSM ID: {}", osmId);
                     }
                 }
 
-                double centroidLat = geometry.getCentroid().getY();
-                double areaDegrees = geometry.getArea();
-                // Area calculation is approximate and heuristic-only.
-                // TODO: Replace with proper reprojection to EPSG:3035 (ETRS89-LAEA) or similar equal-area projection for accurate results.
-                double areaKm2 = areaDegrees * (111.32 * 111.32 * Math.cos(Math.toRadians(centroidLat)));
-
-
-                Optional<AdministrativeDivision> existingOpt = repository.findById(compositeId);
+                Optional<AdministrativeDivision> existingOpt = repository.findById(osmId);
                 AdministrativeDivision div;
 
                 if (existingOpt.isPresent()) {
                     div = existingOpt.get();
                     div.setName(name);
-                    div.setNamePt(namePt);
                     div.setOsmAdminLevel(adminLevel);
                     div.setGeometry(geometry);
-                    div.setAreaKm2(areaKm2);
-                    div.setOsmType(osmType);
-                    div.setOsmId(osmId);
-                    div.setBoundary("administrative");
                     div.setCountryCode("PT");
                 } else {
                     div = AdministrativeDivision.builder()
-                            .id(compositeId)
-                            .osmId(osmId)
-                            .osmType(osmType)
+                            .id(osmId)
                             .osmAdminLevel(adminLevel)
-                            .boundary("administrative")
                             .name(name)
-                            .namePt(namePt)
                             .geometry(geometry)
-                            .areaKm2(areaKm2)
                             .countryCode("PT")
                             .build();
                 }
@@ -193,8 +153,8 @@ public class DivisionImportService {
                 throw new IllegalStateException("osmium failed with exit code " + exit);
             }
             
-            parentMappingWorker.calculateParents(true, true);
-
+            divisionParentMatchingService.matchAllDivisions();
+            
             return count;
         } finally {
             Files.deleteIfExists(pbfFile);
@@ -204,13 +164,6 @@ public class DivisionImportService {
     private String resolveName(JsonNode props) {
         if (props.hasNonNull("name")) {
             return props.get("name").asText();
-        }
-        return null;
-    }
-
-    private String resolveNamePt(JsonNode props) {
-        if (props.hasNonNull("name:pt")) {
-            return props.get("name:pt").asText();
         }
         return null;
     }
