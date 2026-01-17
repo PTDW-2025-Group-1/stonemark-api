@@ -31,11 +31,6 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     }
 
     @Override
-    public Optional<MarkOccurrence> findByIdWithMonument(Long id) {
-        return repository.findByIdWithMonument(id);
-    }
-
-    @Override
     public Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable) {
         return repository.findAllByMarkId(markId, pageable);
     }
@@ -68,7 +63,6 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     public List<Monument> findAvailableMonumentsByMarkId(Long markId) {
         return repository.findDistinctMonumentsByMarkId(markId);
     }
-
 
     @Override
     public long countByMonumentId(Long monumentId) {

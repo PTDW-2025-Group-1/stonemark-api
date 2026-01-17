@@ -2,6 +2,7 @@ package pt.estga.content.repositories;
 
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,8 +16,14 @@ import java.util.Optional;
 @Repository
 public interface MonumentRepository extends JpaRepository<Monument, Long> {
 
-    @Query("SELECT m FROM Monument m LEFT JOIN FETCH m.parish LEFT JOIN FETCH m.municipality LEFT JOIN FETCH m.district WHERE m.id = :id")
-    Optional<Monument> findByIdWithDivisions(Long id);
+    @EntityGraph(attributePaths = {"district", "parish", "municipality"})
+    Optional<Monument> findById(Long id);
+
+    @Query("SELECT m FROM Monument m " +
+            "LEFT JOIN FETCH m.district " +
+            "LEFT JOIN FETCH m.parish " +
+            "LEFT JOIN FETCH m.municipality ")
+    Page<Monument> findAllWithDivisions(Pageable pageable);
 
     Optional<Monument> findByName(String name);
 

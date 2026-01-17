@@ -15,8 +15,6 @@ public interface MarkOccurrenceService {
 
     Optional<MarkOccurrence> findById(Long id);
 
-    Optional<MarkOccurrence> findByIdWithMonument(Long id);
-
     Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable);
 
     List<MarkOccurrence> findByMarkIdForMap(Long markId);

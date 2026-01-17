@@ -19,7 +19,12 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
 
     Page<MarkOccurrence> findAllByMarkId(Long markId, Pageable pageable);
 
-    @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.monument WHERE mo.mark.id = :markId")
+    @Query("SELECT mo FROM MarkOccurrence mo " +
+            "JOIN FETCH mo.monument m " +
+            "LEFT JOIN FETCH m.district " +
+            "LEFT JOIN FETCH m.parish " +
+            "LEFT JOIN FETCH m.municipality " +
+            "WHERE mo.mark.id = :markId")
     List<MarkOccurrence> findAllByMarkIdForMap(@Param("markId") Long markId);
 
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
@@ -42,7 +47,6 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     @Query("SELECT COUNT(DISTINCT m.monument.id) FROM MarkOccurrence m WHERE m.mark.id = :markId")
     long countDistinctMonumentIdByMarkId(@Param("markId") Long markId);
 
-    @EntityGraph(attributePaths = {"monument"})
-    @Query("SELECT m FROM MarkOccurrence m WHERE m.id = :id")
-    Optional<MarkOccurrence> findByIdWithMonument(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark"})
+    Optional<MarkOccurrence> findById(Long id);
 }

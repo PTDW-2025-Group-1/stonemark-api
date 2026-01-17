@@ -31,9 +31,14 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
+    public Page<Monument> findAllWithDivisions(Pageable pageable) {
+        return repository.findAllWithDivisions(pageable);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<Monument> findById(Long id) {
-        return repository.findByIdWithDivisions(id);
+        return repository.findById(id);
     }
 
     @Override
@@ -85,7 +90,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Override
     @Transactional
     public Monument update(Monument monument) {
-        Optional<Monument> existingMonument = repository.findByIdWithDivisions(monument.getId());
+        Optional<Monument> existingMonument = repository.findById(monument.getId());
         setDivisions(monument);
         Monument updatedMonument = repository.save(monument);
         existingMonument.ifPresent(value -> updateCounters(value, updatedMonument));
@@ -95,7 +100,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Override
     @Transactional
     public void deleteById(Long id) {
-        repository.findByIdWithDivisions(id).ifPresent(monument -> {
+        repository.findById(id).ifPresent(monument -> {
             updateCounters(monument, null);
             repository.deleteById(id);
         });
