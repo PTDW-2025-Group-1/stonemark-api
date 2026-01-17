@@ -8,6 +8,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import pt.estga.support.ContactStatus;
 import pt.estga.support.dtos.ContactRequestDto;
 import pt.estga.support.entities.ContactRequest;
@@ -80,14 +84,18 @@ class ContactRequestServiceHibernateImplTest {
     @Test
     @DisplayName("Should return all contact messages")
     void testFindAll() {
-        when(repository.findAll()).thenReturn(List.of(testContact));
+        Pageable pageable =
+                PageRequest.of(0, 10);
+        Page<ContactRequest> page = new PageImpl<>(List.of(testContact), pageable, 1);
 
-        List<ContactRequest> result = service.findAll();
+        when(repository.findAll(pageable)).thenReturn(page);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getId()).isEqualTo(1L);
+        Page<ContactRequest> result = service.findAll(pageable);
 
-        verify(repository).findAll();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(1L);
+
+        verify(repository).findAll(pageable);
     }
 
     @Test

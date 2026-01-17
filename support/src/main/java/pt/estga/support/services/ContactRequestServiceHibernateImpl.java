@@ -1,6 +1,8 @@
 package pt.estga.support.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pt.estga.support.repositories.ContactRequestRepository;
 import pt.estga.support.ContactStatus;
@@ -9,7 +11,6 @@ import pt.estga.support.entities.ContactRequest;
 import pt.estga.shared.exceptions.ContactNotFoundException;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,9 +34,10 @@ public class ContactRequestServiceHibernateImpl implements ContactRequestService
     }
 
     @Override
-    public List<ContactRequest> findAll() {
-        return repository.findAll();
+    public Page<ContactRequest> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
+
 
     @Override
     public Optional<ContactRequest> findById(Long id) {

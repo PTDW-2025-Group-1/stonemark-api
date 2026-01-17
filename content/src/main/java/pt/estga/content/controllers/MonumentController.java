@@ -43,7 +43,7 @@ public class MonumentController {
     @GetMapping("/details")
     public Page<MonumentResponseDto> getDetailedMonuments(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return service.findAllWithDivisions(pageable).map(mapper::toResponseDto);

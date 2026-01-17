@@ -3,6 +3,10 @@ package pt.estga.support.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +14,6 @@ import pt.estga.support.ContactStatus;
 import pt.estga.support.dtos.ContactRequestDto;
 import pt.estga.support.entities.ContactRequest;
 import pt.estga.support.services.ContactRequestService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/contact-requests")
@@ -22,8 +24,12 @@ public class ContactRequestController {
     private final ContactRequestService service;
 
     @GetMapping
-    public ResponseEntity<List<ContactRequest>> getAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<ContactRequest>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
