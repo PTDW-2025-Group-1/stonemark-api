@@ -35,23 +35,14 @@ public interface MonumentMapper {
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
-    @Mapping(source = "coverId", target = "cover", qualifiedByName = "idToMediaFile")
+    @Mapping(target = "cover", ignore = true)
     Monument toEntity(MonumentRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
-    @Mapping(source = "coverId", target = "cover", qualifiedByName = "idToMediaFile")
+    @Mapping(target = "cover", ignore = true)
     void updateEntityFromDto(MonumentRequestDto dto, @MappingTarget Monument entity);
 
-    @Named("idToMediaFile")
-    default MediaFile idToMediaFile(Long id) {
-        if (id == null) {
-            return null;
-        }
-        MediaFile mediaFile = new MediaFile();
-        mediaFile.setId(id);
-        return mediaFile;
-    }
 }

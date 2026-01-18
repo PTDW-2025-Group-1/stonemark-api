@@ -25,9 +25,15 @@ public interface MarkOccurrenceMapper {
 
     MarkOccurrenceMapDto toMapDto(MarkOccurrence entity);
 
+    @Mapping(target = "cover", ignore = true)
+    @Mapping(source = "markId", target = "mark.id")
+    @Mapping(source = "monument.id", target = "monument.id")
     MarkOccurrence toEntity(MarkOccurrenceDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "cover", ignore = true)
+    @Mapping(source = "markId", target = "mark.id")
+    @Mapping(source = "monument.id", target = "monument.id")
     void updateEntityFromDto(MarkOccurrenceDto dto, @MappingTarget MarkOccurrence entity);
 
 }

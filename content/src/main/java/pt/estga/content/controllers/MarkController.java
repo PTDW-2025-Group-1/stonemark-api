@@ -5,13 +5,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.services.MarkService;
+import pt.estga.file.entities.MediaFile;
+import pt.estga.file.services.MediaService;
+
+import java.io.IOException;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/marks")
@@ -21,6 +29,7 @@ public class MarkController {
 
     private final MarkService service;
     private final MarkMapper mapper;
+    private final MediaService mediaService;
 
     @GetMapping
     public Page<MarkDto> getMarks(
@@ -48,16 +57,54 @@ public class MarkController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<MarkDto> updateMark(@PathVariable Long id, @RequestBody MarkDto markDto) {
-        return service.findById(id)
-                .map(existingMark -> {
-                    mapper.updateEntityFromDto(markDto, existingMark);
-                    Mark updatedMark = service.update(existingMark);
-                    return ResponseEntity.ok(mapper.toDto(updatedMark));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MarkDto> createMark(
+            @RequestPart("data") MarkDto markDto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        Mark mark = mapper.toEntity(markDto);
+
+        if (file != null && !file.isEmpty()) {
+            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+            mark.setCover(mediaFile);
+        } else if (markDto.coverId() != null) {
+            mediaService.findById(markDto.coverId()).ifPresent(mark::setCover);
+        }
+
+        Mark createdMark = service.create(mark);
+        MarkDto response = mapper.toDto(createdMark);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ResponseEntity<MarkDto> updateMark(
+            @PathVariable Long id,
+            @RequestPart("data") MarkDto markDto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        Mark existingMark = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mark not found"));
+
+        mapper.updateEntityFromDto(markDto, existingMark);
+
+        if (file != null && !file.isEmpty()) {
+            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+            existingMark.setCover(mediaFile);
+        } else if (markDto.coverId() != null) {
+            mediaService.findById(markDto.coverId()).ifPresent(existingMark::setCover);
+        }
+
+        Mark updatedMark = service.update(existingMark);
+        return ResponseEntity.ok(mapper.toDto(updatedMark));
     }
 
     @DeleteMapping("/{id}")
@@ -65,5 +112,21 @@ public class MarkController {
     public ResponseEntity<Void> deleteMark(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ResponseEntity<MarkDto> uploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        Mark mark = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mark not found"));
+
+        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        mark.setCover(mediaFile);
+        Mark updatedMark = service.update(mark);
+
+        return ResponseEntity.ok(mapper.toDto(updatedMark));
     }
 }

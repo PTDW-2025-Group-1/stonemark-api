@@ -15,6 +15,7 @@ import pt.estga.file.enums.StorageProvider;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +83,11 @@ public class MediaServiceImpl implements MediaService {
         } catch (IOException e) {
             throw new RuntimeException("Could not read file content for id: " + fileId, e);
         }
+    }
+
+    @Override
+    public Optional<MediaFile> findById(Long id) {
+        return mediaFileRepository.findById(id);
     }
 
     /**

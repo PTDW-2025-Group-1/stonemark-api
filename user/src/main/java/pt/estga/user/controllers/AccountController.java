@@ -80,6 +80,11 @@ public class AccountController {
             @Valid @RequestBody ProfileUpdateRequestDto request) {
         User user = userService.findById(principal.getId()).orElseThrow();
         mapper.update(user, request);
+
+        if (request.photoId() != null) {
+            mediaService.findById(request.photoId()).ifPresent(user::setPhoto);
+        }
+
         userService.update(user);
         return ResponseEntity.ok(new MessageResponseDto("Your profile has been updated successfully."));
     }

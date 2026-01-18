@@ -3,8 +3,6 @@ package pt.estga.user.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-import pt.estga.file.entities.MediaFile;
 import pt.estga.user.dtos.ProfileUpdateRequestDto;
 import pt.estga.user.dtos.UserPublicDto;
 import pt.estga.user.dtos.UserDto;
@@ -19,19 +17,10 @@ public interface UserMapper {
     @Mapping(target = "photoId", source = "photo.id")
     UserPublicDto toPublicDto(User user);
 
-    @Mapping(source = "photoId", target = "photo", qualifiedByName = "idToMediaFile")
+    @Mapping(target = "photo", ignore = true)
     User toEntity(UserDto dto);
 
-    @Mapping(source = "photoId", target = "photo", qualifiedByName = "idToMediaFile")
+    @Mapping(target = "photo", ignore = true)
     void update(@MappingTarget User user, ProfileUpdateRequestDto dto);
 
-    @Named("idToMediaFile")
-    default MediaFile idToMediaFile(Long id) {
-        if (id == null) {
-            return null;
-        }
-        MediaFile mediaFile = new MediaFile();
-        mediaFile.setId(id);
-        return mediaFile;
-    }
 }

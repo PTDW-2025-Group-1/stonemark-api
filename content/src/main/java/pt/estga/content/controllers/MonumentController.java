@@ -132,6 +132,8 @@ public class MonumentController {
         if (file != null && !file.isEmpty()) {
             MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
             monument.setCover(mediaFile);
+        } else if (monumentDto.coverId() != null) {
+            mediaService.findById(monumentDto.coverId()).ifPresent(monument::setCover);
         }
 
         Monument createdMonument = service.create(monument);
@@ -161,6 +163,8 @@ public class MonumentController {
         if (file != null && !file.isEmpty()) {
             MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
             existingMonument.setCover(mediaFile);
+        } else if (monumentDto.coverId() != null) {
+            mediaService.findById(monumentDto.coverId()).ifPresent(existingMonument::setCover);
         }
 
         Monument updatedMonument = service.update(existingMonument);

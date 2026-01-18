@@ -5,6 +5,7 @@ import pt.estga.file.entities.MediaFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 /**
  * Service interface for managing media files.
@@ -39,5 +40,13 @@ public interface MediaService {
      * @throws RuntimeException if the file cannot be loaded
      */
     byte[] getMediaContent(Long fileId);
+
+    /**
+     * Finds a media file entity by its ID.
+     *
+     * @param id the id of the media file
+     * @return an Optional containing the MediaFile if found
+     */
+    Optional<MediaFile> findById(Long id);
 
 }
