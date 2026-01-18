@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
@@ -18,7 +20,10 @@ import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentService;
+import pt.estga.file.entities.MediaFile;
+import pt.estga.file.services.MediaService;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -30,6 +35,7 @@ public class MonumentController {
 
     private final MonumentService service;
     private final MonumentMapper mapper;
+    private final MediaService mediaService;
 
     @GetMapping
     public Page<MonumentListDto> getMonuments(
@@ -115,12 +121,19 @@ public class MonumentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<MonumentResponseDto> createMonument(
-            @Valid @RequestBody MonumentRequestDto monumentDto
-    ) {
+            @RequestPart("data") @Valid MonumentRequestDto monumentDto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
         Monument monument = mapper.toEntity(monumentDto);
+
+        if (file != null && !file.isEmpty()) {
+            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+            monument.setCover(mediaFile);
+        }
+
         Monument createdMonument = service.create(monument);
         MonumentResponseDto response = mapper.toResponseDto(createdMonument);
 
@@ -133,19 +146,25 @@ public class MonumentController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<MonumentResponseDto> updateMonument(
             @PathVariable Long id,
-            @Valid @RequestBody MonumentRequestDto monumentDto
-    ) {
-        return service.findById(id)
-                .map(existingMonument -> {
-                    mapper.updateEntityFromDto(monumentDto, existingMonument);
-                    Monument updatedMonument = service.update(existingMonument);
-                    return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
-                })
-                .orElse(ResponseEntity.notFound().build());
+            @RequestPart("data") @Valid MonumentRequestDto monumentDto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        Monument existingMonument = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("Monument not found"));
+
+        mapper.updateEntityFromDto(monumentDto, existingMonument);
+
+        if (file != null && !file.isEmpty()) {
+            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+            existingMonument.setCover(mediaFile);
+        }
+
+        Monument updatedMonument = service.update(existingMonument);
+        return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
     }
 
     @DeleteMapping("/{id}")
@@ -155,5 +174,21 @@ public class MonumentController {
     ) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ResponseEntity<MonumentResponseDto> uploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        Monument monument = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("Monument not found"));
+
+        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        monument.setCover(mediaFile);
+        Monument updatedMonument = service.update(monument);
+
+        return ResponseEntity.ok(mapper.toResponseDto(updatedMonument));
     }
 }

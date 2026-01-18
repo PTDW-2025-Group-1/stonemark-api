@@ -1,6 +1,5 @@
 package pt.estga.proposal.dtos;
 
-import pt.estga.file.dtos.MediaFileDto;
 import pt.estga.proposal.enums.ProposalStatus;
 
 import java.time.Instant;

@@ -8,14 +8,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import pt.estga.file.dtos.MediaFileDto;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.services.MediaService;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Slf4j
@@ -27,6 +28,14 @@ public class MediaController {
 
     private final MediaService mediaService;
     private final MediaFileRepository mediaFileRepository;
+    private final MediaFileMapper mediaFileMapper;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaFileDto> uploadMedia(@RequestParam("file") MultipartFile file) throws IOException {
+        log.info("Request to upload media file: {}", file.getOriginalFilename());
+        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        return ResponseEntity.ok(mediaFileMapper.toDto(mediaFile));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Resource> getMediaById(@PathVariable Long id) {

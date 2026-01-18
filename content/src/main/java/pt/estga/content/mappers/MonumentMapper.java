@@ -4,12 +4,14 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
+import pt.estga.file.entities.MediaFile;
 import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.territory.mappers.AdministrativeDivisionMapper;
 
@@ -33,12 +35,23 @@ public interface MonumentMapper {
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
+    @Mapping(source = "coverId", target = "cover", qualifiedByName = "idToMediaFile")
     Monument toEntity(MonumentRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
+    @Mapping(source = "coverId", target = "cover", qualifiedByName = "idToMediaFile")
     void updateEntityFromDto(MonumentRequestDto dto, @MappingTarget Monument entity);
 
+    @Named("idToMediaFile")
+    default MediaFile idToMediaFile(Long id) {
+        if (id == null) {
+            return null;
+        }
+        MediaFile mediaFile = new MediaFile();
+        mediaFile.setId(id);
+        return mediaFile;
+    }
 }
