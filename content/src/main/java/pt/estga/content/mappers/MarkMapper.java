@@ -19,11 +19,11 @@ public interface MarkMapper {
 
     List<MarkDto> toDto(List<Mark> marks);
 
-    @Mapping(source = "coverId", target = "cover.id")
+    @Mapping(target = "cover", ignore = true)
     Mark toEntity(MarkDto markDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "coverId", target = "cover.id")
+    @Mapping(target = "cover", ignore = true)
     void updateEntityFromDto(MarkDto dto, @MappingTarget Mark entity);
 
 }

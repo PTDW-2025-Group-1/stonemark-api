@@ -14,5 +14,6 @@ public record MonumentRequestDto(
         String houseNumber,
         Long parishId,
         Long municipalityId,
-        Long districtId
+        Long districtId,
+        Long coverId
 ) { }

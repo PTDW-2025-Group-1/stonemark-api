@@ -1,4 +1,4 @@
-package pt.estga.detection.service;
+package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

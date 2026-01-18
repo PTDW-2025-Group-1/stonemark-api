@@ -6,16 +6,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.*;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MarkOccurrenceService;
+import pt.estga.file.services.MediaService;
+import pt.estga.shared.models.AppPrincipal;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -28,6 +36,7 @@ public class MarkOccurrenceController {
     private final MarkOccurrenceMapper mapper;
     private final MarkMapper markMapper;
     private final MonumentMapper monumentMapper;
+    private final MediaService mediaService;
 
     @GetMapping
     public Page<MarkOccurrenceDto> getMarkOccurrences(Pageable pageable) {
@@ -128,23 +137,54 @@ public class MarkOccurrenceController {
                 .map(mapper::toListDto);
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MODERATOR')")
-    public MarkOccurrenceDto createMarkOccurrence(@RequestBody MarkOccurrenceDto markOccurrenceDto) {
+    public ResponseEntity<MarkOccurrenceDto> createMarkOccurrence(
+            @RequestPart("data") MarkOccurrenceDto markOccurrenceDto,
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @AuthenticationPrincipal AppPrincipal principal
+    ) throws IOException {
         MarkOccurrence markOccurrence = mapper.toEntity(markOccurrenceDto);
-        return mapper.toDto(service.create(markOccurrence));
+
+        if (markOccurrenceDto.coverId() != null) {
+            mediaService.findById(markOccurrenceDto.coverId()).ifPresent(markOccurrence::setCover);
+        }
+
+        if (principal != null) {
+            markOccurrence.setAuthorId(principal.getId());
+            markOccurrence.setAuthorName(principal.getUsername());
+        }
+
+        MarkOccurrence createdMarkOccurrence = service.create(markOccurrence, file);
+        MarkOccurrenceDto response = mapper.toDto(createdMarkOccurrence);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('MODERATOR')")
-    public ResponseEntity<MarkOccurrenceDto> updateMarkOccurrence(@PathVariable Long id, @RequestBody MarkOccurrenceDto markOccurrenceDto) {
-        return service.findById(id)
-                .map(existingMarkOccurrence -> {
-                    mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
-                    MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence);
-                    return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<MarkOccurrenceDto> updateMarkOccurrence(
+            @PathVariable Long id,
+            @RequestPart("data") MarkOccurrenceDto markOccurrenceDto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        MarkOccurrence existingMarkOccurrence = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
+
+        mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
+
+        if (markOccurrenceDto.coverId() != null) {
+            mediaService.findById(markOccurrenceDto.coverId()).ifPresent(existingMarkOccurrence::setCover);
+        }
+
+        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, file);
+        return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 
     @DeleteMapping("/{id}")
@@ -152,5 +192,15 @@ public class MarkOccurrenceController {
     public ResponseEntity<Void> deleteMarkOccurrence(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('MODERATOR')")
+    public ResponseEntity<MarkOccurrenceDto> uploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        MarkOccurrence updatedMarkOccurrence = service.updateCover(id, file);
+        return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 }

@@ -11,5 +11,7 @@ public record ProfileUpdateRequestDto(
 
         @NotBlank(message = "Last name is required")
         @Size(max = 50, message = "Last name must be at most 50 characters")
-        String lastName
+        String lastName,
+
+        Long photoId
 ) {}

@@ -59,7 +59,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
 
     @Override
     public Resource loadFile(String path) {
-        log.info("Loading file from path: {}", path);
+//        log.info("Loading file from path: {}", path);
         try {
             InputStream stream = minioClient.getObject(
                     GetObjectArgs.builder()
@@ -67,7 +67,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
                             .object(path)
                             .build()
             );
-            log.info("File loaded successfully from path: {}", path);
+//            log.info("File loaded successfully from path: {}", path);
             return new InputStreamResource(stream);
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
             log.error("Failed to load file from MinIO with path: {}", path, e);

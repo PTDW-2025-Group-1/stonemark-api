@@ -16,5 +16,6 @@ public record UserDto(
         Instant createdAt,
         TfaMethod tfaMethod,
         boolean accountLocked,
-        boolean enabled
+        boolean enabled,
+        Long photoId
 ) { }

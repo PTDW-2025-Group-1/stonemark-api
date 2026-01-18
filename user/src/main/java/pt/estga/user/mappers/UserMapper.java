@@ -11,13 +11,16 @@ import pt.estga.user.entities.User;
 @Mapper(componentModel = "spring", uses = UserContactMapper.class)
 public interface UserMapper {
 
+    @Mapping(target = "photoId", source = "photo.id")
     UserDto toDto(User user);
 
     @Mapping(target = "photoId", source = "photo.id")
     UserPublicDto toPublicDto(User user);
 
+    @Mapping(target = "photo", ignore = true)
     User toEntity(UserDto dto);
 
+    @Mapping(target = "photo", ignore = true)
     void update(@MappingTarget User user, ProfileUpdateRequestDto dto);
 
 }

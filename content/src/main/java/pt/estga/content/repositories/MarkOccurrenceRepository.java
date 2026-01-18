@@ -17,6 +17,10 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, Long> {
 
+    @EntityGraph(attributePaths = {"monument", "mark"})
+    Page<MarkOccurrence> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findAllByMarkId(Long markId, Pageable pageable);
 
     @Query("SELECT mo FROM MarkOccurrence mo " +
@@ -27,6 +31,7 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
             "WHERE mo.mark.id = :markId")
     List<MarkOccurrence> findAllByMarkIdForMap(@Param("markId") Long markId);
 
+    @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
 
     @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.mark JOIN FETCH mo.monument ORDER BY mo.createdAt DESC")
@@ -38,6 +43,7 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     @Query("SELECT DISTINCT mo.monument FROM MarkOccurrence mo WHERE mo.mark.id = :markId")
     List<Monument> findDistinctMonumentsByMarkId(@Param("markId") Long markId);
 
+    @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findAllByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable);
 
     long countByMonumentId(Long monumentId);

@@ -4,12 +4,15 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
+import pt.estga.content.dtos.MonumentMinDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
+import pt.estga.file.entities.MediaFile;
 import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.territory.mappers.AdministrativeDivisionMapper;
 
@@ -30,15 +33,19 @@ public interface MonumentMapper {
 
     MonumentMapDto toMapDto(Monument monument);
 
+    MonumentMinDto toMinDto(Monument monument);
+
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
+    @Mapping(target = "cover", ignore = true)
     Monument toEntity(MonumentRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
+    @Mapping(target = "cover", ignore = true)
     void updateEntityFromDto(MonumentRequestDto dto, @MappingTarget Monument entity);
 
 }
