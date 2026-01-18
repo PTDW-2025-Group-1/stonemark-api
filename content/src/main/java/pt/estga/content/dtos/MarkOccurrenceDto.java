@@ -5,8 +5,9 @@ import java.time.Instant;
 public record MarkOccurrenceDto(
     Long id,
     Long markId,
+    Long monumentId,
     MarkDto mark,
-    MonumentDto monument,
+    MonumentMinDto monument,
     Long coverId,
     Long authorId,
     String authorName,

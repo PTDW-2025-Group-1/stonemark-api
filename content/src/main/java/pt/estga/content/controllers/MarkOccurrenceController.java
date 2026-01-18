@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -18,8 +19,8 @@ import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MarkOccurrenceService;
-import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
+import pt.estga.shared.models.AppPrincipal;
 
 import java.io.IOException;
 import java.net.URI;
@@ -140,18 +141,21 @@ public class MarkOccurrenceController {
     @PreAuthorize("hasRole('MODERATOR')")
     public ResponseEntity<MarkOccurrenceDto> createMarkOccurrence(
             @RequestPart("data") MarkOccurrenceDto markOccurrenceDto,
-            @RequestPart(value = "file", required = false) MultipartFile file
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            @AuthenticationPrincipal AppPrincipal principal
     ) throws IOException {
         MarkOccurrence markOccurrence = mapper.toEntity(markOccurrenceDto);
 
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            markOccurrence.setCover(mediaFile);
-        } else if (markOccurrenceDto.coverId() != null) {
+        if (markOccurrenceDto.coverId() != null) {
             mediaService.findById(markOccurrenceDto.coverId()).ifPresent(markOccurrence::setCover);
         }
 
-        MarkOccurrence createdMarkOccurrence = service.create(markOccurrence);
+        if (principal != null) {
+            markOccurrence.setAuthorId(principal.getId());
+            markOccurrence.setAuthorName(principal.getUsername());
+        }
+
+        MarkOccurrence createdMarkOccurrence = service.create(markOccurrence, file);
         MarkOccurrenceDto response = mapper.toDto(createdMarkOccurrence);
 
         URI location = ServletUriComponentsBuilder
@@ -175,14 +179,11 @@ public class MarkOccurrenceController {
 
         mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
 
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            existingMarkOccurrence.setCover(mediaFile);
-        } else if (markOccurrenceDto.coverId() != null) {
+        if (markOccurrenceDto.coverId() != null) {
             mediaService.findById(markOccurrenceDto.coverId()).ifPresent(existingMarkOccurrence::setCover);
         }
 
-        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence);
+        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, file);
         return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 
@@ -199,13 +200,7 @@ public class MarkOccurrenceController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        MarkOccurrence markOccurrence = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
-
-        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-        markOccurrence.setCover(mediaFile);
-        MarkOccurrence updatedMarkOccurrence = service.update(markOccurrence);
-
+        MarkOccurrence updatedMarkOccurrence = service.updateCover(id, file);
         return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 }

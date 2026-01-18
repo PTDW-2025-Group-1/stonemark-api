@@ -6,16 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.services.MarkSearchService;
 import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
-import pt.estga.detection.service.MarkSearchService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.SubmissionSource;
-import pt.estga.shared.utils.SecurityUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

@@ -14,12 +14,16 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.services.MarkSearchService;
 import pt.estga.content.services.MarkService;
-import pt.estga.file.entities.MediaFile;
+import pt.estga.detection.model.DetectionResult;
+import pt.estga.detection.service.DetectionService;
 import pt.estga.file.services.MediaService;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/marks")
@@ -30,6 +34,8 @@ public class MarkController {
     private final MarkService service;
     private final MarkMapper mapper;
     private final MediaService mediaService;
+    private final DetectionService detectionService;
+    private final MarkSearchService markSearchService;
 
     @GetMapping
     public Page<MarkDto> getMarks(
@@ -65,14 +71,11 @@ public class MarkController {
     ) throws IOException {
         Mark mark = mapper.toEntity(markDto);
 
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            mark.setCover(mediaFile);
-        } else if (markDto.coverId() != null) {
+        if (markDto.coverId() != null) {
             mediaService.findById(markDto.coverId()).ifPresent(mark::setCover);
         }
 
-        Mark createdMark = service.create(mark);
+        Mark createdMark = service.create(mark, file);
         MarkDto response = mapper.toDto(createdMark);
 
         URI location = ServletUriComponentsBuilder
@@ -96,14 +99,11 @@ public class MarkController {
 
         mapper.updateEntityFromDto(markDto, existingMark);
 
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            existingMark.setCover(mediaFile);
-        } else if (markDto.coverId() != null) {
+        if (markDto.coverId() != null) {
             mediaService.findById(markDto.coverId()).ifPresent(existingMark::setCover);
         }
 
-        Mark updatedMark = service.update(existingMark);
+        Mark updatedMark = service.update(existingMark, file);
         return ResponseEntity.ok(mapper.toDto(updatedMark));
     }
 
@@ -120,13 +120,19 @@ public class MarkController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        Mark mark = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mark not found"));
-
-        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-        mark.setCover(mediaFile);
-        Mark updatedMark = service.update(mark);
-
+        Mark updatedMark = service.updateCover(id, file);
         return ResponseEntity.ok(mapper.toDto(updatedMark));
+    }
+
+    @PostMapping(value = "/search/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<String>> searchByImage(@RequestParam("file") MultipartFile file) throws IOException {
+        DetectionResult detectionResult = detectionService.detect(file.getInputStream(), file.getOriginalFilename());
+
+        if (!detectionResult.isMasonMark()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        List<String> similarMarkIds = markSearchService.searchMarks(detectionResult.embedding());
+        return ResponseEntity.ok(similarMarkIds);
     }
 }

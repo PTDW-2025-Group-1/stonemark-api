@@ -17,6 +17,7 @@ public interface MarkOccurrenceMapper {
 
     @Mapping(target = "coverId", source = "cover.id")
     @Mapping(target = "markId", source = "mark.id")
+    @Mapping(target = "monumentId", source = "monument.id")
     MarkOccurrenceDto toDto(MarkOccurrence entity);
 
     List<MarkOccurrenceDto> toDto(List<MarkOccurrence> entities);
@@ -27,13 +28,17 @@ public interface MarkOccurrenceMapper {
 
     @Mapping(target = "cover", ignore = true)
     @Mapping(source = "markId", target = "mark.id")
-    @Mapping(source = "monument.id", target = "monument.id")
+    @Mapping(source = "monumentId", target = "monument.id")
+    @Mapping(target = "monument", ignore = true)
+    @Mapping(target = "mark", ignore = true)
     MarkOccurrence toEntity(MarkOccurrenceDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "cover", ignore = true)
     @Mapping(source = "markId", target = "mark.id")
-    @Mapping(source = "monument.id", target = "monument.id")
+    @Mapping(source = "monumentId", target = "monument.id")
+    @Mapping(target = "monument", ignore = true)
+    @Mapping(target = "mark", ignore = true)
     void updateEntityFromDto(MarkOccurrenceDto dto, @MappingTarget MarkOccurrence entity);
 
 }

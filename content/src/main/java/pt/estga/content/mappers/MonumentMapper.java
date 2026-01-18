@@ -8,6 +8,7 @@ import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
+import pt.estga.content.dtos.MonumentMinDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
@@ -31,6 +32,8 @@ public interface MonumentMapper {
     List<MonumentListDto> toListDto(List<Monument> monuments);
 
     MonumentMapDto toMapDto(Monument monument);
+
+    MonumentMinDto toMinDto(Monument monument);
 
     @Mapping(source = "parishId", target = "parish.id")
     @Mapping(source = "municipalityId", target = "municipality.id")
