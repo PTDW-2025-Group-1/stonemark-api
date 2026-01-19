@@ -3,6 +3,7 @@ package pt.estga.file.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import pt.estga.file.enums.MediaStatus;
 import pt.estga.file.enums.StorageProvider;
 
 import java.time.Instant;
@@ -39,5 +40,9 @@ public class MediaFile {
 
     @CreatedDate
     private Instant uploadedAt;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private MediaStatus status;
 
 }

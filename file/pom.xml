@@ -24,6 +24,18 @@
             <artifactId>shared</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.21</version>
+        </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/org.sejda.imageio/webp-imageio -->
+        <dependency>
+            <groupId>org.sejda.imageio</groupId>
+            <artifactId>webp-imageio</artifactId>
+            <version>0.1.6</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
