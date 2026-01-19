@@ -22,6 +22,7 @@ public interface MarkOccurrenceMapper {
 
     List<MarkOccurrenceDto> toDto(List<MarkOccurrence> entities);
 
+    @Mapping(target = "coverId", source = "cover.id")
     MarkOccurrenceListDto toListDto(MarkOccurrence entity);
 
     MarkOccurrenceMapDto toMapDto(MarkOccurrence entity);

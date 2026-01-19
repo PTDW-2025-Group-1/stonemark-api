@@ -4,10 +4,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import pt.estga.file.enums.MediaStatus;
+import pt.estga.file.events.MediaUploadedEvent;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.StorageProvider;
@@ -24,6 +27,7 @@ public class MediaServiceImpl implements MediaService {
 
     private final MediaFileRepository mediaFileRepository;
     private final FileStorageService fileStorageService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${storage.provider:local}")
     private String storageProvider;
@@ -52,8 +56,15 @@ public class MediaServiceImpl implements MediaService {
 
         media.setStoragePath(storagePath);
         media.setSize(countingStream.getCount());
+        media.setStatus(MediaStatus.UPLOADED);
         
-        return mediaFileRepository.save(media);
+        MediaFile savedMedia = mediaFileRepository.save(media);
+
+        applicationEventPublisher.publishEvent(
+            new MediaUploadedEvent(savedMedia.getId())
+        );
+
+        return savedMedia;
     }
 
     private MediaFile createInitialMediaFile(String originalFilename) {
@@ -63,6 +74,7 @@ public class MediaServiceImpl implements MediaService {
                 .size(0L)
                 .storageProvider(StorageProvider.valueOf(storageProvider.toUpperCase()))
                 .storagePath("")
+                .status(MediaStatus.PROCESSING) // Default to PROCESSING or UPLOADED? Request says UPLOADED after save.
                 .build();
     }
 

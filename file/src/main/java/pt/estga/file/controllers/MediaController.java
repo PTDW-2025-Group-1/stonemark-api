@@ -10,11 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import pt.estga.file.dtos.MediaFileDto;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.file.enums.MediaVariantType;
 import pt.estga.file.mappers.MediaFileMapper;
-import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.services.MediaService;
+import pt.estga.file.services.MediaVariantService;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -27,7 +30,7 @@ import java.util.Optional;
 public class MediaController {
 
     private final MediaService mediaService;
-    private final MediaFileRepository mediaFileRepository;
+    private final MediaVariantService mediaVariantService;
     private final MediaFileMapper mediaFileMapper;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -41,7 +44,7 @@ public class MediaController {
     public ResponseEntity<Resource> getMediaById(@PathVariable Long id) {
         log.info("Request to get media with id: {}", id);
 
-        Optional<MediaFile> mediaFileOptional = mediaFileRepository.findById(id);
+        Optional<MediaFile> mediaFileOptional = mediaService.findById(id);
 
         if (mediaFileOptional.isEmpty()) {
             log.warn("Media not found with id: {}", id);
@@ -68,5 +71,34 @@ public class MediaController {
                 .header("Content-Disposition",
                         "inline; filename=\"" + filename + "\"")
                 .body(resource);
+    }
+
+    @GetMapping("/{id}/thumbnail")
+    public ResponseEntity<Resource> getThumbnail(@PathVariable Long id) {
+        return getVariant(id, MediaVariantType.THUMBNAIL);
+    }
+
+    @GetMapping("/{id}/preview")
+    public ResponseEntity<Resource> getPreview(@PathVariable Long id) {
+        return getVariant(id, MediaVariantType.PREVIEW);
+    }
+
+    @GetMapping("/{id}/optimized")
+    public ResponseEntity<Resource> getOptimized(@PathVariable Long id) {
+        return getVariant(id, MediaVariantType.OPTIMIZED);
+    }
+
+    private ResponseEntity<Resource> getVariant(Long id, MediaVariantType type) {
+        try {
+            Resource resource = mediaVariantService.loadVariant(id, type);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("image/webp"))
+                    .body(resource);
+        } catch (RuntimeException e) {
+            // Assuming RuntimeException is thrown when not found as per service impl
+            // We should ideally check for specific exception or catch generic and return 404
+            // The requirement says "Variant missing -> 404", "Media missing -> 404"
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Variant not found", e);
+        }
     }
 }
