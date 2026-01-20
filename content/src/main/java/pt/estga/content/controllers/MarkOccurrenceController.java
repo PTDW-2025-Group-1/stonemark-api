@@ -60,7 +60,7 @@ public class MarkOccurrenceController {
             @RequestParam(defaultValue = "desc") String sort
     ) {
         Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "publishedAt"));
         return service.findByMarkId(markId, pageable)
                 .map(mapper::toListDto);
     }
@@ -108,7 +108,7 @@ public class MarkOccurrenceController {
             @RequestParam(defaultValue = "desc") String sort
     ) {
         Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "publishedAt"));
         return service.findByMonumentId(monumentId, pageable)
                 .map(mapper::toListDto);
     }
