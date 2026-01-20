@@ -7,6 +7,8 @@ import pt.estga.file.enums.MediaStatus;
 import pt.estga.file.enums.StorageProvider;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -40,6 +42,14 @@ public class MediaFile {
 
     @CreatedDate
     private Instant uploadedAt;
+
+    @OneToMany(
+            mappedBy = "mediaFile",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<MediaVariant> variants = new ArrayList<>();
 
     @Column(nullable = false, length = 20)
     @Enumerated(EnumType.STRING)

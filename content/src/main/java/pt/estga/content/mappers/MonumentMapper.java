@@ -4,7 +4,6 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
@@ -12,7 +11,6 @@ import pt.estga.content.dtos.MonumentMinDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
-import pt.estga.file.entities.MediaFile;
 import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.territory.mappers.AdministrativeDivisionMapper;
 
@@ -29,6 +27,7 @@ public interface MonumentMapper {
     @Mapping(source = "cover.id", target = "coverId")
     MonumentListDto toListDto(Monument monument);
 
+    @Mapping(source = "cover.id", target = "coverId")
     List<MonumentListDto> toListDto(List<Monument> monuments);
 
     MonumentMapDto toMapDto(Monument monument);
