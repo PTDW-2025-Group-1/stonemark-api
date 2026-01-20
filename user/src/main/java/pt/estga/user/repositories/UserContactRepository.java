@@ -26,4 +26,5 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long> 
 
     List<UserContact> findByValueAndVerified(String value, boolean verified);
 
+    void deleteByUser(User user);
 }

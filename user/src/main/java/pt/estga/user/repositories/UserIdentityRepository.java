@@ -20,4 +20,5 @@ public interface UserIdentityRepository extends JpaRepository<UserIdentity, Long
 
     List<UserIdentity> findByUser(User user);
 
+    void deleteByUser(User user);
 }
