@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.shared.enums.UserRole;
 import pt.estga.user.repositories.UserRepository;
+import pt.estga.user.repositories.UserContactRepository;
+import pt.estga.user.repositories.UserIdentityRepository;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
@@ -18,6 +20,8 @@ import java.util.Optional;
 public class UserServiceHibernateImpl implements UserService {
 
     private final UserRepository repository;
+    private final UserContactRepository userContactRepository;
+    private final UserIdentityRepository userIdentityRepository;
 
     @Override
     public Page<User> findAll(Pageable pageable) {
@@ -79,5 +83,21 @@ public class UserServiceHibernateImpl implements UserService {
     @Override
     public void deleteUnverifiedUsers(Instant minus) {
         repository.deleteAllByEnabledFalseAndCreatedAtBefore(minus);
+    }
+
+    @Override
+    public void softDeleteUser(Long id) {
+        User user = repository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+
+        userContactRepository.deleteByUser(user);
+        userIdentityRepository.deleteByUser(user);
+
+        user.setFirstName("deleted");
+        user.setLastName("user");
+        user.setPassword(null);
+        user.setUsername(null);
+        user.setEnabled(false);
+
+        repository.save(user);
     }
 }

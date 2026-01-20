@@ -134,4 +134,17 @@ public class AccountController {
         User updatedUser = userService.update(user);
         return ResponseEntity.ok(mapper.toDto(updatedUser));
     }
+
+    @Operation(summary = "Delete user account", description = "Deletes the authenticated user's account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Account deleted successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @DeleteMapping
+    public ResponseEntity<MessageResponseDto> deleteAccount(@AuthenticationPrincipal AppPrincipal principal) {
+        userService.softDeleteUser(principal.getId());
+        return ResponseEntity.ok(new MessageResponseDto("Your account has been deleted successfully."));
+    }
 }
