@@ -38,4 +38,14 @@ public class MarkOccurrence extends AuditedEntity {
     private String authorName;
     private Instant publishedAt;
 
+    @Builder.Default
+    private Boolean active = true;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.publishedAt == null) {
+            this.publishedAt = Instant.now();
+        }
+    }
+
 }

@@ -19,5 +19,6 @@ public record MonumentResponseDto(
         AdministrativeDivisionDto district,
         Long coverId,
         Instant createdAt,
-        Instant lastModifiedAt
+        Instant lastModifiedAt,
+        Boolean active
 ) { }

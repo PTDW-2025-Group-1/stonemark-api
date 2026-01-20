@@ -36,6 +36,11 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     }
 
     @Override
+    public Page<Monument> findAllWithDivisionsManagement(Pageable pageable) {
+        return repository.findAllWithDivisionsAdmin(pageable);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<Monument> findById(Long id) {
         return repository.findById(id);

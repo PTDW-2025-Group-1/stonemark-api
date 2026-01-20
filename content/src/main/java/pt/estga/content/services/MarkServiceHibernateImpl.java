@@ -26,7 +26,12 @@ public class MarkServiceHibernateImpl implements MarkService {
 
     @Override
     public Page<Mark> findAll(Pageable pageable) {
-        return repository.findAllWithCover(pageable);
+        return repository.findByActiveIsTrue(pageable);
+    }
+
+    @Override
+    public Page<Mark> findAllManagement(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     @Override

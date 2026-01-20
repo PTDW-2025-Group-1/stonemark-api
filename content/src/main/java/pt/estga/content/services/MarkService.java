@@ -12,6 +12,8 @@ public interface MarkService {
 
     Page<Mark> findAll(Pageable pageable);
 
+    Page<Mark> findAllManagement(Pageable pageable);
+
     Optional<Mark> findById(Long id);
 
     Optional<Mark> findWithCoverById(Long id);

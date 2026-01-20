@@ -22,10 +22,15 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @Query("SELECT m FROM Monument m " +
             "LEFT JOIN FETCH m.district " +
             "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality ")
+            "LEFT JOIN FETCH m.municipality " +
+            "WHERE m.active = true")
     Page<Monument> findAllWithDivisions(Pageable pageable);
 
-    Optional<Monument> findByName(String name);
+    @Query("SELECT m FROM Monument m " +
+            "LEFT JOIN FETCH m.district " +
+            "LEFT JOIN FETCH m.parish " +
+            "LEFT JOIN FETCH m.municipality ")
+    Page<Monument> findAllWithDivisionsAdmin(Pageable pageable);
 
     Optional<Monument> findByExternalId(String externalId);
 
@@ -39,9 +44,9 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
     Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
 
-    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range)", nativeQuery = true)
+    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range) AND m.active = true", nativeQuery = true)
     List<Monument> findByCoordinatesInRange(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("range") double range);
 
-    @Query("SELECT m FROM MarkOccurrence mo JOIN mo.monument m GROUP BY m ORDER BY COUNT(m) DESC")
+    @Query("SELECT m FROM MarkOccurrence mo JOIN mo.monument m WHERE m.active = true GROUP BY m ORDER BY COUNT(m) DESC")
     List<Monument> findPopular(Pageable pageable);
 }

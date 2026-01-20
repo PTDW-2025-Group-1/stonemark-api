@@ -46,6 +46,16 @@ public class MarkController {
         return service.findAll(pageable).map(mapper::toDto);
     }
 
+    @GetMapping("/management")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public Page<MarkDto> getMarksManagement(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return service.findAllManagement(pageable).map(mapper::toDto);
+    }
+
     @GetMapping("/details")
     public Page<MarkDto> getDetailedMarks(
             @RequestParam(defaultValue = "0") int page,

@@ -15,6 +15,8 @@ public interface MarkOccurrenceService {
 
     Page<MarkOccurrence> findAll(Pageable pageable);
 
+    Page<MarkOccurrence> findAllManagement(Pageable pageable);
+
     Optional<MarkOccurrence> findById(Long id);
 
     Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable);

@@ -15,5 +15,6 @@ public record MonumentRequestDto(
         Long parishId,
         Long municipalityId,
         Long districtId,
-        Long coverId
+        Long coverId,
+        Boolean active
 ) { }

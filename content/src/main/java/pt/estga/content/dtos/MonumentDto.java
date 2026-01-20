@@ -21,6 +21,7 @@ public record MonumentDto(
         Long parishId,
         Long municipalityId,
         Long districtId,
+        Boolean active,
         Instant createdAt,
         Instant lastModifiedAt
 ) { }

@@ -11,5 +11,6 @@ public record MarkOccurrenceDto(
     Long coverId,
     Long authorId,
     String authorName,
-    Instant publishedAt
+    Instant publishedAt,
+    Boolean active
 ) { }

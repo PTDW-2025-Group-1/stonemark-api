@@ -29,4 +29,7 @@ public class Mark extends AuditedEntity {
     @Column(columnDefinition = "TEXT")
     private List<Double> embedding;
 
+    @Builder.Default
+    private Boolean active = true;
+
 }

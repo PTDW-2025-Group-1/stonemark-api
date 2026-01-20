@@ -46,6 +46,16 @@ public class MonumentController {
         return service.findAll(pageable).map(mapper::toListDto);
     }
 
+    @GetMapping("/management")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public Page<MonumentResponseDto> getMonumentsManagement(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return service.findAllWithDivisionsManagement(pageable).map(mapper::toResponseDto);
+    }
+
     @GetMapping("/details")
     public Page<MonumentResponseDto> getDetailedMonuments(
             @RequestParam(defaultValue = "0") int page,

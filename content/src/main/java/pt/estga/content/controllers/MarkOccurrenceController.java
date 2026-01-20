@@ -44,6 +44,13 @@ public class MarkOccurrenceController {
                 .map(mapper::toDto);
     }
 
+    @GetMapping("/management")
+    @PreAuthorize("hasRole('MODERATOR')")
+    public Page<MarkOccurrenceDto> getMarkOccurrencesManagement(Pageable pageable) {
+        return service.findAllManagement(pageable)
+                .map(mapper::toDto);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MarkOccurrenceDto> getMarkOccurrence(@PathVariable Long id) {
         return service.findById(id)

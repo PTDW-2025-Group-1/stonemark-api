@@ -18,39 +18,45 @@ import java.util.Optional;
 public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, Long> {
 
     @EntityGraph(attributePaths = {"monument", "mark"})
+    Page<MarkOccurrence> findByActiveIsTrue(Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findAll(Pageable pageable);
 
     @EntityGraph(attributePaths = {"monument", "mark"})
-    Page<MarkOccurrence> findAllByMarkId(Long markId, Pageable pageable);
+    Page<MarkOccurrence> findByMarkIdAndActiveIsTrue(Long markId, Pageable pageable);
 
     @Query("SELECT mo FROM MarkOccurrence mo " +
             "JOIN FETCH mo.monument m " +
             "LEFT JOIN FETCH m.district " +
             "LEFT JOIN FETCH m.parish " +
             "LEFT JOIN FETCH m.municipality " +
-            "WHERE mo.mark.id = :markId")
+            "WHERE mo.mark.id = :markId AND mo.active = true")
     List<MarkOccurrence> findAllByMarkIdForMap(@Param("markId") Long markId);
 
     @EntityGraph(attributePaths = {"monument", "mark"})
-    Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable);
+    Page<MarkOccurrence> findByMonumentIdAndActiveIsTrue(Long monumentId, Pageable pageable);
 
-    @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.mark JOIN FETCH mo.monument ORDER BY mo.createdAt DESC")
+    @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.mark JOIN FETCH mo.monument WHERE mo.active = true ORDER BY mo.createdAt DESC")
     List<MarkOccurrence> findLatest(Pageable pageable);
 
-    @Query("SELECT DISTINCT mo.mark FROM MarkOccurrence mo WHERE mo.monument.id = :monumentId")
+    @Query("SELECT DISTINCT mo.mark FROM MarkOccurrence mo WHERE mo.monument.id = :monumentId AND mo.active = true")
     List<Mark> findDistinctMarksByMonumentId(@Param("monumentId") Long monumentId);
 
-    @Query("SELECT DISTINCT mo.monument FROM MarkOccurrence mo WHERE mo.mark.id = :markId")
+    @Query("SELECT DISTINCT mo.monument FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     List<Monument> findDistinctMonumentsByMarkId(@Param("markId") Long markId);
 
     @EntityGraph(attributePaths = {"monument", "mark"})
-    Page<MarkOccurrence> findAllByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable);
+    Page<MarkOccurrence> findByMarkIdAndMonumentIdAndActiveIsTrue(Long markId, Long monumentId, Pageable pageable);
 
+    @Query("SELECT COUNT(mo) FROM MarkOccurrence mo WHERE mo.monument.id = :monumentId AND mo.active = true")
     long countByMonumentId(Long monumentId);
 
+    @Query("SELECT COUNT(mo) FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     long countByMarkId(Long markId);
 
-    @Query("SELECT COUNT(DISTINCT m.monument.id) FROM MarkOccurrence m WHERE m.mark.id = :markId")
+    @Query("SELECT COUNT(DISTINCT m.monument.id) FROM MarkOccurrence m WHERE m.mark.id = :markId AND m.active = true")
     long countDistinctMonumentIdByMarkId(@Param("markId") Long markId);
 
     @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark"})

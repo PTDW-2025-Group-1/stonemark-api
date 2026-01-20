@@ -7,5 +7,6 @@ public record MarkDto(
         String title,
         String description,
         List<Double> embedding,
-        Long coverId
+        Long coverId,
+        Boolean active
 ) { }

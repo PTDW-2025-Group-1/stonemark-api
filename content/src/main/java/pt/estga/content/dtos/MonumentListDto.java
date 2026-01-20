@@ -6,5 +6,6 @@ public record MonumentListDto(
         Long id,
         String name,
         AdministrativeDivisionDto parish,
-        Long coverId
+        Long coverId,
+        Boolean active
 ) { }

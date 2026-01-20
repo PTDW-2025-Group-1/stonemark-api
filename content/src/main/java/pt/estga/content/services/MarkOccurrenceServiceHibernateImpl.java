@@ -31,6 +31,11 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     public Page<MarkOccurrence> findAll(Pageable pageable) {
+        return repository.findByActiveIsTrue(pageable);
+    }
+
+    @Override
+    public Page<MarkOccurrence> findAllManagement(Pageable pageable) {
         return repository.findAll(pageable);
     }
 
@@ -41,7 +46,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     public Page<MarkOccurrence> findByMarkId(Long markId, Pageable pageable) {
-        return repository.findAllByMarkId(markId, pageable);
+        return repository.findByMarkIdAndActiveIsTrue(markId, pageable);
     }
 
     @Override
@@ -57,11 +62,11 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     public Page<MarkOccurrence> findByMonumentId(Long monumentId, Pageable pageable) {
-        return repository.findByMonumentId(monumentId, pageable);
+        return repository.findByMonumentIdAndActiveIsTrue(monumentId, pageable);
     }
 
     public Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable) {
-        return repository.findAllByMarkIdAndMonumentId(markId, monumentId, pageable);
+        return repository.findByMarkIdAndMonumentIdAndActiveIsTrue(markId, monumentId, pageable);
     }
 
     @Override
