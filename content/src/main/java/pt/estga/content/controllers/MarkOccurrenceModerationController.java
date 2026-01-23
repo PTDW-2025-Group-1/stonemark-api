@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,7 +24,6 @@ import java.net.URI;
 @RequestMapping("/api/v1/moderation/mark-occurrences")
 @RequiredArgsConstructor
 @Tag(name = "Mark Occurrences Moderation", description = "Moderation endpoints for mark occurrences.")
-@PreAuthorize("hasRole('MODERATOR')")
 public class MarkOccurrenceModerationController {
 
     private final MarkOccurrenceService service;

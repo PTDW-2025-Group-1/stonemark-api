@@ -1,4 +1,4 @@
-package pt.estga.user.controllers;
+package pt.estga.user.controllers.account;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,6 +21,7 @@ import pt.estga.user.dtos.UserContactDto;
 import pt.estga.user.entities.User;
 import pt.estga.user.mappers.UserContactMapper;
 import pt.estga.user.services.AccountService;
+import pt.estga.user.services.UserContactService;
 import pt.estga.user.services.UserService;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class AccountContactController {
 
     private final UserService userService;
     private final AccountService accountService;
+    private final UserContactService userContactService;
     private final UserContactMapper userContactMapper;
 
     @Operation(summary = "Add a new contact", description = "Adds a new contact to the authenticated user's account.")
@@ -69,6 +71,17 @@ public class AccountContactController {
                 .map(userContactMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(contactDtos);
+    }
+
+    @Operation(summary = "Check if a contact exists", description = "Checks if a contact exists by its value.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns true if the contact exists, false otherwise")
+    })
+    @GetMapping("/exists/by-value")
+    public ResponseEntity<Boolean> existsByValue(
+            @Parameter(description = "The value of the contact to check", required = true)
+            @RequestParam String value) {
+        return ResponseEntity.ok(userContactService.existsByValue(value));
     }
 
     @Operation(summary = "Request contact verification", description = "Sends a verification message to the specified contact.")

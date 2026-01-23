@@ -1,4 +1,4 @@
-package pt.estga.user.controllers;
+package pt.estga.user.controllers.account;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

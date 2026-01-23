@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import pt.estga.auth.services.LogoutService;
+import pt.estga.shared.enums.UserRole;
 
 import java.util.List;
 
@@ -46,7 +47,14 @@ public class SecurityConfig {
             "/api/v1/marks/**",
             "/api/v1/mark-occurrences/**",
             "/api/v1/contact-requests/**",
-            "/api/v1/media/**"
+            "/api/v1/media/**",
+            "/api/v1/users/*/public"
+    };
+    private static final String[] MODERATION_ROUTES = {
+            "/api/v1/moderation/**"
+    };
+    private static final String[] MANAGEMENT_ROUTES = {
+            "/api/v1/management/**"
     };
     private static final String[] ALLOWED_ORIGINS = {
             "http://localhost:*",
@@ -75,6 +83,8 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
                         .requestMatchers(telegramWebhookPath).permitAll()
                         .requestMatchers(whatsappWebhookPath).permitAll()
+                        .requestMatchers(MODERATION_ROUTES).hasRole(UserRole.MODERATOR.name())
+                        .requestMatchers(MANAGEMENT_ROUTES).hasRole(UserRole.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
