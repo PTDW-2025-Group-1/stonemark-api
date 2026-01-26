@@ -13,7 +13,6 @@ import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import pt.estga.detection.dto.DetectionResponseDto;
 import pt.estga.detection.model.DetectionResult;
 
 import java.io.InputStream;
@@ -51,17 +50,18 @@ public class DetectionServiceImpl implements DetectionService {
 
         log.info("Sending request to detection server at: {}", detectionServerUrl + "/process");
 
-        ResponseEntity<DetectionResponseDto> response = restTemplate.postForEntity(detectionServerUrl + "/process", requestEntity, DetectionResponseDto.class);
+        // Use DetectionResult directly for the response
+        ResponseEntity<DetectionResult> response = restTemplate.postForEntity(detectionServerUrl + "/process", requestEntity, DetectionResult.class);
 
-        DetectionResponseDto responseDto = response.getBody();
+        DetectionResult result = response.getBody();
 
-        if (responseDto == null) {
+        if (result == null) {
             log.warn("Detection response body is null. Returning a failed detection result.");
             return new DetectionResult(false, null);
         }
 
-        log.info("Detection process completed. Mason mark detected: {}", responseDto.isMasonMark());
-        return new DetectionResult(responseDto.isMasonMark(), responseDto.embedding());
+        log.info("Detection process completed. Mason mark detected: {}", result.isMasonMark());
+        return result;
     }
 
     @NotNull

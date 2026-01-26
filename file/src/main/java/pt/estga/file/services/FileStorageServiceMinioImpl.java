@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import pt.estga.shared.exceptions.FileNotFoundException;
+import pt.estga.shared.exceptions.FileStorageException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +37,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
         log.info("Storing file with filename: {}", filename);
         if (fileStream == null) {
             log.error("Cannot store empty file stream");
-            throw new RuntimeException("Cannot store empty file stream");
+            throw new FileStorageException("Cannot store empty file stream");
         }
 
         try {
@@ -53,7 +55,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
             return filename;
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
             log.error("Failed to store file in MinIO", e);
-            throw new RuntimeException("Failed to store file in MinIO", e);
+            throw new FileStorageException("Failed to store file in MinIO", e);
         }
     }
 
@@ -71,7 +73,9 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
             return new InputStreamResource(stream);
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
             log.error("Failed to load file from MinIO with path: {}", path, e);
-            throw new RuntimeException("Failed to load file from MinIO", e);
+            // MinIO throws generic exceptions, but we can try to guess if it's not found
+            // For now, wrap in generic storage exception or check error code if needed
+            throw new FileNotFoundException("Failed to load file from MinIO: " + path, e);
         }
     }
 
@@ -88,7 +92,7 @@ public class FileStorageServiceMinioImpl implements FileStorageService {
             log.info("File deleted successfully from path: {}", path);
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IOException e) {
             log.error("Could not delete file from MinIO with path: {}", path, e);
-            throw new RuntimeException("Could not delete file from MinIO", e);
+            throw new FileStorageException("Could not delete file from MinIO", e);
         }
     }
 }

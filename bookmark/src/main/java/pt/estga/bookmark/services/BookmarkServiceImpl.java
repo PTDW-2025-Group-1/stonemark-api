@@ -13,6 +13,7 @@ import pt.estga.content.repositories.MarkRepository;
 import pt.estga.content.repositories.MonumentRepository;
 import pt.estga.shared.enums.TargetType;
 import pt.estga.user.entities.User;
+import pt.estga.user.repositories.UserRepository;
 
 import java.util.List;
 
@@ -26,12 +27,13 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final MonumentMapper monumentMapper;
     private final MarkMapper markMapper;
     private final BookmarkMapper mapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public BookmarkDto createBookmark(User user, TargetType type, Long targetId) {
+    public BookmarkDto createBookmark(Long userId, TargetType type, Long targetId) {
 
-        bookmarkRepository.findByUserIdAndTargetTypeAndTargetId(user.getId(), type, targetId)
+        bookmarkRepository.findByUserIdAndTargetTypeAndTargetId(userId, type, targetId)
                 .ifPresent(existing -> {
                     throw new IllegalStateException("Bookmark already exists");
                 });
@@ -48,6 +50,9 @@ public class BookmarkServiceImpl implements BookmarkService {
             default -> null;
         };
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         Bookmark bookmark = Bookmark.builder()
                 .user(user)
                 .targetType(type)
@@ -61,8 +66,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     @Override
-    public List<BookmarkDto> getUserBookmarks(User user) {
-        return bookmarkRepository.findAllByUserId(user.getId())
+    public List<BookmarkDto> getUserBookmarks(Long userId) {
+        return bookmarkRepository.findAllByUserId(userId)
                 .stream()
                 .map(b -> {
                     Object content = switch (b.getTargetType()) {
@@ -84,16 +89,16 @@ public class BookmarkServiceImpl implements BookmarkService {
 
     @Override
     @Transactional
-    public void deleteBookmark(User user, Long bookmarkId) {
-        Bookmark bookmark = bookmarkRepository.findByIdAndUserId(bookmarkId, user.getId())
+    public void deleteBookmark(Long userId, Long bookmarkId) {
+        Bookmark bookmark = bookmarkRepository.findByIdAndUserId(bookmarkId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("Bookmark not found"));
         bookmarkRepository.delete(bookmark);
     }
 
     @Override
-    public boolean isBookmarked(User user, TargetType type, Long targetId) {
+    public boolean isBookmarked(Long userId, TargetType type, Long targetId) {
         return bookmarkRepository
-                .findByUserIdAndTargetTypeAndTargetId(user.getId(), type, targetId)
+                .findByUserIdAndTargetTypeAndTargetId(userId, type, targetId)
                 .isPresent();
     }
 }

@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
+import org.apache.tika.Tika;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import pt.estga.file.entities.MediaFile;
@@ -12,7 +13,8 @@ import pt.estga.file.enums.MediaStatus;
 import pt.estga.file.enums.MediaVariantType;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.repositories.MediaVariantRepository;
-import pt.estga.file.services.FileStorageService;
+import pt.estga.file.services.MediaContentService;
+import pt.estga.file.services.MediaMetadataService;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -26,9 +28,10 @@ import java.util.Iterator;
 @Slf4j
 public class MediaProcessingServiceImpl implements MediaProcessingService {
 
-    private final MediaFileRepository mediaFileRepository;
+    private final MediaMetadataService mediaMetadataService;
     private final MediaVariantRepository mediaVariantRepository;
-    private final FileStorageService fileStorageService;
+    private final MediaContentService mediaContentService;
+    private final Tika tika = new Tika();
 
     @PostConstruct
     public void verifyWebpSupport() {
@@ -43,30 +46,34 @@ public class MediaProcessingServiceImpl implements MediaProcessingService {
     public void process(Long mediaFileId) {
         log.info("Starting processing for media file ID: {}", mediaFileId);
         
-        MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
+        MediaFile mediaFile = mediaMetadataService.findById(mediaFileId)
                 .orElseThrow(() -> new RuntimeException("MediaFile not found: " + mediaFileId));
 
         try {
             mediaFile.setStatus(MediaStatus.PROCESSING);
-            mediaFileRepository.save(mediaFile);
-
-            // Determine if we should process this file
-            String originalFilename = mediaFile.getOriginalFilename();
-            if (!isSupportedImage(originalFilename)) {
-                log.info("File {} is not a supported image for variants (JPEG/PNG only), skipping.", originalFilename);
-                mediaFile.setStatus(MediaStatus.READY);
-                mediaFileRepository.save(mediaFile);
-                return;
-            }
+            mediaMetadataService.saveMetadata(mediaFile);
 
             // Load original file
-            Resource resource = fileStorageService.loadFile(mediaFile.getStoragePath());
-            File tempOriginalFile = Files.createTempFile("original-", originalFilename).toFile();
+            Resource resource = mediaContentService.loadContent(mediaFile.getStoragePath());
+            File tempOriginalFile = Files.createTempFile("original-", mediaFile.getOriginalFilename()).toFile();
             
             try {
                 try (InputStream is = resource.getInputStream();
                      OutputStream os = new FileOutputStream(tempOriginalFile)) {
                     is.transferTo(os);
+                }
+
+                // Security: Validate file type using Tika
+                String detectedType = tika.detect(tempOriginalFile);
+                log.info("Detected file type for {}: {}", mediaFile.getOriginalFilename(), detectedType);
+
+                if (!isSupportedImage(detectedType)) {
+                    log.warn("File {} is not a supported image (detected: {}), skipping variant generation.", mediaFile.getOriginalFilename(), detectedType);
+                    // We might want to mark it as READY but without variants, or FAILED if strict.
+                    // Assuming we keep the original but don't generate variants.
+                    mediaFile.setStatus(MediaStatus.READY);
+                    mediaMetadataService.saveMetadata(mediaFile);
+                    return;
                 }
 
                 // Generate variants
@@ -75,7 +82,7 @@ public class MediaProcessingServiceImpl implements MediaProcessingService {
                 generateVariant(mediaFile, tempOriginalFile, MediaVariantType.OPTIMIZED);
 
                 mediaFile.setStatus(MediaStatus.READY);
-                mediaFileRepository.save(mediaFile);
+                mediaMetadataService.saveMetadata(mediaFile);
                 log.info("Processing completed for media file ID: {}", mediaFileId);
             } finally {
                 // Cleanup temp file
@@ -87,7 +94,7 @@ public class MediaProcessingServiceImpl implements MediaProcessingService {
         } catch (Exception e) {
             log.error("Processing failed for media file ID: {}", mediaFileId, e);
             mediaFile.setStatus(MediaStatus.FAILED);
-            mediaFileRepository.save(mediaFile);
+            mediaMetadataService.saveMetadata(mediaFile);
         }
     }
 
@@ -118,10 +125,14 @@ public class MediaProcessingServiceImpl implements MediaProcessingService {
             builder.outputFormat("webp").toFile(tempVariantFile);
 
             // Store variant
+            // Note: We are using the same directory structure as the original file for variants
+            // We can extract the directory from the original storage path or use a new strategy
+            // For simplicity, let's put it in a 'derived' folder next to the original or use the ID
             String variantPath = String.format("%d/derived/%s.webp", mediaFile.getId(), type.name().toLowerCase());
+            
             String storagePath;
             try (InputStream is = new FileInputStream(tempVariantFile)) {
-                storagePath = fileStorageService.storeFile(is, variantPath);
+                storagePath = mediaContentService.saveContent(is, variantPath);
             }
 
             // Get dimensions efficiently
@@ -159,10 +170,11 @@ public class MediaProcessingServiceImpl implements MediaProcessingService {
         }
     }
 
-    private boolean isSupportedImage(String filename) {
-        if (filename == null) return false;
-        String lower = filename.toLowerCase();
-        // Only JPEG and PNG are supported for variant generation as per requirements
-        return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png");
+    private boolean isSupportedImage(String mimeType) {
+        if (mimeType == null) return false;
+        // Allow common image types
+        return mimeType.equals("image/jpeg") || 
+               mimeType.equals("image/png") || 
+               mimeType.equals("image/webp");
     }
 }

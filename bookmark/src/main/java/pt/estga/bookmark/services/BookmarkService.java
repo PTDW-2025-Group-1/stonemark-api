@@ -2,17 +2,16 @@ package pt.estga.bookmark.services;
 
 import pt.estga.bookmark.dtos.BookmarkDto;
 import pt.estga.shared.enums.TargetType;
-import pt.estga.user.entities.User;
 
 import java.util.List;
 
 public interface BookmarkService {
 
-    BookmarkDto createBookmark(User user, TargetType type, Long targetId);
+    BookmarkDto createBookmark(Long userId, TargetType type, Long targetId);
 
-    List<BookmarkDto> getUserBookmarks(User user);
+    List<BookmarkDto> getUserBookmarks(Long userId);
 
-    void deleteBookmark(User user, Long bookmarkId);
+    void deleteBookmark(Long userId, Long bookmarkId);
 
-    boolean isBookmarked(User user, TargetType type, Long targetId);
+    boolean isBookmarked(Long userId, TargetType type, Long targetId);
 }
