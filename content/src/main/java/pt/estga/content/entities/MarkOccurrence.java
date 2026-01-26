@@ -2,12 +2,13 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.shared.audit.AuditedEntity;
-import pt.estga.shared.utils.DoubleListConverter;
 
 import java.time.Instant;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -30,9 +31,10 @@ public class MarkOccurrence extends AuditedEntity {
     @OneToOne(cascade = CascadeType.ALL)
     private MediaFile cover;
 
-    @Convert(converter = DoubleListConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private List<Double> embedding;
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 512)
+    @Column(columnDefinition = "vector")
+    private double[] embedding;
 
     private Long authorId;
     private String authorName;

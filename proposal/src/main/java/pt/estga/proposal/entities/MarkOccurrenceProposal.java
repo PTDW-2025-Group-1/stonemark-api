@@ -2,16 +2,17 @@ package pt.estga.proposal.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.shared.audit.AuditedEntity;
-import pt.estga.shared.utils.DoubleListConverter;
 
 import java.time.Instant;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -35,9 +36,10 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
-    @Convert(converter = DoubleListConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private List<Double> embedding;
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 512)
+    @Column(columnDefinition = "vector")
+    private double[] embedding;
 
     private String userNotes;
     private String monumentName;

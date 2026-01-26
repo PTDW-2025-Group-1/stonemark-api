@@ -16,6 +16,7 @@ import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.services.MarkOccurrenceService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.shared.models.AppPrincipal;
 
 import java.io.IOException;
@@ -76,7 +77,7 @@ public class MarkOccurrenceAdminController {
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         MarkOccurrence existingMarkOccurrence = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("MarkOccurrence not found"));
 
         mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
         MediaFile mediaFile = null;
@@ -103,7 +104,7 @@ public class MarkOccurrenceAdminController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         MarkOccurrence existingMarkOccurrence = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("MarkOccurrence not found"));
 
         MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
         MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, mediaFile);

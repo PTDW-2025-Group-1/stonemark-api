@@ -18,6 +18,7 @@ import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -74,7 +75,7 @@ public class MonumentAdminController {
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Monument existingMonument = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("Monument not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Monument not found"));
 
         mapper.updateEntityFromDto(monumentDto, existingMonument);
 
@@ -103,7 +104,7 @@ public class MonumentAdminController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         Monument monument = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("Monument not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Monument not found"));
 
         MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
         monument.setCover(mediaFile);

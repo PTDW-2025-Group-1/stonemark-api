@@ -1,18 +1,16 @@
 package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
+import pt.estga.content.events.MarkCreatedEvent;
 import pt.estga.content.repositories.MarkRepository;
-import pt.estga.detection.model.DetectionResult;
-import pt.estga.detection.service.DetectionService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.services.MediaService;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -20,8 +18,7 @@ import java.util.Optional;
 public class MarkServiceHibernateImpl implements MarkService {
 
     private final MarkRepository repository;
-    private final MediaService mediaService;
-    private final DetectionService detectionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Page<Mark> findAll(Pageable pageable) {
@@ -60,8 +57,11 @@ public class MarkServiceHibernateImpl implements MarkService {
         if (cover != null) {
             mark.setCover(cover);
         }
-        processEmbeddingIfCoverExists(mark);
-        return repository.save(mark);
+        Mark savedMark = repository.save(mark);
+        if (savedMark.getCover() != null) {
+            eventPublisher.publishEvent(new MarkCreatedEvent(this, savedMark.getId(), savedMark.getCover().getId(), savedMark.getCover().getOriginalFilename()));
+        }
+        return savedMark;
     }
 
     @Override
@@ -76,29 +76,15 @@ public class MarkServiceHibernateImpl implements MarkService {
         if (cover != null) {
             mark.setCover(cover);
         }
-        processEmbeddingIfCoverExists(mark);
-        return repository.save(mark);
+        Mark savedMark = repository.save(mark);
+        if (savedMark.getCover() != null) {
+            eventPublisher.publishEvent(new MarkCreatedEvent(this, savedMark.getId(), savedMark.getCover().getId(), savedMark.getCover().getOriginalFilename()));
+        }
+        return savedMark;
     }
 
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    private void processEmbeddingIfCoverExists(Mark mark) {
-        if (mark.getCover() != null) {
-            try {
-                // We need to reload the file resource to read it again for detection
-                // This assumes the file is accessible via MediaService
-                var resource = mediaService.loadFileById(mark.getCover().getId());
-                DetectionResult detectionResult = detectionService.detect(resource.getInputStream(), mark.getCover().getOriginalFilename());
-                
-                if (detectionResult.isMasonMark()) {
-                    mark.setEmbedding(detectionResult.embedding());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Error processing image for embedding", e);
-            }
-        }
     }
 }

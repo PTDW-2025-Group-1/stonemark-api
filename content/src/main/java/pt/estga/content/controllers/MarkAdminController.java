@@ -16,6 +16,7 @@ import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.services.MarkService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,7 +73,7 @@ public class MarkAdminController {
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark existingMark = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mark not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mark not found"));
 
         mapper.updateEntityFromDto(markDto, existingMark);
         MediaFile mediaFile = null;
@@ -99,7 +100,7 @@ public class MarkAdminController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         Mark existingMark = service.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mark not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mark not found"));
 
         MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
         Mark updatedMark = service.update(existingMark, mediaFile);

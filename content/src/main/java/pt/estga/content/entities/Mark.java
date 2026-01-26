@@ -2,11 +2,11 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.shared.audit.AuditedEntity;
-import pt.estga.shared.utils.DoubleListConverter;
-
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
@@ -25,9 +25,10 @@ public class Mark extends AuditedEntity {
     @OneToOne
     private MediaFile cover;
 
-    @Convert(converter = DoubleListConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private List<Double> embedding;
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 512)
+    @Column(columnDefinition = "vector")
+    private double[] embedding;
 
     @Builder.Default
     private Boolean active = true;

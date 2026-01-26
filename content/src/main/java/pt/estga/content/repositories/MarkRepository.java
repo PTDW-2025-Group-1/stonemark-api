@@ -26,7 +26,7 @@ public interface MarkRepository extends JpaRepository<Mark, Long> {
     @EntityGraph(attributePaths = {"cover"})
     Optional<Mark> findWithCoverById(Long id);
 
-    @Query(value = "SELECT id, 1 - (CAST(embedding AS vector) <=> CAST(:vector AS vector)) as similarity " +
+    @Query(value = "SELECT id, 1 - (embedding <=> CAST(:vector AS vector)) as similarity " +
             "FROM mark " +
             "WHERE embedding IS NOT NULL AND active = true " +
             "ORDER BY similarity DESC " +

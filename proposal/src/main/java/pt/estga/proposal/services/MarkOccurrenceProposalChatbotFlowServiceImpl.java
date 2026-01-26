@@ -67,7 +67,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(mediaService.getMediaContent(proposal.getOriginalMediaFile().getId()))) {
             DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
             if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                List<Double> embeddedVector = detectionResult.embedding();
+                double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
                 proposal.setEmbedding(embeddedVector);
             } else {
                 log.info("No embedding detected for proposal {}", proposal.getId());
@@ -134,7 +134,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     @Override
     public List<Mark> suggestMarks(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
-        if (proposal.getEmbedding() != null && !proposal.getEmbedding().isEmpty()) {
+        if (proposal.getEmbedding() != null && proposal.getEmbedding().length > 0) {
             try {
                 List<String> markIds = markSearchService.searchMarks(proposal.getEmbedding());
                 return markIds.stream()

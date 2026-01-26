@@ -65,7 +65,9 @@ public class MarkController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<String> similarMarkIds = markSearchService.searchMarks(detectionResult.embedding());
+        // Convert List<Double> to double[]
+        double[] embedding = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
+        List<String> similarMarkIds = markSearchService.searchMarks(embedding);
         return ResponseEntity.ok(similarMarkIds);
     }
 }

@@ -2,6 +2,10 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 import pt.estga.territory.entities.AdministrativeDivision;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.shared.audit.AuditedEntity;
@@ -28,6 +32,9 @@ public class Monument extends AuditedEntity {
     private Double longitude;
     private String website;
 
+    @Column(columnDefinition = "geometry(Point, 4326)")
+    private Point location;
+
     private String street;
     private String houseNumber;
 
@@ -45,5 +52,14 @@ public class Monument extends AuditedEntity {
 
     @OneToOne
     private MediaFile cover;
+
+    @PrePersist
+    @PreUpdate
+    public void updateLocation() {
+        if (latitude != null && longitude != null) {
+            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+            this.location = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        }
+    }
 
 }

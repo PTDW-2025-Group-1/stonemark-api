@@ -1,6 +1,7 @@
 package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,13 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.events.MarkOccurrenceCreatedEvent;
 import pt.estga.content.repositories.MarkOccurrenceRepository;
-import pt.estga.detection.model.DetectionResult;
-import pt.estga.detection.service.DetectionService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.services.MediaService;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,8 +23,7 @@ import java.util.Optional;
 public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService {
 
     private final MarkOccurrenceRepository repository;
-    private final MediaService mediaService;
-    private final DetectionService detectionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Page<MarkOccurrence> findAll(Pageable pageable) {
@@ -106,8 +103,11 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         if (cover != null) {
             occurrence.setCover(cover);
         }
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        MarkOccurrence savedOccurrence = repository.save(occurrence);
+        if (savedOccurrence.getCover() != null) {
+            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
+        }
+        return savedOccurrence;
     }
 
     @Override
@@ -122,27 +122,15 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         if (cover != null) {
             occurrence.setCover(cover);
         }
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        MarkOccurrence savedOccurrence = repository.save(occurrence);
+        if (savedOccurrence.getCover() != null) {
+            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
+        }
+        return savedOccurrence;
     }
 
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    private void processEmbeddingIfCoverExists(MarkOccurrence occurrence) {
-        if (occurrence.getCover() != null) {
-            try {
-                var resource = mediaService.loadFileById(occurrence.getCover().getId());
-                DetectionResult detectionResult = detectionService.detect(resource.getInputStream(), occurrence.getCover().getOriginalFilename());
-                
-                if (detectionResult.isMasonMark()) {
-                    occurrence.setEmbedding(detectionResult.embedding());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Error processing image for embedding", e);
-            }
-        }
     }
 }
