@@ -36,4 +36,7 @@ public interface MonumentService {
     void deleteById(Long id);
 
     List<Monument> findPopular(int limit);
+
+    void enrichWithDivisions(Monument monument);
+
 }

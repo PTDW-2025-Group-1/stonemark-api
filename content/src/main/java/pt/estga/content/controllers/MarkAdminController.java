@@ -14,6 +14,7 @@ import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.services.MarkService;
+import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 
 import java.io.IOException;
@@ -44,12 +45,15 @@ public class MarkAdminController {
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark mark = mapper.toEntity(markDto);
+        MediaFile mediaFile = null;
 
-        if (markDto.coverId() != null) {
-            mediaService.findById(markDto.coverId()).ifPresent(mark::setCover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (markDto.coverId() != null) {
+            mediaFile = mediaService.findById(markDto.coverId()).orElse(null);
         }
 
-        Mark createdMark = service.create(mark, file);
+        Mark createdMark = service.create(mark, mediaFile);
         MarkDto response = mapper.toDto(createdMark);
 
         URI location = ServletUriComponentsBuilder
@@ -71,12 +75,15 @@ public class MarkAdminController {
                 .orElseThrow(() -> new RuntimeException("Mark not found"));
 
         mapper.updateEntityFromDto(markDto, existingMark);
+        MediaFile mediaFile = null;
 
-        if (markDto.coverId() != null) {
-            mediaService.findById(markDto.coverId()).ifPresent(existingMark::setCover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (markDto.coverId() != null) {
+            mediaFile = mediaService.findById(markDto.coverId()).orElse(null);
         }
 
-        Mark updatedMark = service.update(existingMark, file);
+        Mark updatedMark = service.update(existingMark, mediaFile);
         return ResponseEntity.ok(mapper.toDto(updatedMark));
     }
 
@@ -91,7 +98,12 @@ public class MarkAdminController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        Mark updatedMark = service.updateCover(id, file);
+        Mark existingMark = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mark not found"));
+
+        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        Mark updatedMark = service.update(existingMark, mediaFile);
+
         return ResponseEntity.ok(mapper.toDto(updatedMark));
     }
 }

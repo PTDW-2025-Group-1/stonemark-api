@@ -11,8 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentRequestDto;
-import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentService;
@@ -33,7 +33,7 @@ public class MonumentAdminController {
     private final MediaService mediaService;
 
     @GetMapping()
-    public Page<MonumentResponseDto> getMonumentsManagement(
+    public Page<MonumentDto> getMonumentsManagement(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -42,7 +42,7 @@ public class MonumentAdminController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MonumentResponseDto> createMonument(
+    public ResponseEntity<MonumentDto> createMonument(
             @RequestPart("data") @Valid MonumentRequestDto monumentDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
@@ -56,7 +56,7 @@ public class MonumentAdminController {
         }
 
         Monument createdMonument = service.create(monument);
-        MonumentResponseDto response = mapper.toResponseDto(createdMonument);
+        MonumentDto response = mapper.toResponseDto(createdMonument);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -68,7 +68,7 @@ public class MonumentAdminController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MonumentResponseDto> updateMonument(
+    public ResponseEntity<MonumentDto> updateMonument(
             @PathVariable Long id,
             @RequestPart("data") @Valid MonumentRequestDto monumentDto,
             @RequestPart(value = "file", required = false) MultipartFile file
@@ -98,7 +98,7 @@ public class MonumentAdminController {
     }
 
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MonumentResponseDto> uploadPhoto(
+    public ResponseEntity<MonumentDto> uploadPhoto(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {

@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
@@ -65,6 +64,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.findByMonumentIdAndActiveIsTrue(monumentId, pageable);
     }
 
+    @Override
     public Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable) {
         return repository.findByMarkIdAndMonumentIdAndActiveIsTrue(markId, monumentId, pageable);
     }
@@ -74,6 +74,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.findDistinctMarksByMonumentId(monumentId);
     }
 
+    @Override
     public List<Monument> findAvailableMonumentsByMarkId(Long markId) {
         return repository.findDistinctMonumentsByMarkId(markId);
     }
@@ -88,6 +89,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.countByMarkId(markId);
     }
 
+    @Override
     public long countDistinctMonumentsByMarkId(Long markId) {
         return repository.countDistinctMonumentIdByMarkId(markId);
     }
@@ -95,16 +97,14 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     @Transactional
     public MarkOccurrence create(MarkOccurrence occurrence) {
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        return create(occurrence, null);
     }
 
     @Override
     @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            occurrence.setCover(mediaFile);
+    public MarkOccurrence create(MarkOccurrence occurrence, MediaFile cover) {
+        if (cover != null) {
+            occurrence.setCover(cover);
         }
         processEmbeddingIfCoverExists(occurrence);
         return repository.save(occurrence);
@@ -113,16 +113,14 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     @Transactional
     public MarkOccurrence update(MarkOccurrence occurrence) {
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        return update(occurrence, null);
     }
 
     @Override
     @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            occurrence.setCover(mediaFile);
+    public MarkOccurrence update(MarkOccurrence occurrence, MediaFile cover) {
+        if (cover != null) {
+            occurrence.setCover(cover);
         }
         processEmbeddingIfCoverExists(occurrence);
         return repository.save(occurrence);
@@ -131,19 +129,6 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence updateCover(Long id, MultipartFile file) throws IOException {
-        MarkOccurrence occurrence = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
-
-        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-        occurrence.setCover(mediaFile);
-        processEmbeddingIfCoverExists(occurrence);
-        
-        return repository.save(occurrence);
     }
 
     private void processEmbeddingIfCoverExists(MarkOccurrence occurrence) {

@@ -8,9 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
-import pt.estga.content.dtos.MonumentResponseDto;
 import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentService;
 
@@ -35,7 +35,7 @@ public class MonumentController {
     }
 
     @GetMapping("/details")
-    public Page<MonumentResponseDto> getDetailedMonuments(
+    public Page<MonumentDto> getDetailedMonuments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -100,7 +100,7 @@ public class MonumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonumentResponseDto> getMonumentById(
+    public ResponseEntity<MonumentDto> getMonumentById(
             @PathVariable Long id
     ) {
         return service.findById(id)

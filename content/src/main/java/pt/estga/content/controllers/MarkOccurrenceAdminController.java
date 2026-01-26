@@ -14,6 +14,7 @@ import pt.estga.content.dtos.MarkOccurrenceDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.services.MarkOccurrenceService;
+import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.shared.models.AppPrincipal;
 
@@ -43,9 +44,12 @@ public class MarkOccurrenceAdminController {
             @AuthenticationPrincipal AppPrincipal principal
     ) throws IOException {
         MarkOccurrence markOccurrence = mapper.toEntity(markOccurrenceDto);
+        MediaFile mediaFile = null;
 
-        if (markOccurrenceDto.coverId() != null) {
-            mediaService.findById(markOccurrenceDto.coverId()).ifPresent(markOccurrence::setCover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (markOccurrenceDto.coverId() != null) {
+            mediaFile = mediaService.findById(markOccurrenceDto.coverId()).orElse(null);
         }
 
         if (principal != null) {
@@ -53,7 +57,7 @@ public class MarkOccurrenceAdminController {
             markOccurrence.setAuthorName(principal.getUsername());
         }
 
-        MarkOccurrence createdMarkOccurrence = service.create(markOccurrence, file);
+        MarkOccurrence createdMarkOccurrence = service.create(markOccurrence, mediaFile);
         MarkOccurrenceDto response = mapper.toDto(createdMarkOccurrence);
 
         URI location = ServletUriComponentsBuilder
@@ -75,12 +79,15 @@ public class MarkOccurrenceAdminController {
                 .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
 
         mapper.updateEntityFromDto(markOccurrenceDto, existingMarkOccurrence);
+        MediaFile mediaFile = null;
 
-        if (markOccurrenceDto.coverId() != null) {
-            mediaService.findById(markOccurrenceDto.coverId()).ifPresent(existingMarkOccurrence::setCover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (markOccurrenceDto.coverId() != null) {
+            mediaFile = mediaService.findById(markOccurrenceDto.coverId()).orElse(null);
         }
 
-        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, file);
+        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, mediaFile);
         return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 
@@ -95,7 +102,12 @@ public class MarkOccurrenceAdminController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        MarkOccurrence updatedMarkOccurrence = service.updateCover(id, file);
+        MarkOccurrence existingMarkOccurrence = service.findById(id)
+                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
+
+        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        MarkOccurrence updatedMarkOccurrence = service.update(existingMarkOccurrence, mediaFile);
+
         return ResponseEntity.ok(mapper.toDto(updatedMarkOccurrence));
     }
 }

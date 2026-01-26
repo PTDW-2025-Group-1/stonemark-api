@@ -19,17 +19,12 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @EntityGraph(attributePaths = {"district", "parish", "municipality"})
     Optional<Monument> findById(Long id);
 
-    @Query("SELECT m FROM Monument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality " +
-            "WHERE m.active = true")
+    @EntityGraph(attributePaths = {"district", "parish", "municipality"})
+    @Query("SELECT m FROM Monument m WHERE m.active = true")
     Page<Monument> findAllWithDivisions(Pageable pageable);
 
-    @Query("SELECT m FROM Monument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality ")
+    @EntityGraph(attributePaths = {"district", "parish", "municipality"})
+    @Query("SELECT m FROM Monument m")
     Page<Monument> findAllWithDivisionsAdmin(Pageable pageable);
 
     Optional<Monument> findByExternalId(String externalId);

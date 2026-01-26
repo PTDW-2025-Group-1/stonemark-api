@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.repositories.MarkRepository;
 import pt.estga.detection.model.DetectionResult;
@@ -52,16 +51,14 @@ public class MarkServiceHibernateImpl implements MarkService {
     @Override
     @Transactional
     public Mark create(Mark mark) {
-        processEmbeddingIfCoverExists(mark);
-        return repository.save(mark);
+        return create(mark, null);
     }
 
     @Override
     @Transactional
-    public Mark create(Mark mark, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            mark.setCover(mediaFile);
+    public Mark create(Mark mark, MediaFile cover) {
+        if (cover != null) {
+            mark.setCover(cover);
         }
         processEmbeddingIfCoverExists(mark);
         return repository.save(mark);
@@ -70,16 +67,14 @@ public class MarkServiceHibernateImpl implements MarkService {
     @Override
     @Transactional
     public Mark update(Mark mark) {
-        processEmbeddingIfCoverExists(mark);
-        return repository.save(mark);
+        return update(mark, null);
     }
 
     @Override
     @Transactional
-    public Mark update(Mark mark, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            mark.setCover(mediaFile);
+    public Mark update(Mark mark, MediaFile cover) {
+        if (cover != null) {
+            mark.setCover(cover);
         }
         processEmbeddingIfCoverExists(mark);
         return repository.save(mark);
@@ -88,19 +83,6 @@ public class MarkServiceHibernateImpl implements MarkService {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public Mark updateCover(Long id, MultipartFile file) throws IOException {
-        Mark mark = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mark not found"));
-
-        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-        mark.setCover(mediaFile);
-        processEmbeddingIfCoverExists(mark);
-        
-        return repository.save(mark);
     }
 
     private void processEmbeddingIfCoverExists(Mark mark) {
