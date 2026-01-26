@@ -14,7 +14,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/divisions")
+@RequestMapping("/api/v1/public/divisions")
 @RequiredArgsConstructor
 @Tag(name = "Administrative Divisions", description = "Endpoints for administrative divisions.")
 public class AdministrativeDivisionController {

@@ -17,7 +17,7 @@ import pt.estga.content.services.MarkOccurrenceService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/mark-occurrences")
+@RequestMapping("/api/v1/public/mark-occurrences")
 @RequiredArgsConstructor
 @Tag(name = "Mark Occurrences", description = "Endpoints for mark occurrences.")
 public class MarkOccurrenceController {

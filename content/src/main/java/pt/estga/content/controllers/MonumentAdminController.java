@@ -23,16 +23,16 @@ import java.io.IOException;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/v1/moderation/monuments")
+@RequestMapping("/api/v1/admin/monuments")
 @RequiredArgsConstructor
-@Tag(name = "Monuments Moderation", description = "Moderation endpoints for monuments.")
-public class MonumentModerationController {
+@Tag(name = "Monuments Management", description = "Management endpoints for monuments.")
+public class MonumentAdminController {
 
     private final MonumentService service;
     private final MonumentMapper mapper;
     private final MediaService mediaService;
 
-    @GetMapping("/management")
+    @GetMapping()
     public Page<MonumentResponseDto> getMonumentsManagement(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

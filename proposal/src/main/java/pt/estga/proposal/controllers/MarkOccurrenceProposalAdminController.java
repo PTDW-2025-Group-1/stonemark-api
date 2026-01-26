@@ -28,15 +28,14 @@ import pt.estga.proposal.services.ModeratorProposalQueryService;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 
-import java.lang.reflect.Parameter;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/proposals/mark-occurrences/moderation")
+@RequestMapping("api/v1/admin/proposals/mark-occurrences")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('REVIEWER')")
 @Tag(name = "Proposal Moderation", description = "Endpoints for proposal moderation actions.")
-public class MarkOccurrenceProposalModerationController {
+public class MarkOccurrenceProposalAdminController {
 
     private final ModeratorProposalQueryService queryService;
     private final ManualDecisionService manualDecisionService;

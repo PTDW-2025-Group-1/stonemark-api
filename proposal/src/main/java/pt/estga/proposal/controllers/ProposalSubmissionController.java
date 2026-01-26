@@ -10,7 +10,7 @@ import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 
 @RestController
-@RequestMapping("/api/v1/proposals/mark-occurrences/submission")
+@RequestMapping("/api/v1/public/proposals/mark-occurrences/submission")
 @RequiredArgsConstructor
 @Tag(name = "Mark Occurrence Proposal Submission", description = "Endpoints for submitting mark occurrence proposals.")
 public class ProposalSubmissionController {

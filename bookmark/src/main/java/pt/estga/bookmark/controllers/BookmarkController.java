@@ -15,7 +15,7 @@ import pt.estga.user.services.UserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/bookmarks")
+@RequestMapping("/api/v1/public/bookmarks")
 @RequiredArgsConstructor
 @Tag(name = "Bookmarks", description = "Endpoints for user bookmarks.")
 public class BookmarkController {

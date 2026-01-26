@@ -34,58 +34,18 @@ public class OpenApiConfig {
     }
 
     @Bean
-    public GroupedOpenApi users() {
+    public GroupedOpenApi publicRoutes() {
         return GroupedOpenApi.builder()
-                .group("Users")
-                .pathsToMatch("/api/v1/users/**")
+                .group("Public routes")
+                .pathsToMatch("/api/v1/public/**")
                 .build();
     }
 
     @Bean
-    public GroupedOpenApi monuments() {
+    public GroupedOpenApi adminRoutes() {
         return GroupedOpenApi.builder()
-                .group("Monuments")
-                .pathsToMatch("/api/v1/monuments/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi marks() {
-        return GroupedOpenApi.builder()
-                .group("Marks")
-                .pathsToMatch("/api/v1/marks/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi markOccurrences() {
-        return GroupedOpenApi.builder()
-                .group("Mark Occurrences")
-                .pathsToMatch("/api/v1/mark-occurrences/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi proposals() {
-        return GroupedOpenApi.builder()
-                .group("Proposals")
-                .pathsToMatch("/api/v1/proposals/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi contactRequests() {
-        return GroupedOpenApi.builder()
-                .group("Contact Requests")
-                .pathsToMatch("/api/v1/contact-requests/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi imports() {
-        return GroupedOpenApi.builder()
-                .group("Imports")
-                .pathsToMatch("/api/v1/import/**")
+                .group("Admin routes")
+                .pathsToMatch("/api/v1/admin/**")
                 .build();
     }
 

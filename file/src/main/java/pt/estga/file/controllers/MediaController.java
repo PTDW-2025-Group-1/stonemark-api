@@ -24,7 +24,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/media")
+@RequestMapping("/api/v1/public/media")
 @RequiredArgsConstructor
 @Tag(name = "Media", description = "Endpoints for media files.")
 public class MediaController {

@@ -40,28 +40,14 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"
     };
-    private static final String[] PUBLIC_ROUTES = {
-            "/api/v1/auth/**",
-            "/api/v1/divisions/**",
-            "/api/v1/monuments/**",
-            "/api/v1/marks/**",
-            "/api/v1/mark-occurrences/**",
-            "/api/v1/contact-requests/**",
-            "/api/v1/media/**",
-            "/api/v1/users/*/public"
-    };
-    private static final String[] MODERATION_ROUTES = {
-            "/api/v1/moderation/**"
-    };
-    private static final String[] MANAGEMENT_ROUTES = {
-            "/api/v1/management/**"
-    };
+    private static final String PUBLIC_ROUTE = "/api/v1/public/**";
+    private static final String AUTH_ROUTE = "/api/v1/auth/**";
     private static final String[] ALLOWED_ORIGINS = {
             "http://localhost:*",
             "https://stonemark.pt",
-            "https://*.stonemark.pt",
-            "https://graph.facebook.com"
+            "https://*.stonemark.pt"
     };
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final LogoutService logoutService;
@@ -80,11 +66,10 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(OPEN_API_ROUTES).permitAll()
-                        .requestMatchers(PUBLIC_ROUTES).permitAll()
+                        .requestMatchers(PUBLIC_ROUTE).permitAll()
+                        .requestMatchers(AUTH_ROUTE).permitAll()
                         .requestMatchers(telegramWebhookPath).permitAll()
                         .requestMatchers(whatsappWebhookPath).permitAll()
-                        .requestMatchers(MODERATION_ROUTES).hasRole(UserRole.MODERATOR.name())
-                        .requestMatchers(MANAGEMENT_ROUTES).hasRole(UserRole.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

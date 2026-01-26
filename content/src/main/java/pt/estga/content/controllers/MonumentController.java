@@ -17,7 +17,7 @@ import pt.estga.content.services.MonumentService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/monuments")
+@RequestMapping("/api/v1/public/monuments")
 @RequiredArgsConstructor
 @Tag(name = "Monuments", description = "Endpoints for monuments.")
 public class MonumentController {

@@ -23,9 +23,9 @@ import pt.estga.user.services.UserService;
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
-@Tag(name = "User Management", description = "Endpoints for managing users (Admin/Management).")
+@Tag(name = "User Management", description = "Endpoints for managing users (Admin).")
 @PreAuthorize("hasRole('ADMIN')")
-public class UserManagementController {
+public class UserAdminController {
 
     private final UserService service;
     private final UserMapper mapper;

@@ -20,16 +20,16 @@ import java.io.IOException;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/v1/moderation/marks")
+@RequestMapping("/api/v1/admin/marks")
 @RequiredArgsConstructor
 @Tag(name = "Marks Moderation", description = "Moderation endpoints for marks.")
-public class MarkModerationController {
+public class MarkAdminController {
 
     private final MarkService service;
     private final MarkMapper mapper;
     private final MediaService mediaService;
 
-    @GetMapping("/management")
+    @GetMapping()
     public Page<MarkDto> getMarksManagement(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size

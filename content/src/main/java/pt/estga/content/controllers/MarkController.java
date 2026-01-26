@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/marks")
+@RequestMapping("/api/v1/public/marks")
 @RequiredArgsConstructor
 @Tag(name = "Marks", description = "Endpoints for marks.")
 public class MarkController {

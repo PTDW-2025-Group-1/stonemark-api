@@ -17,7 +17,7 @@ import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.proposal.services.MonumentCreationService;
 
 @RestController
-@RequestMapping("api/v1/proposals/mark-occurrences")
+@RequestMapping("api/v1/admin/proposals/mark-occurrences/monument")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('REVIEWER')")
 @Tag(name = "Proposal Monument Management", description = "Endpoints for managing monuments related to mark occurrence proposals.")
@@ -33,7 +33,7 @@ public class MarkOccurrenceProposalMonumentController {
                     content = @Content(schema = @Schema(implementation = GeocodingResultDto.class))),
             @ApiResponse(responseCode = "404", description = "Proposal not found.")
     })
-    @GetMapping("/{id}/monument-autofill")
+    @GetMapping("/{id}/autofill")
     public ResponseEntity<GeocodingResultDto> getMonumentAutofillData(@PathVariable Long id) {
         return ResponseEntity.ok(monumentCreationService.getAutofillData(id));
     }
@@ -44,7 +44,7 @@ public class MarkOccurrenceProposalMonumentController {
             @ApiResponse(responseCode = "200", description = "Monument created successfully."),
             @ApiResponse(responseCode = "404", description = "Proposal not found.")
     })
-    @PostMapping("/{id}/monument")
+    @PostMapping("/{id}")
     public ResponseEntity<Void> createMonumentForProposal(
             @PathVariable Long id,
             @RequestBody MonumentRequestDto request

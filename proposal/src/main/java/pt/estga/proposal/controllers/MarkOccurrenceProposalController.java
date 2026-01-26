@@ -15,7 +15,7 @@ import pt.estga.proposal.services.MarkOccurrenceProposalService;
 import pt.estga.user.entities.User;
 
 @RestController
-@RequestMapping("/api/v1/proposals/mark-occurrences")
+@RequestMapping("/api/v1/public/proposals/mark-occurrences")
 @RequiredArgsConstructor
 @Tag(name = "Mark Occurrence Proposals", description = "Endpoints for querying and retrieving mark occurrence proposals.")
 public class MarkOccurrenceProposalController {

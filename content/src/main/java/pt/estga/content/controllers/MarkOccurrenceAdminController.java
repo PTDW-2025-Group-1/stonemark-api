@@ -21,16 +21,16 @@ import java.io.IOException;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/v1/moderation/mark-occurrences")
+@RequestMapping("/api/v1/admin/mark-occurrences")
 @RequiredArgsConstructor
-@Tag(name = "Mark Occurrences Moderation", description = "Moderation endpoints for mark occurrences.")
-public class MarkOccurrenceModerationController {
+@Tag(name = "Mark Occurrences Management", description = "Moderation endpoints for mark occurrences.")
+public class MarkOccurrenceAdminController {
 
     private final MarkOccurrenceService service;
     private final MarkOccurrenceMapper mapper;
     private final MediaService mediaService;
 
-    @GetMapping("/management")
+    @GetMapping()
     public Page<MarkOccurrenceDto> getMarkOccurrencesManagement(Pageable pageable) {
         return service.findAllManagement(pageable)
                 .map(mapper::toDto);
