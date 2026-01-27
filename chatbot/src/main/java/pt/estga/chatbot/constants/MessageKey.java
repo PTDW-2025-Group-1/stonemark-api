@@ -12,9 +12,6 @@ public class MessageKey {
 
     // Proposal Flow
     public static final String PROPOSE_MARK_BTN = "propose_mark_btn";
-    public static final String INCOMPLETE_SUBMISSION_TITLE = "incomplete_submission_title";
-    public static final String CONTINUE_SUBMISSION_BTN = "continue_submission_btn";
-    public static final String START_NEW_SUBMISSION_BTN = "start_new_submission_btn";
     
     public static final String REQUEST_PHOTO_PROMPT = "request_photo_prompt";
     public static final String EXPECTING_PHOTO_ERROR = "expecting_photo_error";

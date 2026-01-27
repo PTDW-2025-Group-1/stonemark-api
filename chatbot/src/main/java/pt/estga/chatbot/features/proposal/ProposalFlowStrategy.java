@@ -21,10 +21,8 @@ import static pt.estga.chatbot.context.HandlerOutcome.*;
 public class ProposalFlowStrategy implements FlowStrategy {
 
     private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
-    private final IncompleteSubmissionResolver incompleteSubmissionResolver;
 
     private static final Map<ConversationState, ConversationState> SUCCESS_TRANSITIONS = Map.ofEntries(
-            Map.entry(ProposalState.AWAITING_PROPOSAL_ACTION, ProposalState.WAITING_FOR_PHOTO),
             Map.entry(ProposalState.WAITING_FOR_PHOTO, ProposalState.AWAITING_LOCATION),
             Map.entry(ProposalState.AWAITING_LOCATION, ProposalState.LOOP_OPTIONS),
             Map.entry(ProposalState.AWAITING_MARK_SELECTION, ProposalState.MARK_SELECTED),
@@ -50,25 +48,7 @@ public class ProposalFlowStrategy implements FlowStrategy {
         }
 
         if (currentState == ProposalState.PROPOSAL_START) {
-            if (incompleteSubmissionResolver.hasIncompleteSubmission(context.getDomainUserId())) {
-                return ProposalState.AWAITING_PROPOSAL_ACTION;
-            }
             return ProposalState.WAITING_FOR_PHOTO;
-        }
-
-        // Handle branching from AWAITING_PROPOSAL_ACTION
-        if (currentState == ProposalState.AWAITING_PROPOSAL_ACTION) {
-            if (outcome == CONTINUE) {
-                MarkOccurrenceProposal proposal = proposalFlowService.getProposal(context.getProposalContext().getProposalId());
-                if (proposal.getOriginalMediaFile() == null) {
-                    return ProposalState.WAITING_FOR_PHOTO;
-                }
-                if (proposal.getLatitude() == null || proposal.getLongitude() == null) {
-                    return ProposalState.AWAITING_LOCATION;
-                }
-                return ProposalState.LOOP_OPTIONS;
-            }
-            if (outcome == DISCARD_CONFIRMED) return ProposalState.WAITING_FOR_PHOTO;
         }
 
         // Handle branching from LOOP_OPTIONS

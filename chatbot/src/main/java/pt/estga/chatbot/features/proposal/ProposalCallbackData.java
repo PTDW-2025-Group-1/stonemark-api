@@ -20,7 +20,5 @@ public final class ProposalCallbackData {
     public static final String SUBMISSION_LOOP_START_OVER_CONFIRMED = "submission_loop_start_over_confirmed";
     public static final String SUBMISSION_LOOP_CONTINUE = "submission_loop_continue";
     public static final String SKIP_NOTES = "skip_notes";
-    public static final String CONTINUE_PROPOSAL = "continue_proposal";
-    public static final String DELETE_AND_START_NEW = "delete_and_start_new";
     public static final String SHARE_LOCATION = "share_location";
 }

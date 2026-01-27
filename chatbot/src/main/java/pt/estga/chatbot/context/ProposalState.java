@@ -2,7 +2,6 @@ package pt.estga.chatbot.context;
 
 public enum ProposalState implements ConversationState {
     PROPOSAL_START,
-    AWAITING_PROPOSAL_ACTION,
     WAITING_FOR_PHOTO,
     AWAITING_LOCATION,
     LOOP_OPTIONS,

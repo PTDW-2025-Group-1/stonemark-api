@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
@@ -18,6 +19,7 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
+import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 import pt.estga.user.entities.User;
 
 @RestController
@@ -31,48 +33,48 @@ public class MarkOccurrenceProposalController {
     private final MarkOccurrenceProposalMapper markOccurrenceProposalMapper;
 
     @Operation(summary = "List proposals by user",
-            description = "Retrieves a paginated list of mark occurrence proposals submitted by a specific user.")
+            description = "Retrieves a paginated list of mark occurrence proposals submitted by the authenticated user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.")
     })
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/me")
     public Page<MarkOccurrenceProposalListDto> findByUser(
-            @PathVariable Long userId,
+            @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
     ) {
-        User user = User.builder().id(userId).build();
+        User user = User.builder().id(principal.getId()).build();
         return proposalService.findByUser(user, PageRequest.of(page, size))
                 .map(markOccurrenceProposalMapper::toListDto);
     }
 
     @Operation(summary = "List detailed proposals by user",
-            description = "Retrieves a paginated list of detailed mark occurrence proposals submitted by a specific user.")
+            description = "Retrieves a paginated list of detailed mark occurrence proposals submitted by the authenticated user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Detailed proposals retrieved successfully.")
     })
-    @GetMapping("/user/{userId}/detailed")
+    @GetMapping("/user/me/detailed")
     public Page<MarkOccurrenceProposalDto> findDetailedByUser(
-            @PathVariable Long userId,
+            @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
     ) {
-        User user = User.builder().id(userId).build();
+        User user = User.builder().id(principal.getId()).build();
         return proposalService.findByUser(user, PageRequest.of(page, size))
                 .map(markOccurrenceProposalMapper::toDto);
     }
 
     @Operation(summary = "Get user proposal statistics",
-            description = "Retrieves statistics about mark occurrence proposals for a specific user.")
+            description = "Retrieves statistics about mark occurrence proposals for the authenticated user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully.",
                     content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalStatsDto.class)))
     })
-    @GetMapping("/user/{userId}/stats")
+    @GetMapping("/user/me/stats")
     public ResponseEntity<MarkOccurrenceProposalStatsDto> getUserStats(
-            @PathVariable Long userId
+            @AuthenticationPrincipal AuthenticatedPrincipal principal
     ) {
-        User user = User.builder().id(userId).build();
+        User user = User.builder().id(principal.getId()).build();
         return ResponseEntity.ok(proposalService.getStatsByUser(user));
     }
 

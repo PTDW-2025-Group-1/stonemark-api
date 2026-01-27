@@ -16,8 +16,6 @@ public interface MarkOccurrenceProposalService {
 
     Optional<MarkOccurrenceProposal> findWithDetailsById(Long id);
 
-    Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId);
-
     Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable);
 
     MarkOccurrenceProposal create(MarkOccurrenceProposal proposal);

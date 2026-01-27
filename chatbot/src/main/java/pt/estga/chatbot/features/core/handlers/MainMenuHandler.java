@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pt.estga.chatbot.context.*;
 import pt.estga.chatbot.features.auth.RequiresAuthentication;
-import pt.estga.chatbot.features.proposal.IncompleteSubmissionResolver;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.features.verification.VerificationCallbackData;
 import pt.estga.chatbot.models.BotInput;
@@ -13,8 +12,6 @@ import pt.estga.chatbot.models.BotInput;
 @RequiredArgsConstructor
 @RequiresAuthentication(false)
 public class MainMenuHandler implements ConversationStateHandler {
-
-    private final IncompleteSubmissionResolver incompleteSubmissionResolver;
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
@@ -25,9 +22,6 @@ public class MainMenuHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.START_SUBMISSION)) {
-            if (incompleteSubmissionResolver.hasIncompleteSubmission(Long.valueOf(input.getUserId()))) {
-                context.getProposalContext().clear();
-            }
             return HandlerOutcome.START_NEW;
         }
 

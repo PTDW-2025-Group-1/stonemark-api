@@ -25,8 +25,6 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     Page<MarkOccurrenceProposal> findBySubmittedBy(User user, Pageable pageable);
 
-    Optional<MarkOccurrenceProposal> findFirstBySubmittedByIdAndSubmitted(Long submittedById, boolean submitted);
-
     @Query("""
     SELECT new pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto(
         SUM(CASE WHEN p.status IN ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED') THEN 1 ELSE 0 END),

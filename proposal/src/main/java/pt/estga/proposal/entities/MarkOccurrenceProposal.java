@@ -55,7 +55,7 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     private Integer credibilityScore;
 
     @Builder.Default
-    private Boolean submitted = false;
+    private boolean submitted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User submittedBy;
@@ -63,7 +63,7 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     private Instant submittedAt;
 
     @Builder.Default
-    private Boolean newMark = true;
+    private boolean newMark = true;
 
     // ==== Decision state ====
     @OneToOne(fetch = FetchType.LAZY)

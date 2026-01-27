@@ -54,7 +54,6 @@ public class ProposalResponseProvider implements ResponseProvider {
         return switch (state) {
             case PROPOSAL_START -> Collections.emptyList();
             case AWAITING_LOCATION -> createLocationRequestResponse();
-            case AWAITING_PROPOSAL_ACTION -> createProposalActionResponse();
             case LOOP_OPTIONS -> createLoopOptionsResponse();
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
@@ -72,17 +71,6 @@ public class ProposalResponseProvider implements ResponseProvider {
                 yield buildSimpleMenuResponse(message);
             }
         };
-    }
-
-    private List<BotResponse> createProposalActionResponse() {
-        Menu menu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.INCOMPLETE_SUBMISSION_TITLE)))
-                .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.CONTINUE_SUBMISSION_BTN, ARROW_RIGHT))).callbackData(ProposalCallbackData.CONTINUE_PROPOSAL).build()),
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.START_NEW_SUBMISSION_BTN, TRASH))).callbackData(ProposalCallbackData.DELETE_AND_START_NEW).build())
-                ))
-                .build();
-        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
     private List<BotResponse> createLoopOptionsResponse() {
