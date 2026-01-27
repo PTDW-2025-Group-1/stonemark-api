@@ -11,6 +11,7 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.shared.audit.AuditedEntity;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 
@@ -56,7 +57,8 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     @Builder.Default
     private Boolean submitted = false;
 
-    private Long submittedById;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User submittedBy;
 
     private Instant submittedAt;
 

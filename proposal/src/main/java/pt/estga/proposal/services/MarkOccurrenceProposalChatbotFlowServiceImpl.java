@@ -15,6 +15,7 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.SubmissionSource;
+import pt.estga.user.entities.User;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,11 +41,11 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     @Override
     @Transactional
-    public MarkOccurrenceProposal startProposal(Long userId) {
-        log.info("Starting new chatbot proposal for user ID: {}", userId);
+    public MarkOccurrenceProposal startProposal(User user) {
+        log.info("Starting new chatbot proposal for user ID: {}", user.getId());
         MarkOccurrenceProposal proposal = new MarkOccurrenceProposal();
         proposal.setSubmissionSource(SubmissionSource.TELEGRAM_BOT);
-        proposal.setSubmittedById(userId);
+        proposal.setSubmittedBy(user);
         return proposalService.create(proposal);
     }
 

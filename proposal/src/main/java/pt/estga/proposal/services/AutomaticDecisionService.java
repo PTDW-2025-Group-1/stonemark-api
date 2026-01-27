@@ -31,7 +31,7 @@ public class AutomaticDecisionService {
     @Transactional
     public ProposalDecisionAttempt rerunAutomaticDecision(Long proposalId) {
         log.info("Rerunning automatic decision for proposal ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during automatic decision rerun", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);

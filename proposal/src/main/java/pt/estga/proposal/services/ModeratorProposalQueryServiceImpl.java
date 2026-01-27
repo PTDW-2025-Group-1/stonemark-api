@@ -37,7 +37,7 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
 
     @Override
     public ProposalModeratorViewDto getProposal(Long id) {
-        MarkOccurrenceProposal proposal = proposalRepository.findDetailedById(id)
+        MarkOccurrenceProposal proposal = proposalRepository.findById(id)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found", id);
                     return new ResourceNotFoundException("Proposal not found with id: " + id);
@@ -74,7 +74,7 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                 proposal.getStatus(),
                 proposal.getPriority(),
                 proposal.getSubmissionSource(),
-                proposal.getSubmittedById(),
+                proposal.getSubmittedBy().getId(),
                 proposal.getSubmittedAt(),
                 monumentName,
                 proposal.getLatitude(),

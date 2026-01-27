@@ -5,10 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.user.entities.User;
 
@@ -20,6 +20,7 @@ import java.util.Optional;
 public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenceProposalService {
 
     private final MarkOccurrenceProposalRepository repository;
+    private final MarkOccurrenceProposalMapper mapper;
 
     @Override
     public Page<MarkOccurrenceProposal> getAll(Pageable pageable) {
@@ -32,23 +33,13 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
-    public Optional<MarkOccurrenceProposal> findDetailedById(Long id) {
-        return repository.findDetailedById(id);
-    }
-
-    @Override
     public Optional<MarkOccurrenceProposal> findWithDetailsById(Long id) {
-        return repository.findDetailedById(id);
+        return repository.findById(id);
     }
 
     @Override
-    public Page<MarkOccurrenceProposal> findDetailedByUser(User user, Pageable pageable) {
-        return repository.findDetailedBySubmittedById(user.getId(), pageable);
-    }
-
-    @Override
-    public Page<MarkOccurrenceProposalListDto> findListByUser(User user, Pageable pageable) {
-        return repository.findListDtoBySubmittedById(user.getId(), pageable);
+    public Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable) {
+        return repository.findBySubmittedBy(user, pageable);
     }
 
     @Override

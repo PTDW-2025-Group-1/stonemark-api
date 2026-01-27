@@ -18,7 +18,7 @@ public class ProposalScoringService {
         int priority = 0;
 
         // User Reputation Boost (based on approved proposals)
-        Long userId = proposal.getSubmittedById();
+        Long userId = proposal.getSubmittedBy().getId();
         if (userId != null) {
             long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
             
@@ -39,12 +39,12 @@ public class ProposalScoringService {
         int score = 0;
 
         // Base score for authenticated users
-        if (proposal.getSubmittedById() != null) {
+        if (proposal.getSubmittedBy() != null) {
             score += properties.getBaseScoreAuthenticatedUser();
         }
 
         // Credibility based on past approved proposals
-        Long userId = proposal.getSubmittedById();
+        Long userId = proposal.getSubmittedBy().getId();
         if (userId != null) {
             long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
             score += (int) Math.min(approvedCount * properties.getCredibilityBoostPerApprovedProposal(), properties.getMaxCredibilityBoostApprovedProposals());

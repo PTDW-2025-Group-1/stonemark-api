@@ -26,7 +26,7 @@ public class DecisionActivationService {
     public void activateDecision(Long proposalId, Long attemptId) {
         log.info("Activating decision attempt ID: {} for proposal ID: {}", attemptId, proposalId);
         
-        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during decision activation", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);

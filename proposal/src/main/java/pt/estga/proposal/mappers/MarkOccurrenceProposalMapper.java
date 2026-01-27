@@ -12,9 +12,11 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 public interface MarkOccurrenceProposalMapper {
 
     @Mapping(source = "originalMediaFile.id", target = "photoId")
-    MarkOccurrenceProposalDto toDto(MarkOccurrenceProposal entity);
+    MarkOccurrenceProposalListDto toListDto(MarkOccurrenceProposal entity);
 
     @Mapping(source = "originalMediaFile.id", target = "photoId")
-    MarkOccurrenceProposalListDto toListDto(MarkOccurrenceProposal entity);
+    @Mapping(source = "existingMonument.id", target = "existingMonumentId")
+    @Mapping(source = "existingMark.id", target = "existingMarkId")
+    MarkOccurrenceProposalDto toDto(MarkOccurrenceProposal entity);
 
 }

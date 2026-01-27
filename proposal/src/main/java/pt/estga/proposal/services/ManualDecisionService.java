@@ -30,13 +30,13 @@ public class ManualDecisionService {
     public ProposalDecisionAttempt createManualDecision(Long proposalId, DecisionOutcome outcome, String notes, Long moderatorId) {
         log.info("Creating manual decision for proposal ID: {}, Outcome: {}, Moderator ID: {}", proposalId, outcome, moderatorId);
         
-        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during manual decision creation", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);
                 });
 
-        // If accepting and it's a new monument, ensure monument is created
+        // If accepting, and it's a new monument, ensure monument is created
         if (outcome == DecisionOutcome.ACCEPT && proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
              throw new IllegalStateException("Cannot approve proposal for new monument without creating the monument first.");
         }
