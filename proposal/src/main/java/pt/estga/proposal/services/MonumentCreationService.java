@@ -27,7 +27,7 @@ public class MonumentCreationService {
      */
     @Transactional
     public Monument createMonumentFromProposal(Long proposalId, Monument monument) {
-        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
                 .orElseThrow(() -> new ResourceNotFoundException("Proposal not found"));
 
         if (proposal.getExistingMonument() != null) {

@@ -3,6 +3,7 @@ package pt.estga.proposal.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.content.entities.Monument;
+import pt.estga.proposal.config.ProposalDecisionProperties;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.shared.utils.StringSimilarityUtils;
 
@@ -11,6 +12,7 @@ import pt.estga.shared.utils.StringSimilarityUtils;
 public class ProposalScoringService {
 
     private final MarkOccurrenceProposalService proposalService;
+    private final ProposalDecisionProperties properties;
 
     public Integer calculatePriority(MarkOccurrenceProposal proposal) {
         int priority = 0;
@@ -20,14 +22,14 @@ public class ProposalScoringService {
         if (userId != null) {
             long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
             
-            // Cap the reputation boost at +40 (e.g., 2 points per approved proposal up to 40)
-            int reputationBoost = (int) Math.min(approvedCount * 2, 40);
+            // Cap the reputation boost
+            int reputationBoost = (int) Math.min(approvedCount * properties.getReputationBoostPerApprovedProposal(), properties.getMaxReputationBoost());
             priority += reputationBoost;
         }
 
-        // Boost for New Monument Proposals (+5) - Small boost for complexity
+        // Boost for New Monument Proposals - Small boost for complexity
         if (proposal.getMonumentName() != null) {
-            priority += 5;
+            priority += properties.getNewMonumentProposalBoost();
         }
 
         return priority;
@@ -38,25 +40,25 @@ public class ProposalScoringService {
 
         // Base score for authenticated users
         if (proposal.getSubmittedById() != null) {
-            score += 10;
+            score += properties.getBaseScoreAuthenticatedUser();
         }
 
         // Credibility based on past approved proposals
         Long userId = proposal.getSubmittedById();
         if (userId != null) {
             long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
-            score += (int) Math.min(approvedCount * 5, 50); // Cap at 50
+            score += (int) Math.min(approvedCount * properties.getCredibilityBoostPerApprovedProposal(), properties.getMaxCredibilityBoostApprovedProposals());
         }
 
         // Completeness of data
         if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-            score += 10;
+            score += properties.getCompletenessScoreLocation();
         }
         if (proposal.getUserNotes() != null && !proposal.getUserNotes().isEmpty()) {
-            score += 5;
+            score += properties.getCompletenessScoreUserNotes();
         }
         if (proposal.getOriginalMediaFile() != null) {
-            score += 10;
+            score += properties.getCompletenessScoreMediaFile();
         }
 
         // Boost if suggested monument name resembles the found/linked monument name
@@ -66,17 +68,17 @@ public class ProposalScoringService {
             String actualName = existingMonument.getName();
             
             if (StringSimilarityUtils.containsIgnoreCase(suggestedName, actualName)) {
-                score += 15;
-            } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > 0.7) {
-                score += 10;
+                score += properties.getMonumentNameExactMatchBoost();
+            } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > properties.getMonumentNameSimilarityThreshold()) {
+                score += properties.getMonumentNameSimilarMatchBoost();
             } else {
                 int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, 3, 2);
                 if (matchCount > 0) {
-                    score += 5 * matchCount;
+                    score += properties.getMonumentNameWordMatchBoostPerWord() * matchCount;
                 }
             }
         }
 
-        return Math.min(score, 100); // Normalize to 0-100
+        return Math.min(score, properties.getMaxCredibilityScore()); // Normalize to 0-100
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
@@ -31,14 +32,29 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
-    public Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable) {
-        return repository.findBySubmittedById(user.getId(), pageable);
+    public Optional<MarkOccurrenceProposal> findDetailedById(Long id) {
+        return repository.findDetailedById(id);
+    }
+
+    @Override
+    public Optional<MarkOccurrenceProposal> findWithDetailsById(Long id) {
+        return repository.findDetailedById(id);
+    }
+
+    @Override
+    public Page<MarkOccurrenceProposal> findDetailedByUser(User user, Pageable pageable) {
+        return repository.findDetailedBySubmittedById(user.getId(), pageable);
+    }
+
+    @Override
+    public Page<MarkOccurrenceProposalListDto> findListByUser(User user, Pageable pageable) {
+        return repository.findListDtoBySubmittedById(user.getId(), pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<MarkOccurrenceProposal> findIncompleteByUserId(Long userId) {
-        return repository.findFirstBySubmitted(false);
+        return repository.findFirstBySubmittedByIdAndSubmitted(userId, false);
     }
 
     @Override

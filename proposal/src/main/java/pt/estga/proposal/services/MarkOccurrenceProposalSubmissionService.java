@@ -23,7 +23,7 @@ public class MarkOccurrenceProposalSubmissionService {
     @Transactional
     public MarkOccurrenceProposal submit(Long proposalId) {
         log.info("Submitting proposal with ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = proposalService.findById(proposalId)
+        MarkOccurrenceProposal proposal = proposalService.findWithDetailsById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during submission", proposalId);
                     return new RuntimeException("Proposal not found");

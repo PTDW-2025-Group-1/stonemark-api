@@ -1,7 +1,5 @@
 package pt.estga.proposal.dtos;
 
-import pt.estga.content.entities.Mark;
-import pt.estga.content.entities.Monument;
 import pt.estga.proposal.enums.DecisionOutcome;
 import pt.estga.proposal.enums.DecisionType;
 
@@ -13,8 +11,8 @@ public record ActiveDecisionViewDto(
         DecisionOutcome outcome,
         Boolean confident,
 
-        Mark detectedMark,
-        Monument detectedMonument,
+        Long detectedMarkId,
+        Long detectedMonumentId,
 
         String notes,
         Instant decidedAt,

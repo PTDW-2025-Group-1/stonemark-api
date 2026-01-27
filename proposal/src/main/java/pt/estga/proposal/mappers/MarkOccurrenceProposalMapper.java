@@ -11,10 +11,10 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 @Mapper(componentModel = "spring", uses = {MarkMapper.class, MonumentMapper.class})
 public interface MarkOccurrenceProposalMapper {
 
-    @Mapping(source = "originalMediaFile.id", target = "coverId")
+    @Mapping(source = "originalMediaFile.id", target = "photoId")
     MarkOccurrenceProposalDto toDto(MarkOccurrenceProposal entity);
 
-    @Mapping(source = "originalMediaFile.id", target = "coverId")
+    @Mapping(source = "originalMediaFile.id", target = "photoId")
     MarkOccurrenceProposalListDto toListDto(MarkOccurrenceProposal entity);
 
 }

@@ -18,7 +18,9 @@ import pt.estga.proposal.enums.SubmissionSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,7 +66,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         log.info("Analyzing photo for proposal ID: {}", proposalId);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
 
-        try (ByteArrayInputStream detectionInputStream = new ByteArrayInputStream(mediaService.getMediaContent(proposal.getOriginalMediaFile().getId()))) {
+        try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
             if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
                 double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
@@ -140,8 +142,8 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
                 return markIds.stream()
                         .map(Long::valueOf)
                         .map(markService::findById)
-                        .filter(java.util.Optional::isPresent)
-                        .map(java.util.Optional::get)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
                         .collect(Collectors.toList());
             } catch (Exception e) {
                 log.warn("Mark search service failed for proposal ID: {}. Proceeding without suggestions.", proposalId, e);

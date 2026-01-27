@@ -30,7 +30,7 @@ public class ManualDecisionService {
     public ProposalDecisionAttempt createManualDecision(Long proposalId, DecisionOutcome outcome, String notes, Long moderatorId) {
         log.info("Creating manual decision for proposal ID: {}, Outcome: {}, Moderator ID: {}", proposalId, outcome, moderatorId);
         
-        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during manual decision creation", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);

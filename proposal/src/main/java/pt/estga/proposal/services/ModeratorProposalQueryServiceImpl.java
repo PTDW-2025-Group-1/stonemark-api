@@ -32,18 +32,12 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
 
     @Override
     public Page<ProposalModeratorListDto> getAllProposals(List<ProposalStatus> statuses, Pageable pageable) {
-        Page<MarkOccurrenceProposal> page;
-        if (statuses != null && !statuses.isEmpty()) {
-            page = proposalRepository.findByStatusIn(statuses, pageable);
-        } else {
-            page = proposalRepository.findAll(pageable);
-        }
-        return page.map(this::toModeratorListDto);
+        return proposalRepository.findModeratorListDto(statuses, pageable);
     }
 
     @Override
     public ProposalModeratorViewDto getProposal(Long id) {
-        MarkOccurrenceProposal proposal = proposalRepository.findById(id)
+        MarkOccurrenceProposal proposal = proposalRepository.findDetailedById(id)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found", id);
                     return new ResourceNotFoundException("Proposal not found with id: " + id);
@@ -66,22 +60,6 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                         decision.getNotes()
                 ))
                 .collect(Collectors.toList());
-    }
-
-    private ProposalModeratorListDto toModeratorListDto(MarkOccurrenceProposal proposal) {
-
-        String monumentName = proposal.getExistingMonument() != null
-                ? proposal.getExistingMonument().getName()
-                : proposal.getMonumentName();
-
-        return new ProposalModeratorListDto(
-                proposal.getId(),
-                proposal.getStatus(),
-                proposal.getPriority(),
-                proposal.getSubmissionSource(),
-                proposal.getSubmittedAt(),
-                monumentName
-        );
     }
 
     private ProposalModeratorViewDto toModeratorViewDto(MarkOccurrenceProposal proposal) {
@@ -115,8 +93,8 @@ public class ModeratorProposalQueryServiceImpl implements ModeratorProposalQuery
                     decision.getType(),
                     decision.getOutcome(),
                     decision.getConfident(),
-                    decision.getDetectedMark(),
-                    decision.getDetectedMonument(),
+                    decision.getDetectedMark() != null ? decision.getDetectedMark().getId() : null,
+                    decision.getDetectedMonument() != null ? decision.getDetectedMonument().getId() : null,
                     decision.getNotes(),
                     decision.getDecidedAt(),
                     decision.getDecidedBy()

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pt.estga.proposal.config.ProposalDecisionProperties;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
@@ -25,11 +26,12 @@ public class AutomaticDecisionService {
     private final ProposalDecisionAttemptRepository attemptRepo;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProposalDecisionProperties properties;
 
     @Transactional
     public ProposalDecisionAttempt rerunAutomaticDecision(Long proposalId) {
         log.info("Rerunning automatic decision for proposal ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
+        MarkOccurrenceProposal proposal = proposalRepo.findDetailedById(proposalId)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found during automatic decision rerun", proposalId);
                     return new ResourceNotFoundException("Proposal not found with id: " + proposalId);
@@ -50,10 +52,10 @@ public class AutomaticDecisionService {
             log.info("Proposal ID {} requires new monument creation. Marking as inconclusive for manual review.", proposal.getId());
             outcome = DecisionOutcome.INCONCLUSIVE;
             confident = true; // Confidently sending to manual review
-        } else if (proposal.getPriority() != null && proposal.getPriority() > 150) {
+        } else if (proposal.getPriority() != null && proposal.getPriority() > properties.getAutomaticAcceptanceThreshold()) {
             outcome = DecisionOutcome.ACCEPT;
             confident = true;
-        } else if (proposal.getPriority() != null && proposal.getPriority() < 10) {
+        } else if (proposal.getPriority() != null && proposal.getPriority() < properties.getAutomaticRejectionThreshold()) {
             outcome = DecisionOutcome.REJECT;
         } else {
             outcome = DecisionOutcome.INCONCLUSIVE;

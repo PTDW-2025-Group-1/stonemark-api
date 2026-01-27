@@ -1,15 +1,15 @@
 package pt.estga.proposal.dtos;
 
 import pt.estga.content.dtos.MarkDto;
-import pt.estga.content.dtos.MonumentDto;
+import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 
 public record MarkOccurrenceProposalDto(
         Long id,
         Integer priority,
-        Long coverId,
-        MonumentDto existingMonument,
+        Long photoId,
+        MonumentListDto existingMonument,
         String monumentName,
         Double latitude,
         Double longitude,

@@ -7,34 +7,48 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
+import pt.estga.proposal.dtos.ProposalModeratorListDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
+    @Override
+    @EntityGraph(attributePaths = {"existingMonument"})
     Page<MarkOccurrenceProposal> findAll(Pageable pageable);
 
     @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.existingMonument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality " +
-            "LEFT JOIN FETCH p.existingMark " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
             "WHERE p.submittedById = :userId")
     Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"existingMonument.district", "existingMonument.parish", "existingMonument.municipality", "existingMark", "activeDecision.detectedMark", "activeDecision.detectedMonument.district", "activeDecision.detectedMonument.parish", "activeDecision.detectedMonument.municipality"})
-    Optional<MarkOccurrenceProposal> findById(Long id);
+    @Query("SELECT new pt.estga.proposal.dtos.MarkOccurrenceProposalListDto(" +
+            "p.id, p.originalMediaFile.id, p.submitted, p.status, p.submittedAt) " +
+            "FROM MarkOccurrenceProposal p " +
+            "WHERE p.submittedById = :userId")
+    Page<MarkOccurrenceProposalListDto> findListDtoBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
-    List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.existingMonument m " +
+            "LEFT JOIN FETCH p.existingMark mk " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
+            "WHERE p.submittedById = :userId")
+    Page<MarkOccurrenceProposal> findDetailedBySubmittedById(@Param("userId") Long userId, Pageable pageable);
 
-    Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
+    @Query("SELECT p FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN FETCH p.existingMonument m " +
+            "LEFT JOIN FETCH p.existingMark mk " +
+            "LEFT JOIN FETCH p.originalMediaFile " +
+            "WHERE p.id = :id")
+    Optional<MarkOccurrenceProposal> findDetailedById(@Param("id") Long id);
+
+    Optional<MarkOccurrenceProposal> findFirstBySubmittedByIdAndSubmitted(Long submittedById, boolean submitted);
 
     @Query("""
     SELECT new pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto(
@@ -49,6 +63,15 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
 
+    @EntityGraph(attributePaths = {"existingMonument"})
     Page<MarkOccurrenceProposal> findByStatusIn(Collection<ProposalStatus> statuses, Pageable pageable);
+
+    @Query("SELECT new pt.estga.proposal.dtos.ProposalModeratorListDto(" +
+            "p.id, p.status, p.priority, p.submissionSource, p.submittedAt, " +
+            "COALESCE(m.name, p.monumentName)) " +
+            "FROM MarkOccurrenceProposal p " +
+            "LEFT JOIN p.existingMonument m " +
+            "WHERE (:statuses IS NULL OR p.status IN :statuses)")
+    Page<ProposalModeratorListDto> findModeratorListDto(@Param("statuses") Collection<ProposalStatus> statuses, Pageable pageable);
 
 }

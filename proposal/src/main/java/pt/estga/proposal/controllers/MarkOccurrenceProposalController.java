@@ -42,8 +42,7 @@ public class MarkOccurrenceProposalController {
             @RequestParam(defaultValue = "6") int size
     ) {
         User user = User.builder().id(userId).build();
-        Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
-        return proposals.map(markOccurrenceProposalMapper::toListDto);
+        return proposalService.findListByUser(user, PageRequest.of(page, size));
     }
 
     @Operation(summary = "List detailed proposals by user",
@@ -58,8 +57,8 @@ public class MarkOccurrenceProposalController {
             @RequestParam(defaultValue = "6") int size
     ) {
         User user = User.builder().id(userId).build();
-        Page<MarkOccurrenceProposal> proposals = proposalService.findByUser(user, PageRequest.of(page, size));
-        return proposals.map(markOccurrenceProposalMapper::toDto);
+        return proposalService.findDetailedByUser(user, PageRequest.of(page, size))
+                .map(markOccurrenceProposalMapper::toDto);
     }
 
     @Operation(summary = "Get user proposal statistics",
@@ -85,7 +84,7 @@ public class MarkOccurrenceProposalController {
     })
     @GetMapping("/{proposalId}")
     public ResponseEntity<MarkOccurrenceProposalDto> findById(@PathVariable Long proposalId) {
-        return proposalService.findById(proposalId)
+        return proposalService.findDetailedById(proposalId)
                 .map(markOccurrenceProposalMapper::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
