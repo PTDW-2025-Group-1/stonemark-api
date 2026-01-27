@@ -71,8 +71,6 @@ public class ResponseFactory {
             return switch (proposalState) {
                 case WAITING_FOR_PHOTO -> new Message(MessageKey.EXPECTING_PHOTO_ERROR, WARNING);
                 case AWAITING_LOCATION -> new Message(MessageKey.EXPECTING_LOCATION_ERROR, WARNING);
-                case LOOP_OPTIONS, AWAITING_DISCARD_CONFIRMATION, SUBMISSION_LOOP_OPTIONS
-                        -> new Message(MessageKey.INVALID_SELECTION, WARNING);
                 case AWAITING_PHOTO_ANALYSIS -> new Message(MessageKey.ERROR_PROCESSING_PHOTO, WARNING);
                 case AWAITING_MONUMENT_SUGGESTIONS -> new Message(MessageKey.ERROR_GENERIC, WARNING);
                 default -> null;

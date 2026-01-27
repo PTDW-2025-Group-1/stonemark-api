@@ -8,8 +8,6 @@ import pt.estga.chatbot.context.CoreState;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.services.FlowStrategy;
-import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
 import java.util.Map;
@@ -20,18 +18,14 @@ import static pt.estga.chatbot.context.HandlerOutcome.*;
 @RequiredArgsConstructor
 public class ProposalFlowStrategy implements FlowStrategy {
 
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
-
     private static final Map<ConversationState, ConversationState> SUCCESS_TRANSITIONS = Map.ofEntries(
             Map.entry(ProposalState.WAITING_FOR_PHOTO, ProposalState.AWAITING_LOCATION),
-            Map.entry(ProposalState.AWAITING_LOCATION, ProposalState.LOOP_OPTIONS),
+            Map.entry(ProposalState.AWAITING_LOCATION, ProposalState.AWAITING_PHOTO_ANALYSIS),
             Map.entry(ProposalState.AWAITING_MARK_SELECTION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.WAITING_FOR_MARK_CONFIRMATION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.MARK_SELECTED, ProposalState.AWAITING_MONUMENT_SUGGESTIONS),
-            Map.entry(ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),
-            Map.entry(ProposalState.AWAITING_NEW_MONUMENT_NAME, ProposalState.SUBMISSION_LOOP_OPTIONS),
-            Map.entry(ProposalState.AWAITING_DISCARD_CONFIRMATION, ProposalState.SUBMISSION_LOOP_OPTIONS),
-            Map.entry(ProposalState.SUBMISSION_LOOP_OPTIONS, ProposalState.AWAITING_NOTES),
+            Map.entry(ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION, ProposalState.AWAITING_NOTES),
+            Map.entry(ProposalState.AWAITING_NEW_MONUMENT_NAME, ProposalState.AWAITING_NOTES),
             Map.entry(ProposalState.AWAITING_NOTES, ProposalState.SUBMITTED),
             Map.entry(ProposalState.SUBMITTED, CoreState.MAIN_MENU)
     );
@@ -49,15 +43,6 @@ public class ProposalFlowStrategy implements FlowStrategy {
 
         if (currentState == ProposalState.PROPOSAL_START) {
             return ProposalState.WAITING_FOR_PHOTO;
-        }
-
-        // Handle branching from LOOP_OPTIONS
-        if (currentState == ProposalState.LOOP_OPTIONS) {
-            switch (outcome) {
-                case CHANGE_LOCATION: return ProposalState.AWAITING_LOCATION;
-                case CHANGE_PHOTO: return ProposalState.WAITING_FOR_PHOTO;
-                case CONTINUE: return ProposalState.AWAITING_PHOTO_ANALYSIS;
-            }
         }
 
         // Handle branching after photo analysis
@@ -95,17 +80,6 @@ public class ProposalFlowStrategy implements FlowStrategy {
         // Handle branching from monument confirmation
         if (currentState == ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION && outcome == REJECTED) {
             return ProposalState.AWAITING_NEW_MONUMENT_NAME;
-        }
-
-        // Handle branching from submission loop
-        if (currentState == ProposalState.SUBMISSION_LOOP_OPTIONS) {
-            if (outcome == DISCARD) return ProposalState.AWAITING_DISCARD_CONFIRMATION;
-            if (outcome == CONTINUE) return ProposalState.AWAITING_NOTES;
-        }
-
-        // Handle branching from discard confirmation
-        if (currentState == ProposalState.AWAITING_DISCARD_CONFIRMATION && outcome == DISCARD_CONFIRMED) {
-            return CoreState.START;
         }
 
         if (outcome == SUCCESS) {

@@ -54,7 +54,6 @@ public class ProposalResponseProvider implements ResponseProvider {
         return switch (state) {
             case PROPOSAL_START -> Collections.emptyList();
             case AWAITING_LOCATION -> createLocationRequestResponse();
-            case LOOP_OPTIONS -> createLoopOptionsResponse();
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
@@ -62,8 +61,6 @@ public class ProposalResponseProvider implements ResponseProvider {
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
             case AWAITING_NEW_MONUMENT_NAME ->
                     buildSimpleMenuResponse(new Message(MessageKey.PROVIDE_NEW_MONUMENT_NAME_PROMPT, MONUMENT));
-            case SUBMISSION_LOOP_OPTIONS -> createSubmissionLoopResponse();
-            case AWAITING_DISCARD_CONFIRMATION -> createDiscardConfirmationResponse();
             case AWAITING_NOTES -> createNotesResponse();
             case SUBMITTED -> createSubmissionSuccessResponse(input);
             default -> {
@@ -71,18 +68,6 @@ public class ProposalResponseProvider implements ResponseProvider {
                 yield buildSimpleMenuResponse(message);
             }
         };
-    }
-
-    private List<BotResponse> createLoopOptionsResponse() {
-        Menu menu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.LOOP_OPTIONS_TITLE)))
-                .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.CHANGE_LOCATION_BTN, LOCATION))).callbackData(ProposalCallbackData.LOOP_REDO_LOCATION).build()),
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.CHANGE_PHOTO_BTN, CAMERA))).callbackData(ProposalCallbackData.LOOP_REDO_IMAGE_UPLOAD).build()),
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.CONTINUE_BTN, ARROW_RIGHT))).callbackData(ProposalCallbackData.LOOP_CONTINUE).build())
-                ))
-                .build();
-        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
     private List<BotResponse> createSingleMarkConfirmationResponse(ChatbotContext context) {
@@ -204,30 +189,6 @@ public class ProposalResponseProvider implements ResponseProvider {
                         Button.builder().textNode(textService.get(new Message(MessageKey.YES_BTN, CHECK))).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_YES + ":" + monument.getId()).build(),
                         Button.builder().textNode(textService.get(new Message(MessageKey.NO_BTN, CROSS))).callbackData(ProposalCallbackData.CONFIRM_MONUMENT_PREFIX + SharedCallbackData.CONFIRM_NO).build()
                 ))).build();
-        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
-    }
-
-    private List<BotResponse> createSubmissionLoopResponse() {
-        Menu menu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.SUBMISSION_LOOP_TITLE)))
-                .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.DISCARD_SUBMISSION_BTN, TRASH))).callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER).build()),
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.CONTINUE_TO_SUBMIT_BTN, ARROW_RIGHT))).callbackData(ProposalCallbackData.SUBMISSION_LOOP_CONTINUE).build())
-                ))
-                .build();
-        return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
-    }
-
-    private List<BotResponse> createDiscardConfirmationResponse() {
-        Menu menu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.DISCARD_CONFIRMATION_TITLE, WARNING)))
-                .buttons(List.of(
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.YES_DISCARD_BTN, TRASH)))
-                                .callbackData(ProposalCallbackData.SUBMISSION_LOOP_START_OVER_CONFIRMED).build()),
-                        List.of(Button.builder().textNode(textService.get(new Message(MessageKey.NO_GO_BACK_BTN, BACK)))
-                                .callbackData(ProposalCallbackData.SUBMISSION_LOOP_OPTIONS).build())
-                ))
-                .build();
         return Collections.singletonList(BotResponse.builder().uiComponent(menu).build());
     }
 
