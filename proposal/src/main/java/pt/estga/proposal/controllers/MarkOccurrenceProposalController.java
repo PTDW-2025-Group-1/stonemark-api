@@ -14,9 +14,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
-import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
+import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
@@ -68,10 +68,10 @@ public class MarkOccurrenceProposalController {
             description = "Retrieves statistics about mark occurrence proposals for the authenticated user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully.",
-                    content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalStatsDto.class)))
+                    content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalStatsProjection.class)))
     })
     @GetMapping("/user/me/stats")
-    public ResponseEntity<MarkOccurrenceProposalStatsDto> getUserStats(
+    public ResponseEntity<MarkOccurrenceProposalStatsProjection> getUserStats(
             @AuthenticationPrincipal AuthenticatedPrincipal principal
     ) {
         User user = User.builder().id(principal.getId()).build();

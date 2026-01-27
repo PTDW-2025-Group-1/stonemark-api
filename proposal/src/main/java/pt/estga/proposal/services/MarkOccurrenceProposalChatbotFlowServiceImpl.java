@@ -63,27 +63,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     @Override
     @Transactional
-    public void analyzePhoto(Long proposalId) {
-        log.info("Analyzing photo for proposal ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = findProposalById(proposalId);
-
-        try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
-            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
-            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
-                proposal.setEmbedding(embeddedVector);
-            } else {
-                log.info("No embedding detected for proposal {}", proposal.getId());
-            }
-        } catch (Exception e) {
-            log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposalId, e);
-        }
-
-        proposalService.update(proposal);
-    }
-
-    @Override
-    @Transactional
     public void addLocation(Long proposalId, Double latitude, Double longitude) {
         log.info("Adding location to proposal ID: {}. Lat: {}, Lon: {}", proposalId, latitude, longitude);
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
@@ -137,6 +116,12 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     @Override
     public List<Mark> suggestMarks(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
+        
+        // Perform analysis if embedding is missing
+        if (proposal.getEmbedding() == null) {
+            analyzePhoto(proposal);
+        }
+
         if (proposal.getEmbedding() != null && proposal.getEmbedding().length > 0) {
             try {
                 List<String> markIds = markSearchService.searchMarks(proposal.getEmbedding());
@@ -151,6 +136,22 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
             }
         }
         return List.of();
+    }
+
+    private void analyzePhoto(MarkOccurrenceProposal proposal) {
+        log.info("Analyzing photo for proposal ID: {}", proposal.getId());
+        try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
+            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
+            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
+                proposal.setEmbedding(embeddedVector);
+                proposalService.update(proposal);
+            } else {
+                log.info("No embedding detected for proposal {}", proposal.getId());
+            }
+        } catch (Exception e) {
+            log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposal.getId(), e);
+        }
     }
 
     @Override

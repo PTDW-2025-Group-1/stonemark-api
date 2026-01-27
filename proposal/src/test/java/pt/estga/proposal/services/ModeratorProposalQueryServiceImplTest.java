@@ -33,7 +33,7 @@ class ModeratorProposalQueryServiceImplTest {
     private ProposalDecisionAttemptRepository decisionRepository;
 
     @InjectMocks
-    private ModeratorProposalQueryServiceImpl queryService;
+    private ProposalAdminQueryServiceImpl queryService;
 
     @Test
     void getProposal_ShouldReturnDto_WhenProposalExists() {

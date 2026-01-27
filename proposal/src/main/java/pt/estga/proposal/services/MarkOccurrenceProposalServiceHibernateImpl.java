@@ -1,15 +1,22 @@
 package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
+import pt.estga.proposal.dtos.DecisionHistoryItem;
+import pt.estga.proposal.dtos.ProposalAdminListDto;
+import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
+import pt.estga.proposal.mappers.ProposalAdminMapper;
+import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.user.entities.User;
 
 import java.util.List;
@@ -17,10 +24,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenceProposalService {
 
     private final MarkOccurrenceProposalRepository repository;
+    private final ProposalDecisionAttemptRepository decisionRepository;
     private final MarkOccurrenceProposalMapper mapper;
+    private final ProposalAdminMapper adminMapper;
 
     @Override
     public Page<MarkOccurrenceProposal> getAll(Pageable pageable) {
@@ -58,7 +68,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
-    public MarkOccurrenceProposalStatsDto getStatsByUser(User user) {
+    public MarkOccurrenceProposalStatsProjection getStatsByUser(User user) {
         return repository.getStatsByUserId(user.getId());
     }
 
@@ -68,4 +78,28 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
                 List.of(ProposalStatus.AUTO_ACCEPTED, ProposalStatus.MANUALLY_ACCEPTED));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProposalAdminListDto> getAdminProposals(List<ProposalStatus> statuses, Pageable pageable) {
+        return repository.findModeratorListDto(statuses, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProposalModeratorViewDto getAdminProposalDetails(Long id) {
+        MarkOccurrenceProposal proposal = repository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Proposal with ID {} not found", id);
+                    return new ResourceNotFoundException("Proposal not found with id: " + id);
+                });
+        return adminMapper.toModeratorViewDto(proposal);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DecisionHistoryItem> getDecisionHistory(Long proposalId) {
+        return adminMapper.toDecisionHistoryList(
+                decisionRepository.findByProposalIdOrderByDecidedAtDesc(proposalId)
+        );
+    }
 }

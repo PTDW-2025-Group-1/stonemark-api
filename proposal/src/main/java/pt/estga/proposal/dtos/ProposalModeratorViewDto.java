@@ -14,7 +14,6 @@ public record ProposalModeratorViewDto(
         Long submittedById,
         Instant submittedAt,
 
-        String monumentName,
         Double latitude,
         Double longitude,
         String userNotes,

@@ -5,7 +5,7 @@ import pt.estga.proposal.enums.SubmissionSource;
 
 import java.time.Instant;
 
-public record ProposalModeratorListDto(
+public record ProposalAdminListDto(
         Long id,
         ProposalStatus status,
         Integer priority,

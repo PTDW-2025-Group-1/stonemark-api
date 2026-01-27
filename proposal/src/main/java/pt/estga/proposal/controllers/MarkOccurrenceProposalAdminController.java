@@ -17,11 +17,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentRequestDto;
-import pt.estga.content.entities.Monument;
-import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ManualDecisionRequest;
-import pt.estga.proposal.dtos.ProposalModeratorListDto;
+import pt.estga.proposal.dtos.ProposalAdminListDto;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.services.*;
@@ -38,12 +36,11 @@ import java.util.List;
 @Tag(name = "Proposal Moderation", description = "Endpoints for proposal moderation actions.")
 public class MarkOccurrenceProposalAdminController {
 
-    private final ModeratorProposalQueryService queryService;
+    private final MarkOccurrenceProposalService proposalService;
     private final ManualDecisionService manualDecisionService;
     private final AutomaticDecisionService automaticDecisionService;
     private final DecisionActivationService decisionActivationService;
     private final MonumentCreationService monumentCreationService;
-    private final MonumentMapper monumentMapper;
 
     // ==== Read Operations ====
 
@@ -53,11 +50,11 @@ public class MarkOccurrenceProposalAdminController {
             @ApiResponse(responseCode = "200", description = "Proposals retrieved successfully.")
     })
     @GetMapping
-    public ResponseEntity<Page<ProposalModeratorListDto>> getAllProposals(
+    public ResponseEntity<Page<ProposalAdminListDto>> getAllProposals(
             @RequestParam(required = false) List<ProposalStatus> status,
             @ParameterObject @PageableDefault(sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(queryService.getAllProposals(status, pageable));
+        return ResponseEntity.ok(proposalService.getAdminProposals(status, pageable));
     }
 
     @Operation(summary = "Get proposal details for moderation",
@@ -69,7 +66,7 @@ public class MarkOccurrenceProposalAdminController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<ProposalModeratorViewDto> getProposal(@PathVariable Long id) {
-        return ResponseEntity.ok(queryService.getProposal(id));
+        return ResponseEntity.ok(proposalService.getAdminProposalDetails(id));
     }
 
     @Operation(summary = "Get decision history",
@@ -81,7 +78,7 @@ public class MarkOccurrenceProposalAdminController {
     })
     @GetMapping("/{id}/history")
     public ResponseEntity<List<DecisionHistoryItem>> getDecisionHistory(@PathVariable Long id) {
-        return ResponseEntity.ok(queryService.getDecisionHistory(id));
+        return ResponseEntity.ok(proposalService.getDecisionHistory(id));
     }
 
     // ==== Command Operations ====
@@ -159,8 +156,7 @@ public class MarkOccurrenceProposalAdminController {
             @PathVariable Long id,
             @RequestBody MonumentRequestDto request
     ) {
-        Monument monument = monumentMapper.toEntity(request);
-        monumentCreationService.createMonumentFromProposal(id, monument);
+        monumentCreationService.createMonumentFromProposal(id, request);
         return ResponseEntity.ok().build();
     }
 }
