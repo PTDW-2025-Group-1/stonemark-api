@@ -9,10 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
-@ComponentScan(basePackages = {
-		"pt.estga.boot", "pt.estga.file", "pt.estga.chatbot", "pt.estga.content",
-		"pt.estga.shared", "pt.estga.user", "pt.estga.verification", "pt.estga.proposal"
-})
+@ComponentScan(basePackages = "pt.estga")
 public class StonemarkApplication {
 
 	public static void main(String[] args) {

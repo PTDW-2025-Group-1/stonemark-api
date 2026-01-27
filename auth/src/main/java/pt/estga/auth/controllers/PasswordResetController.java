@@ -3,7 +3,6 @@ package pt.estga.auth.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,10 +34,7 @@ public class PasswordResetController {
     })
     @PostMapping("/request")
     public ResponseEntity<?> requestPasswordReset(
-            @RequestBody(description = "Request body containing the contact value (email or phone number) for password reset.",
-                         required = true,
-                         content = @Content(schema = @Schema(implementation = PasswordResetRequestDto.class)))
-            @org.springframework.web.bind.annotation.RequestBody PasswordResetRequestDto request) {
+            @RequestBody PasswordResetRequestDto request) {
         verificationInitiationService.initiatePasswordReset(request.contactValue());
         return ResponseEntity.ok(new MessageResponseDto("Password reset initiated. Check your contact for the verification code."));
     }
@@ -55,10 +51,7 @@ public class PasswordResetController {
     })
     @PostMapping("/reset")
     public ResponseEntity<?> resetPassword(
-            @RequestBody(description = "Request body containing the verification token and the new password.",
-                         required = true,
-                         content = @Content(schema = @Schema(implementation = ResetPasswordRequestDto.class)))
-            @org.springframework.web.bind.annotation.RequestBody ResetPasswordRequestDto request) {
+            @RequestBody ResetPasswordRequestDto request) {
         verificationProcessingService.processPasswordReset(request.token(), request.newPassword());
         return ResponseEntity.ok(new MessageResponseDto("Password reset successfully."));
     }

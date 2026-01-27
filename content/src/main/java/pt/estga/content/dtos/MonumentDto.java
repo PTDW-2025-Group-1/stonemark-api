@@ -8,6 +8,8 @@ public record MonumentDto(
         Long id,
         String name,
         String description,
+        String protectionTitle,
+        String website,
         Double latitude,
         Double longitude,
         String street,
@@ -16,12 +18,7 @@ public record MonumentDto(
         AdministrativeDivisionDto municipality,
         AdministrativeDivisionDto district,
         Long coverId,
-        String protectionTitle,
-        String website,
-        Long parishId,
-        Long municipalityId,
-        Long districtId,
-        Boolean active,
         Instant createdAt,
-        Instant lastModifiedAt
+        Instant lastModifiedAt,
+        Boolean active
 ) { }

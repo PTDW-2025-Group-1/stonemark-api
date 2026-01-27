@@ -24,6 +24,7 @@ public class MonumentImportService {
 
     private final MonumentRepository repository;
     private final AdministrativeDivisionService administrativeDivisionService;
+    private final MonumentService monumentService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -77,7 +78,7 @@ public class MonumentImportService {
             monument.setHouseNumber(properties.path("addr:housenumber").asText(null));
 
             // Set all divisions (parish, municipality, district) using standard service logic
-            setDivisions(monument);
+            monumentService.enrichWithDivisions(monument);
 
             if (monumentMap.containsKey(externalId)) {
                 log.warn("Duplicate monument external ID found: '{}'. The last entry will be used.", externalId);
@@ -106,9 +107,5 @@ public class MonumentImportService {
         log.info("Monument counts updated.");
 
         return savedMonuments.size();
-    }
-
-    private void setDivisions(Monument m) {
-        MonumentServiceHibernateImpl.setDivisions(m, administrativeDivisionService);
     }
 }

@@ -50,7 +50,7 @@ public class ReauthenticationService {
         String username = user.getUsername();
         log.debug("User found: {}", username);
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             log.warn("Reauthentication failed: invalid password for user {}", username);
             throw new BadCredentialsException("Invalid password.");
         }
@@ -69,12 +69,12 @@ public class ReauthenticationService {
             case TOTP:
                 log.debug("TOTP (App) 2FA enabled for user {}", username);
 
-                if (request.getOtp() == null || request.getOtp().isBlank()) {
+                if (request.otp() == null || request.otp().isBlank()) {
                     log.warn("Reauthentication requires TOTP code for user {}", username);
                     throw new InvalidOtpException("OTP_REQUIRED");
                 }
 
-                if (!totpService.isCodeValid(user.getTfaSecret(), request.getOtp())) {
+                if (!totpService.isCodeValid(user.getTfaSecret(), request.otp())) {
                     log.warn("Invalid TOTP code provided for user {}", username);
                     throw new InvalidOtpException("INVALID_OTP");
                 }
@@ -86,13 +86,13 @@ public class ReauthenticationService {
             case SMS:
                 log.debug("{} 2FA enabled for user {}", tfaMethod, username);
 
-                if (request.getOtp() == null || request.getOtp().isBlank()) {
+                if (request.otp() == null || request.otp().isBlank()) {
                     log.info("OTP not provided, sending {} OTP to user {}", tfaMethod, username);
                     twoFactorAuthenticationService.requestTfaContactCode(user);
                     throw new InvalidOtpException("OTP_REQUIRED");
                 }
 
-                if (!twoFactorAuthenticationService.verifyTfaContactCode(user, request.getOtp())) {
+                if (!twoFactorAuthenticationService.verifyTfaContactCode(user, request.otp())) {
                     log.warn("Invalid {} OTP provided for user {}", tfaMethod, username);
                     throw new InvalidOtpException("INVALID_OTP");
                 }

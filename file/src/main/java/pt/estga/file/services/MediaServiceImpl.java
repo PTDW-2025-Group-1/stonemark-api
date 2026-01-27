@@ -3,6 +3,7 @@ package pt.estga.file.services;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
@@ -11,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import pt.estga.file.enums.MediaStatus;
 import pt.estga.file.events.MediaUploadedEvent;
-import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.enums.StorageProvider;
+import pt.estga.shared.exceptions.FileNotFoundException;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -25,9 +26,11 @@ import java.util.Optional;
 @Slf4j
 public class MediaServiceImpl implements MediaService {
 
-    private final MediaFileRepository mediaFileRepository;
-    private final FileStorageService fileStorageService;
+    private final MediaMetadataService mediaMetadataService;
+    private final MediaContentService mediaContentService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final StoragePathStrategy storagePathStrategy;
+    private final Tika tika = new Tika();
 
     @Value("${storage.provider:local}")
     private String storageProvider;
@@ -39,26 +42,27 @@ public class MediaServiceImpl implements MediaService {
             throw new IllegalArgumentException("Filename cannot be null or empty");
         }
 
-        // Create initial record with 0 size, will update after streaming
+        // Create initial record with 0 size
         MediaFile media = createInitialMediaFile(originalFilename);
-        media = mediaFileRepository.save(media);
+        media = mediaMetadataService.saveMetadata(media);
 
         String extension = StringUtils.getFilenameExtension(originalFilename);
         String newFilename = "stonemark-" + media.getId() + (extension != null ? "." + extension : "");
         media.setFilename(newFilename);
 
-        // Todo: add target type start of relative path
-        String normalizedFilename = newFilename.replace("\\", "/");
-        String relativePath = String.format("%d/%s", media.getId(), normalizedFilename);
+        // Use the strategy to generate the path
+        String relativePath = storagePathStrategy.generatePath(media);
 
         CountingInputStream countingStream = new CountingInputStream(fileStream);
-        String storagePath = fileStorageService.storeFile(countingStream, relativePath);
+        
+        // Delegate content storage to MediaContentService
+        String storagePath = mediaContentService.saveContent(countingStream, relativePath);
 
         media.setStoragePath(storagePath);
         media.setSize(countingStream.getCount());
         media.setStatus(MediaStatus.UPLOADED);
         
-        MediaFile savedMedia = mediaFileRepository.save(media);
+        MediaFile savedMedia = mediaMetadataService.saveMetadata(media);
 
         applicationEventPublisher.publishEvent(
             new MediaUploadedEvent(savedMedia.getId())
@@ -69,42 +73,36 @@ public class MediaServiceImpl implements MediaService {
 
     private MediaFile createInitialMediaFile(String originalFilename) {
         return MediaFile.builder()
-                .filename(originalFilename) // Temporarily set to original, will be updated
+                .filename(originalFilename)
                 .originalFilename(originalFilename)
                 .size(0L)
                 .storageProvider(StorageProvider.valueOf(storageProvider.toUpperCase()))
                 .storagePath("")
-                .status(MediaStatus.PROCESSING) // Default to PROCESSING or UPLOADED? Request says UPLOADED after save.
+                .status(MediaStatus.PROCESSING)
                 .build();
     }
 
     @Override
     public Resource loadFileById(Long fileId) {
         log.info("Loading file with ID: {}", fileId);
-        MediaFile mediaFile = mediaFileRepository.findById(fileId)
-                .orElseThrow(() -> new RuntimeException("MediaFile not found with id: " + fileId));
-        return fileStorageService.loadFile(mediaFile.getStoragePath());
+        MediaFile mediaFile = mediaMetadataService.findById(fileId)
+                .orElseThrow(() -> new FileNotFoundException("MediaFile not found with id: " + fileId));
+        return mediaContentService.loadContent(mediaFile.getStoragePath());
     }
 
     @Override
     public byte[] getMediaContent(Long fileId) {
         log.info("Getting content for file with ID: {}", fileId);
-        try {
-            Resource resource = loadFileById(fileId);
-            return resource.getInputStream().readAllBytes();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read file content for id: " + fileId, e);
-        }
+        MediaFile mediaFile = mediaMetadataService.findById(fileId)
+                .orElseThrow(() -> new FileNotFoundException("MediaFile not found with id: " + fileId));
+        return mediaContentService.getContentBytes(mediaFile.getStoragePath());
     }
 
     @Override
     public Optional<MediaFile> findById(Long id) {
-        return mediaFileRepository.findById(id);
+        return mediaMetadataService.findById(id);
     }
 
-    /**
-     * Simple wrapper to count bytes read from an InputStream.
-     */
     @Getter
     private static class CountingInputStream extends FilterInputStream {
         private long count;

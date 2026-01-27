@@ -1,23 +1,20 @@
 package pt.estga.content.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.events.MarkOccurrenceCreatedEvent;
 import pt.estga.content.repositories.MarkOccurrenceRepository;
-import pt.estga.detection.model.DetectionResult;
-import pt.estga.detection.service.DetectionService;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.file.services.MediaService;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +23,7 @@ import java.util.Optional;
 public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService {
 
     private final MarkOccurrenceRepository repository;
-    private final MediaService mediaService;
-    private final DetectionService detectionService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Page<MarkOccurrence> findAll(Pageable pageable) {
@@ -65,6 +61,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.findByMonumentIdAndActiveIsTrue(monumentId, pageable);
     }
 
+    @Override
     public Page<MarkOccurrence> findByMarkIdAndMonumentId(Long markId, Long monumentId, Pageable pageable) {
         return repository.findByMarkIdAndMonumentIdAndActiveIsTrue(markId, monumentId, pageable);
     }
@@ -74,6 +71,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.findDistinctMarksByMonumentId(monumentId);
     }
 
+    @Override
     public List<Monument> findAvailableMonumentsByMarkId(Long markId) {
         return repository.findDistinctMonumentsByMarkId(markId);
     }
@@ -88,6 +86,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
         return repository.countByMarkId(markId);
     }
 
+    @Override
     public long countDistinctMonumentsByMarkId(Long markId) {
         return repository.countDistinctMonumentIdByMarkId(markId);
     }
@@ -95,69 +94,43 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     @Transactional
     public MarkOccurrence create(MarkOccurrence occurrence) {
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        return create(occurrence, null);
     }
 
     @Override
     @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            occurrence.setCover(mediaFile);
+    public MarkOccurrence create(MarkOccurrence occurrence, MediaFile cover) {
+        if (cover != null) {
+            occurrence.setCover(cover);
         }
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        MarkOccurrence savedOccurrence = repository.save(occurrence);
+        if (savedOccurrence.getCover() != null) {
+            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
+        }
+        return savedOccurrence;
     }
 
     @Override
     @Transactional
     public MarkOccurrence update(MarkOccurrence occurrence) {
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        return update(occurrence, null);
     }
 
     @Override
     @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence, MultipartFile file) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-            occurrence.setCover(mediaFile);
+    public MarkOccurrence update(MarkOccurrence occurrence, MediaFile cover) {
+        if (cover != null) {
+            occurrence.setCover(cover);
         }
-        processEmbeddingIfCoverExists(occurrence);
-        return repository.save(occurrence);
+        MarkOccurrence savedOccurrence = repository.save(occurrence);
+        if (savedOccurrence.getCover() != null) {
+            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
+        }
+        return savedOccurrence;
     }
 
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence updateCover(Long id, MultipartFile file) throws IOException {
-        MarkOccurrence occurrence = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("MarkOccurrence not found"));
-
-        MediaFile mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
-        occurrence.setCover(mediaFile);
-        processEmbeddingIfCoverExists(occurrence);
-        
-        return repository.save(occurrence);
-    }
-
-    private void processEmbeddingIfCoverExists(MarkOccurrence occurrence) {
-        if (occurrence.getCover() != null) {
-            try {
-                var resource = mediaService.loadFileById(occurrence.getCover().getId());
-                DetectionResult detectionResult = detectionService.detect(resource.getInputStream(), occurrence.getCover().getOriginalFilename());
-                
-                if (detectionResult.isMasonMark()) {
-                    occurrence.setEmbedding(detectionResult.embedding());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Error processing image for embedding", e);
-            }
-        }
     }
 }

@@ -28,6 +28,27 @@ public class GlobalExceptionHandler {
                 .body(new MessageResponseDto(ex.getMessage()));
     }
 
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<MessageResponseDto> handleFileStorageException(FileStorageException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new MessageResponseDto(ex.getMessage()));
+    }
+
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<MessageResponseDto> handleFileNotFoundException(FileNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new MessageResponseDto(ex.getMessage()));
+    }
+
+    @ExceptionHandler(UnsupportedFileTypeException.class)
+    public ResponseEntity<MessageResponseDto> handleUnsupportedFileTypeException(UnsupportedFileTypeException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new MessageResponseDto(ex.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class) // Catch generic RuntimeException for now, can be refined
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         // For "Proposal not found" and similar custom exceptions

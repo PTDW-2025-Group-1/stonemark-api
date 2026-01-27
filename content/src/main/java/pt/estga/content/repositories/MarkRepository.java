@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.content.entities.Mark;
+import pt.estga.content.repositories.projections.MarkSimilarityProjection;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,21 +16,21 @@ import java.util.Optional;
 @Repository
 public interface MarkRepository extends JpaRepository<Mark, Long> {
 
-    @EntityGraph(value = "MyEntity.withMedia")
+    @EntityGraph(attributePaths = {"cover"})
     Page<Mark> findByActiveIsTrue(Pageable pageable);
 
     @Override
-    @EntityGraph(value = "MyEntity.withMedia")
+    @EntityGraph(attributePaths = {"cover"})
     Page<Mark> findAll(Pageable pageable);
 
-    @EntityGraph(value = "MyEntity.withMedia")
+    @EntityGraph(attributePaths = {"cover"})
     Optional<Mark> findWithCoverById(Long id);
 
-    @Query(value = "SELECT id, 1 - (CAST(embedding AS vector) <=> CAST(:vector AS vector)) as similarity " +
+    @Query(value = "SELECT id, 1 - (embedding <=> CAST(:vector AS vector)) as similarity " +
             "FROM mark " +
             "WHERE embedding IS NOT NULL AND active = true " +
             "ORDER BY similarity DESC " +
             "LIMIT 5", nativeQuery = true)
-    List<Object[]> findSimilarMarks(@Param("vector") String vector);
+    List<MarkSimilarityProjection> findSimilarMarks(@Param("vector") String vector);
 
 }

@@ -19,17 +19,12 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
     @EntityGraph(attributePaths = {"district", "parish", "municipality"})
     Optional<Monument> findById(Long id);
 
-    @Query("SELECT m FROM Monument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality " +
-            "WHERE m.active = true")
+    @EntityGraph(attributePaths = {"district", "parish", "municipality"})
+    @Query("SELECT m FROM Monument m WHERE m.active = true")
     Page<Monument> findAllWithDivisions(Pageable pageable);
 
-    @Query("SELECT m FROM Monument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality ")
+    @EntityGraph(attributePaths = {"district", "parish", "municipality"})
+    @Query("SELECT m FROM Monument m")
     Page<Monument> findAllWithDivisionsAdmin(Pageable pageable);
 
     Optional<Monument> findByExternalId(String externalId);
@@ -38,13 +33,13 @@ public interface MonumentRepository extends JpaRepository<Monument, Long> {
 
     Page<Monument> findByActiveTrue(Pageable pageable);
 
-    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_GeomFromGeoJSON(:geoJson)) AND m.active = true", nativeQuery = true)
+    @Query(value = "SELECT * FROM monument m WHERE ST_Within(m.location, ST_GeomFromGeoJSON(:geoJson)) AND m.active = true", nativeQuery = true)
     Page<Monument> findByPolygon(@Param("geoJson") String geoJson, Pageable pageable);
 
-    @Query(value = "SELECT * FROM monument m WHERE ST_Within(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), :geometry) AND m.active = true", nativeQuery = true)
+    @Query("SELECT m FROM Monument m WHERE within(m.location, :geometry) = true AND m.active = true")
     Page<Monument> findByGeometry(@Param("geometry") Geometry geometry, Pageable pageable);
 
-    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(ST_SetSRID(ST_Point(m.longitude, m.latitude), 4326), ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range) AND m.active = true", nativeQuery = true)
+    @Query(value = "SELECT * FROM monument m WHERE ST_DWithin(m.location, ST_SetSRID(ST_Point(:longitude, :latitude), 4326), :range) AND m.active = true", nativeQuery = true)
     List<Monument> findByCoordinatesInRange(@Param("latitude") double latitude, @Param("longitude") double longitude, @Param("range") double range);
 
     @Query("SELECT m FROM MarkOccurrence mo JOIN mo.monument m WHERE m.active = true GROUP BY m ORDER BY COUNT(m) DESC")

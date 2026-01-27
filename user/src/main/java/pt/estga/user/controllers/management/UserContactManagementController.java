@@ -1,4 +1,4 @@
-package pt.estga.user.controllers;
+package pt.estga.user.controllers.management;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,7 @@ import pt.estga.user.services.UserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/users/{userId}/contacts")
+@RequestMapping("/api/v1/admin/users/{userId}/contacts")
 @RequiredArgsConstructor
 @Tag(name = "User Contact Management", description = "Endpoints for managing user contacts by administrators.")
 @PreAuthorize("hasRole('ADMIN')")

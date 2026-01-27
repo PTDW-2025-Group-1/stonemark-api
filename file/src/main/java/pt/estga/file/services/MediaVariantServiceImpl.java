@@ -9,6 +9,7 @@ import pt.estga.file.entities.MediaVariant;
 import pt.estga.file.enums.MediaVariantType;
 import pt.estga.file.repositories.MediaFileRepository;
 import pt.estga.file.repositories.MediaVariantRepository;
+import pt.estga.shared.exceptions.FileNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +25,10 @@ public class MediaVariantServiceImpl implements MediaVariantService {
         log.info("Loading variant {} for media ID: {}", type, mediaId);
         
         MediaFile mediaFile = mediaFileRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("MediaFile not found with id: " + mediaId));
+                .orElseThrow(() -> new FileNotFoundException("MediaFile not found with id: " + mediaId));
 
         MediaVariant variant = mediaVariantRepository.findByMediaFileAndType(mediaFile, type)
-                .orElseThrow(() -> new RuntimeException("Variant not found: " + type));
+                .orElseThrow(() -> new FileNotFoundException("Variant not found: " + type));
 
         return fileStorageService.loadFile(variant.getStoragePath());
     }

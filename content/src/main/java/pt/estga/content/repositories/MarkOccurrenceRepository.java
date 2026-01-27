@@ -27,18 +27,15 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findByMarkIdAndActiveIsTrue(Long markId, Pageable pageable);
 
-    @Query("SELECT mo FROM MarkOccurrence mo " +
-            "JOIN FETCH mo.monument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality " +
-            "WHERE mo.mark.id = :markId AND mo.active = true")
+    @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality"})
+    @Query("SELECT mo FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     List<MarkOccurrence> findAllByMarkIdForMap(@Param("markId") Long markId);
 
     @EntityGraph(attributePaths = {"monument", "mark"})
     Page<MarkOccurrence> findByMonumentIdAndActiveIsTrue(Long monumentId, Pageable pageable);
 
-    @Query("SELECT mo FROM MarkOccurrence mo JOIN FETCH mo.mark JOIN FETCH mo.monument WHERE mo.active = true ORDER BY mo.createdAt DESC")
+    @EntityGraph(attributePaths = {"monument", "mark"})
+    @Query("SELECT mo FROM MarkOccurrence mo WHERE mo.active = true ORDER BY mo.createdAt DESC")
     List<MarkOccurrence> findLatest(Pageable pageable);
 
     @Query("SELECT DISTINCT mo.mark FROM MarkOccurrence mo WHERE mo.monument.id = :monumentId AND mo.active = true")
@@ -56,7 +53,7 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     @Query("SELECT COUNT(mo) FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     long countByMarkId(Long markId);
 
-    @Query("SELECT COUNT(DISTINCT m.monument.id) FROM MarkOccurrence m WHERE m.mark.id = :markId AND m.active = true")
+    @Query("SELECT COUNT(DISTINCT mo.monument.id) FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     long countDistinctMonumentIdByMarkId(@Param("markId") Long markId);
 
     @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark"})

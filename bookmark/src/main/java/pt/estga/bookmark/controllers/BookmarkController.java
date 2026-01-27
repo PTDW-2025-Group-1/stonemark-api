@@ -9,24 +9,20 @@ import pt.estga.bookmark.dtos.BookmarkDto;
 import pt.estga.bookmark.services.BookmarkService;
 import pt.estga.shared.enums.TargetType;
 import pt.estga.shared.models.AppPrincipal;
-import pt.estga.user.entities.User;
-import pt.estga.user.services.UserService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/bookmarks")
+@RequestMapping("/api/v1/public/bookmarks")
 @RequiredArgsConstructor
 @Tag(name = "Bookmarks", description = "Endpoints for user bookmarks.")
 public class BookmarkController {
 
     private final BookmarkService service;
-    private final UserService userService;
 
     @GetMapping
     public List<BookmarkDto> getUserBookmarks(@AuthenticationPrincipal AppPrincipal principal) {
-        User user = userService.findById(principal.getId()).orElseThrow();
-        return service.getUserBookmarks(user);
+        return service.getUserBookmarks(principal.getId());
     }
 
     @PostMapping("/{type}/{targetId}")
@@ -35,8 +31,7 @@ public class BookmarkController {
             @PathVariable TargetType type,
             @PathVariable Long targetId
     ) {
-        User user = userService.findById(principal.getId()).orElseThrow();
-        return service.createBookmark(user, type, targetId);
+        return service.createBookmark(principal.getId(), type, targetId);
     }
 
     @DeleteMapping("/{bookmarkId}")
@@ -44,8 +39,7 @@ public class BookmarkController {
             @AuthenticationPrincipal AppPrincipal principal,
             @PathVariable Long bookmarkId
     ) {
-        User user = userService.findById(principal.getId()).orElseThrow();
-        service.deleteBookmark(user, bookmarkId);
+        service.deleteBookmark(principal.getId(), bookmarkId);
         return ResponseEntity.ok().build();
     }
 
@@ -55,7 +49,6 @@ public class BookmarkController {
             @PathVariable TargetType type,
             @PathVariable Long targetId
     ) {
-        User user = userService.findById(principal.getId()).orElseThrow();
-        return service.isBookmarked(user, type, targetId);
+        return service.isBookmarked(principal.getId(), type, targetId);
     }
 }

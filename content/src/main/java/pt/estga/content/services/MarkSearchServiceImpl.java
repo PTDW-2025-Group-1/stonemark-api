@@ -3,7 +3,9 @@ package pt.estga.content.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pt.estga.content.repositories.MarkRepository;
+import pt.estga.content.repositories.projections.MarkSimilarityProjection;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,21 +18,18 @@ public class MarkSearchServiceImpl implements MarkSearchService {
     private static final double SIMILARITY_THRESHOLD = 0.8;
 
     @Override
-    public List<String> searchMarks(List<Double> embeddedVector) {
-        if (embeddedVector == null || embeddedVector.isEmpty()) {
+    public List<String> searchMarks(double[] embeddedVector) {
+        if (embeddedVector == null || embeddedVector.length == 0) {
             return List.of();
         }
 
-        String vectorString = embeddedVector.toString();
+        String vectorString = Arrays.toString(embeddedVector);
 
-        List<Object[]> results = markRepository.findSimilarMarks(vectorString);
+        List<MarkSimilarityProjection> results = markRepository.findSimilarMarks(vectorString);
 
         return results.stream()
-                .filter(result -> {
-                    double similarity = ((Number) result[1]).doubleValue();
-                    return similarity >= SIMILARITY_THRESHOLD;
-                })
-                .map(result -> String.valueOf(result[0]))
+                .filter(result -> result.getSimilarity() >= SIMILARITY_THRESHOLD)
+                .map(result -> String.valueOf(result.getId()))
                 .collect(Collectors.toList());
     }
 }

@@ -145,7 +145,7 @@ public class AuthenticationServiceSpringImpl implements AuthenticationService {
 
             if (!isCodeValid) {
                 log.warn("Invalid 2FA code for user: {}", usernameOrContact);
-                return Optional.empty(); // Invalid 2FA code
+                throw new InvalidCredentialsException();
             }
         }
 

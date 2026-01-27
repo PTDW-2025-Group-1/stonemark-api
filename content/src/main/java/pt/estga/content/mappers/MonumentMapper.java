@@ -5,11 +5,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import pt.estga.content.dtos.MonumentListDto;
-import pt.estga.content.dtos.MonumentMapDto;
-import pt.estga.content.dtos.MonumentMinDto;
-import pt.estga.content.dtos.MonumentRequestDto;
-import pt.estga.content.dtos.MonumentResponseDto;
+import pt.estga.content.dtos.*;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.mappers.MediaFileMapper;
 import pt.estga.territory.mappers.AdministrativeDivisionMapper;
@@ -20,9 +17,9 @@ import java.util.List;
 public interface MonumentMapper {
 
     @Mapping(source = "cover.id", target = "coverId")
-    MonumentResponseDto toResponseDto(Monument monument);
+    MonumentDto toResponseDto(Monument monument);
 
-    List<MonumentResponseDto> toResponseDto(List<Monument> monuments);
+    List<MonumentDto> toResponseDto(List<Monument> monuments);
 
     @Mapping(source = "cover.id", target = "coverId")
     MonumentListDto toListDto(Monument monument);

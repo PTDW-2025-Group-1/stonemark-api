@@ -12,7 +12,7 @@ import pt.estga.shared.dtos.MessageResponseDto;
 import java.io.InputStream;
 
 @RestController
-@RequestMapping("/api/v1/import")
+@RequestMapping("/api/v1/admin/import")
 @PreAuthorize("hasRole('MODERATOR')")
 @RequiredArgsConstructor
 @Tag(name = "Imports", description = "Endpoints for importing data.")

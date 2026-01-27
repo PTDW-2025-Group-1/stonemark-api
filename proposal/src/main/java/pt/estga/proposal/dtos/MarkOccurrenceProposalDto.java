@@ -1,7 +1,7 @@
 package pt.estga.proposal.dtos;
 
 import pt.estga.content.dtos.MarkDto;
-import pt.estga.content.dtos.MonumentResponseDto;
+import pt.estga.content.dtos.MonumentDto;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 
@@ -9,7 +9,7 @@ public record MarkOccurrenceProposalDto(
         Long id,
         Integer priority,
         Long coverId,
-        MonumentResponseDto existingMonument,
+        MonumentDto existingMonument,
         String monumentName,
         Double latitude,
         Double longitude,

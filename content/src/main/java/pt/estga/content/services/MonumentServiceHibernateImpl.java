@@ -86,7 +86,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Override
     @Transactional
     public Monument create(Monument monument) {
-        setDivisions(monument);
+        enrichWithDivisions(monument);
         Monument savedMonument = repository.save(monument);
         updateCounters(null, savedMonument);
         return savedMonument;
@@ -96,7 +96,7 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Transactional
     public Monument update(Monument monument) {
         Optional<Monument> existingMonument = repository.findById(monument.getId());
-        setDivisions(monument);
+        enrichWithDivisions(monument);
         Monument updatedMonument = repository.save(monument);
         existingMonument.ifPresent(value -> updateCounters(value, updatedMonument));
         return updatedMonument;
@@ -115,6 +115,23 @@ public class MonumentServiceHibernateImpl implements MonumentService {
     @Cacheable("popularMonuments")
     public List<Monument> findPopular(int limit) {
         return repository.findPopular(PageRequest.of(0, limit));
+    }
+
+    @Override
+    public void enrichWithDivisions(Monument m) {
+        if (m.getLatitude() != null && m.getLongitude() != null) {
+            List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
+            m.setParish(null);
+            m.setMunicipality(null);
+            m.setDistrict(null);
+            for (AdministrativeDivision division : divisions) {
+                switch (division.getOsmAdminLevel()) {
+                    case 6 -> m.setDistrict(division);
+                    case 7 -> m.setMunicipality(division);
+                    case 8 -> m.setParish(division);
+                }
+            }
+        }
     }
 
     private void updateCounters(Monument oldMonument, Monument newMonument) {
@@ -140,26 +157,6 @@ public class MonumentServiceHibernateImpl implements MonumentService {
         }
         if (newDivision != null) {
             administrativeDivisionService.incrementMonumentsCount(newDivision.getId());
-        }
-    }
-
-    private void setDivisions(Monument m) {
-        setDivisions(m, administrativeDivisionService);
-    }
-
-    static void setDivisions(Monument m, AdministrativeDivisionService administrativeDivisionService) {
-        if (m.getLatitude() != null && m.getLongitude() != null) {
-            List<AdministrativeDivision> divisions = administrativeDivisionService.findByCoordinates(m.getLatitude(), m.getLongitude());
-            m.setParish(null);
-        m.setMunicipality(null);
-        m.setDistrict(null);
-            for (AdministrativeDivision division : divisions) {
-                switch (division.getOsmAdminLevel()) {
-                    case 6 -> m.setDistrict(division);
-                    case 7 -> m.setMunicipality(division);
-                    case 8 -> m.setParish(division);
-                }
-            }
         }
     }
 }

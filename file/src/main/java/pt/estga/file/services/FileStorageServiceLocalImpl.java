@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import pt.estga.shared.exceptions.FileNotFoundException;
+import pt.estga.shared.exceptions.FileStorageException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +29,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
             Files.createDirectories(rootPath);
         } catch (IOException e) {
             log.error("Could not initialize storage directory", e);
-            throw new RuntimeException("Could not initialize storage directory", e);
+            throw new FileStorageException("Could not initialize storage directory", e);
         }
     }
 
@@ -36,7 +38,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
         log.info("Storing file with filename: {}", filename);
         if (fileStream == null) {
             log.error("Cannot store empty file stream");
-            throw new RuntimeException("Cannot store empty file stream");
+            throw new FileStorageException("Cannot store empty file stream");
         }
 
         try {
@@ -65,7 +67,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
 
         } catch (IOException e) {
             log.error("Failed to store file", e);
-            throw new RuntimeException("Failed to store file", e);
+            throw new FileStorageException("Failed to store file", e);
         }
     }
 
@@ -78,14 +80,14 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
 
             if (!resource.exists()) {
                 log.error("File not found: {}", path);
-                throw new RuntimeException("File not found: " + path);
+                throw new FileNotFoundException("File not found: " + path);
             }
 
             log.info("File loaded successfully from path: {}", path);
             return resource;
         } catch (MalformedURLException e) {
             log.error("File not found: {}", path, e);
-            throw new RuntimeException("File not found: " + path, e);
+            throw new FileNotFoundException("File not found: " + path, e);
         }
     }
 
@@ -111,7 +113,7 @@ public class FileStorageServiceLocalImpl implements FileStorageService {
             log.info("File deleted successfully from path: {}", path);
         } catch (IOException e) {
             log.error("Could not delete file: {}", path, e);
-            throw new RuntimeException("Could not delete file: " + path, e);
+            throw new FileStorageException("Could not delete file: " + path, e);
         }
     }
 }

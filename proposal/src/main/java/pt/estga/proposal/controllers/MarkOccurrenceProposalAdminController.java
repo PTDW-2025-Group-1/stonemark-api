@@ -16,32 +16,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.content.dtos.MonumentRequestDto;
+import pt.estga.content.entities.Monument;
+import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ManualDecisionRequest;
 import pt.estga.proposal.dtos.ProposalModeratorListDto;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.enums.ProposalStatus;
-import pt.estga.proposal.services.AutomaticDecisionService;
-import pt.estga.proposal.services.DecisionActivationService;
-import pt.estga.proposal.services.ManualDecisionService;
-import pt.estga.proposal.services.ModeratorProposalQueryService;
+import pt.estga.proposal.services.*;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
+import pt.estga.territory.dtos.GeocodingResultDto;
 
-import java.lang.reflect.Parameter;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/proposals/mark-occurrences/moderation")
+@RequestMapping("/api/v1/admin/proposals/mark-occurrences")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('REVIEWER')")
 @Tag(name = "Proposal Moderation", description = "Endpoints for proposal moderation actions.")
-public class MarkOccurrenceProposalModerationController {
+public class MarkOccurrenceProposalAdminController {
 
     private final ModeratorProposalQueryService queryService;
     private final ManualDecisionService manualDecisionService;
     private final AutomaticDecisionService automaticDecisionService;
     private final DecisionActivationService decisionActivationService;
+    private final MonumentCreationService monumentCreationService;
+    private final MonumentMapper monumentMapper;
 
     // ==== Read Operations ====
 
@@ -129,6 +131,36 @@ public class MarkOccurrenceProposalModerationController {
             @PathVariable Long attemptId
     ) {
         decisionActivationService.activateDecision(id, attemptId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ==== Monument Operations ====
+
+    @Operation(summary = "Get monument autofill data",
+               description = "Retrieves autofill data for creating a monument from a proposal.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Autofill data retrieved successfully.",
+                    content = @Content(schema = @Schema(implementation = GeocodingResultDto.class))),
+            @ApiResponse(responseCode = "404", description = "Proposal not found.")
+    })
+    @GetMapping("/{id}/monument/autofill")
+    public ResponseEntity<GeocodingResultDto> getMonumentAutofillData(@PathVariable Long id) {
+        return ResponseEntity.ok(monumentCreationService.getAutofillData(id));
+    }
+
+    @Operation(summary = "Create monument for proposal",
+               description = "Creates a new monument based on the proposal data.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Monument created successfully."),
+            @ApiResponse(responseCode = "404", description = "Proposal not found.")
+    })
+    @PostMapping("/{id}/monument")
+    public ResponseEntity<Void> createMonumentForProposal(
+            @PathVariable Long id,
+            @RequestBody MonumentRequestDto request
+    ) {
+        Monument monument = monumentMapper.toEntity(request);
+        monumentCreationService.createMonumentFromProposal(id, monument);
         return ResponseEntity.ok().build();
     }
 }
