@@ -8,10 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ProposalAdminListDto;
+import pt.estga.proposal.dtos.ProposalFilter;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
-import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
 import pt.estga.proposal.mappers.ProposalAdminMapper;
 import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
@@ -19,6 +19,7 @@ import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.user.entities.User;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +30,6 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     private final MarkOccurrenceProposalRepository repository;
     private final ProposalDecisionAttemptRepository decisionRepository;
-    private final MarkOccurrenceProposalMapper mapper;
     private final ProposalAdminMapper adminMapper;
 
     @Override
@@ -39,11 +39,6 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     @Override
     public Optional<MarkOccurrenceProposal> findById(Long id) {
-        return repository.findById(id);
-    }
-
-    @Override
-    public Optional<MarkOccurrenceProposal> findWithDetailsById(Long id) {
         return repository.findById(id);
     }
 
@@ -80,8 +75,15 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProposalAdminListDto> getAdminProposals(List<ProposalStatus> statuses, Pageable pageable) {
-        return repository.findModeratorListDto(statuses, pageable);
+    public Page<ProposalAdminListDto> getAdminProposals(ProposalFilter filter, Pageable pageable) {
+        Collection<ProposalStatus> statuses = filter.statuses();
+
+        if (statuses != null && statuses.isEmpty()) {
+            statuses = null;
+        }
+        
+        return repository.findByFilters(statuses, filter.submittedById(), pageable)
+                .map(adminMapper::toAdminListDto);
     }
 
     @Override

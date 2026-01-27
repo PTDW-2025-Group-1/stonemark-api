@@ -4,9 +4,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ProposalAdminListDto;
+import pt.estga.proposal.dtos.ProposalFilter;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.user.entities.User;
 
@@ -18,8 +18,6 @@ public interface MarkOccurrenceProposalService {
     Page<MarkOccurrenceProposal> getAll(Pageable pageable);
 
     Optional<MarkOccurrenceProposal> findById(Long id);
-
-    Optional<MarkOccurrenceProposal> findWithDetailsById(Long id);
 
     Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable);
 
@@ -34,7 +32,7 @@ public interface MarkOccurrenceProposalService {
     long countApprovedProposalsByUserId(Long userId);
 
     // Admin/Moderator methods
-    Page<ProposalAdminListDto> getAdminProposals(List<ProposalStatus> statuses, Pageable pageable);
+    Page<ProposalAdminListDto> getAdminProposals(ProposalFilter filter, Pageable pageable);
 
     ProposalModeratorViewDto getAdminProposalDetails(Long id);
 

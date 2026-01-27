@@ -2,12 +2,10 @@ package pt.estga.proposal.repositories;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import pt.estga.proposal.dtos.ProposalAdminListDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
@@ -17,10 +15,6 @@ import java.util.Collection;
 
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
-
-    @Override
-    @EntityGraph(attributePaths = {"existingMonument"})
-    Page<MarkOccurrenceProposal> findAll(Pageable pageable);
 
     Page<MarkOccurrenceProposal> findBySubmittedBy(User user, Pageable pageable);
 
@@ -36,12 +30,12 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
 
     long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
 
-    @Query("SELECT new pt.estga.proposal.dtos.ProposalAdminListDto(" +
-            "p.id, p.status, p.priority, p.submissionSource, p.submittedAt, " +
-            "COALESCE(m.name, p.monumentName)) " +
-            "FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN p.existingMonument m " +
-            "WHERE (:statuses IS NULL OR p.status IN :statuses)")
-    Page<ProposalAdminListDto> findModeratorListDto(@Param("statuses") Collection<ProposalStatus> statuses, Pageable pageable);
-
+    @Query("SELECT p FROM MarkOccurrenceProposal p WHERE " +
+           "(:statuses IS NULL OR p.status IN :statuses) AND " +
+           "(:submittedById IS NULL OR p.submittedBy.id = :submittedById)")
+    Page<MarkOccurrenceProposal> findByFilters(
+            @Param("statuses") Collection<ProposalStatus> statuses,
+            @Param("submittedById") Long submittedById,
+            Pageable pageable
+    );
 }

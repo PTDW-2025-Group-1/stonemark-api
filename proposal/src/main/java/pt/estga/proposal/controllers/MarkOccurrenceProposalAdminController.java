@@ -17,10 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentRequestDto;
-import pt.estga.proposal.dtos.DecisionHistoryItem;
-import pt.estga.proposal.dtos.ManualDecisionRequest;
-import pt.estga.proposal.dtos.ProposalAdminListDto;
-import pt.estga.proposal.dtos.ProposalModeratorViewDto;
+import pt.estga.proposal.dtos.*;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.services.*;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
@@ -51,10 +48,10 @@ public class MarkOccurrenceProposalAdminController {
     })
     @GetMapping
     public ResponseEntity<Page<ProposalAdminListDto>> getAllProposals(
-            @RequestParam(required = false) List<ProposalStatus> status,
+            @ParameterObject ProposalFilter filter,
             @ParameterObject @PageableDefault(sort = "submittedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(proposalService.getAdminProposals(status, pageable));
+        return ResponseEntity.ok(proposalService.getAdminProposals(filter, pageable));
     }
 
     @Operation(summary = "Get proposal details for moderation",

@@ -19,5 +19,4 @@ public record ProposalModeratorViewDto(
         String userNotes,
 
         ActiveDecisionViewDto activeDecision
-) {
-}
+) { }

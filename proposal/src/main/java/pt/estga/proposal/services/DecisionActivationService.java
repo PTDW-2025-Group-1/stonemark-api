@@ -1,15 +1,11 @@
 package pt.estga.proposal.services;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
-import pt.estga.proposal.enums.DecisionOutcome;
-import pt.estga.proposal.enums.DecisionType;
-import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
@@ -43,31 +39,8 @@ public class DecisionActivationService {
             throw new IllegalArgumentException("Decision attempt does not belong to this proposal");
         }
 
-        proposal.setActiveDecision(attempt);
-
-        ProposalStatus newStatus = getProposalStatus(attempt);
-        proposal.setStatus(newStatus);
-
+        proposal.applyDecision(attempt);
         proposalRepo.save(proposal);
-        log.info("Successfully activated decision attempt ID: {}. Proposal ID: {} status updated to: {}", attemptId, proposalId, newStatus);
-    }
-
-    private static @NonNull ProposalStatus getProposalStatus(ProposalDecisionAttempt attempt) {
-        ProposalStatus newStatus;
-        if (attempt.getType() == DecisionType.MANUAL) {
-            newStatus = attempt.getOutcome() == DecisionOutcome.ACCEPT
-                    ? ProposalStatus.MANUALLY_ACCEPTED
-                    : ProposalStatus.MANUALLY_REJECTED;
-        } else {
-            // Automatic
-            if (attempt.getOutcome() == DecisionOutcome.ACCEPT) {
-                newStatus = ProposalStatus.AUTO_ACCEPTED;
-            } else if (attempt.getOutcome() == DecisionOutcome.REJECT) {
-                newStatus = ProposalStatus.AUTO_REJECTED;
-            } else {
-                newStatus = ProposalStatus.UNDER_REVIEW;
-            }
-        }
-        return newStatus;
+        log.info("Successfully activated decision attempt ID: {}. Proposal ID: {} status updated to: {}", attemptId, proposalId, proposal.getStatus());
     }
 }

@@ -13,5 +13,4 @@ public record DecisionHistoryItem(
         Instant decidedAt,
         Long decidedBy,
         String notes
-) {
-}
+) { }

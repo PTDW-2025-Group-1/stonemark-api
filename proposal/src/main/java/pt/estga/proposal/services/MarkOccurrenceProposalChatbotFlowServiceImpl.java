@@ -2,6 +2,7 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
@@ -9,17 +10,16 @@ import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkSearchService;
 import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
-import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.SubmissionSource;
+import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.user.entities.User;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     private final MarkService markService;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final double COORDINATE_SEARCH_RANGE = 0.01;
 
@@ -58,7 +59,10 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
         MediaFile mediaFile = mediaService.save(new ByteArrayInputStream(photoData), filename);
         proposal.setOriginalMediaFile(mediaFile);
 
-        proposalService.update(proposal);
+        MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
+        
+        // Publish event for async processing (e.g., detection)
+        eventPublisher.publishEvent(new ProposalPhotoUploadedEvent(this, updatedProposal));
     }
 
     @Override
@@ -117,11 +121,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     public List<Mark> suggestMarks(Long proposalId) {
         MarkOccurrenceProposal proposal = findProposalById(proposalId);
         
-        // Perform analysis if embedding is missing
-        if (proposal.getEmbedding() == null) {
-            analyzePhoto(proposal);
-        }
-
         if (proposal.getEmbedding() != null && proposal.getEmbedding().length > 0) {
             try {
                 List<String> markIds = markSearchService.searchMarks(proposal.getEmbedding());
@@ -136,22 +135,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
             }
         }
         return List.of();
-    }
-
-    private void analyzePhoto(MarkOccurrenceProposal proposal) {
-        log.info("Analyzing photo for proposal ID: {}", proposal.getId());
-        try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
-            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
-            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
-                proposal.setEmbedding(embeddedVector);
-                proposalService.update(proposal);
-            } else {
-                log.info("No embedding detected for proposal {}", proposal.getId());
-            }
-        } catch (Exception e) {
-            log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposal.getId(), e);
-        }
     }
 
     @Override

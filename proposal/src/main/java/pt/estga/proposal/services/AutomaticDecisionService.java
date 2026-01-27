@@ -10,7 +10,6 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
 import pt.estga.proposal.enums.DecisionType;
-import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
@@ -75,37 +74,14 @@ public class AutomaticDecisionService {
         attemptRepo.save(attempt);
         log.debug("Saved automatic decision attempt with ID: {}", attempt.getId());
 
-        applyAsActiveDecision(proposal, attempt);
-        
-        return attempt;
-    }
-
-    private void applyAsActiveDecision(
-            MarkOccurrenceProposal proposal,
-            ProposalDecisionAttempt attempt
-    ) {
-        proposal.setActiveDecision(attempt);
-
-        if (attempt.getOutcome().isFinal()) {
-            proposal.setStatus(
-                attempt.getOutcome() == DecisionOutcome.ACCEPT
-                    ? ProposalStatus.AUTO_ACCEPTED
-                    : ProposalStatus.AUTO_REJECTED
-            );
-
-            if (attempt.getOutcome() == DecisionOutcome.ACCEPT) {
-                eventPublisher.publishEvent(new ProposalAcceptedEvent(this, proposal));
-            }
-        } else {
-            // If it's inconclusive because of a new monument, we might want a specific status
-            if (proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
-                proposal.setStatus(ProposalStatus.PENDING_MONUMENT_CREATION);
-            } else {
-                proposal.setStatus(ProposalStatus.UNDER_REVIEW);
-            }
-        }
-
+        proposal.applyDecision(attempt);
         proposalRepo.save(proposal);
         log.info("Updated proposal ID: {} status to: {}", proposal.getId(), proposal.getStatus());
+
+        if (attempt.getOutcome() == DecisionOutcome.ACCEPT) {
+            eventPublisher.publishEvent(new ProposalAcceptedEvent(this, proposal));
+        }
+        
+        return attempt;
     }
 }

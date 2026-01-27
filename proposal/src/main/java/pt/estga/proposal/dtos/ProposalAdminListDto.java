@@ -10,7 +10,5 @@ public record ProposalAdminListDto(
         ProposalStatus status,
         Integer priority,
         SubmissionSource submissionSource,
-        Instant submittedAt,
-        String monumentName
-) {
-}
+        Instant submittedAt
+) { }

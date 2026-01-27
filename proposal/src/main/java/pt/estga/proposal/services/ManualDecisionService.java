@@ -9,7 +9,6 @@ import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 import pt.estga.proposal.enums.DecisionOutcome;
 import pt.estga.proposal.enums.DecisionType;
-import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
@@ -54,13 +53,7 @@ public class ManualDecisionService {
         attemptRepo.save(attempt);
         log.debug("Saved manual decision attempt with ID: {}", attempt.getId());
 
-        proposal.setActiveDecision(attempt);
-        proposal.setStatus(
-            outcome == DecisionOutcome.ACCEPT
-                ? ProposalStatus.MANUALLY_ACCEPTED
-                : ProposalStatus.MANUALLY_REJECTED
-        );
-
+        proposal.applyDecision(attempt);
         proposalRepo.save(proposal);
         log.info("Updated proposal ID: {} status to: {}", proposalId, proposal.getStatus());
 
