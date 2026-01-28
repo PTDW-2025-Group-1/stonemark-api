@@ -2,15 +2,14 @@ package pt.estga.proposal.events;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import pt.estga.proposal.entities.MarkOccurrenceProposal;
 
 @Getter
 public class ProposalSubmittedEvent extends ApplicationEvent {
 
-    private final MarkOccurrenceProposal proposal;
+    private final Long proposalId;
 
-    public ProposalSubmittedEvent(Object source, MarkOccurrenceProposal proposal) {
+    public ProposalSubmittedEvent(Object source, Long proposalId) {
         super(source);
-        this.proposal = proposal;
+        this.proposalId = proposalId;
     }
 }

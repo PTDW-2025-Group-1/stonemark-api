@@ -26,8 +26,7 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         Long proposalId = context.getProposalContext().getProposalId();
         
-        proposalFlowService.analyzePhoto(proposalId);
-
+        // suggestMarks will now handle analysis internally if needed
         List<Mark> suggestedMarks = proposalFlowService.suggestMarks(proposalId);
         
         List<String> suggestedMarkIds = suggestedMarks.stream()

@@ -3,17 +3,16 @@ package pt.estga.proposal.services;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.user.entities.User;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface MarkOccurrenceProposalChatbotFlowService {
 
-    MarkOccurrenceProposal startProposal(Long userId);
+    MarkOccurrenceProposal startProposal(User user);
 
     void addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
-
-    void analyzePhoto(Long proposalId);
 
     void addLocation(Long proposalId, Double latitude, Double longitude);
 

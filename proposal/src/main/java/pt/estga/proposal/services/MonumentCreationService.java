@@ -4,13 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.territory.dtos.GeocodingResultDto;
+import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.mappers.MonumentMapper;
 import pt.estga.content.services.MonumentService;
-import pt.estga.territory.services.ReverseGeocodingService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
+import pt.estga.territory.dtos.GeocodingResultDto;
+import pt.estga.territory.services.ReverseGeocodingService;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +22,14 @@ public class MonumentCreationService {
     private final MonumentService monumentService;
     private final ReverseGeocodingService reverseGeocodingService;
     private final MarkOccurrenceProposalRepository proposalRepo;
+    private final MonumentMapper monumentMapper;
 
     /**
      * Creates a monument from the proposal data.
      * This should be called by a moderator during the approval process.
      */
     @Transactional
-    public Monument createMonumentFromProposal(Long proposalId, Monument monument) {
+    public Monument createMonumentFromProposal(Long proposalId, MonumentRequestDto requestDto) {
         MarkOccurrenceProposal proposal = proposalRepo.findById(proposalId)
                 .orElseThrow(() -> new ResourceNotFoundException("Proposal not found"));
 
@@ -34,6 +37,7 @@ public class MonumentCreationService {
             return proposal.getExistingMonument();
         }
 
+        Monument monument = monumentMapper.toEntity(requestDto);
         log.info("Creating new monument '{}' from proposal ID: {}", monument.getName(), proposalId);
 
         // Ensure lat/long from proposal are used if not provided in the monument object (though they should be)

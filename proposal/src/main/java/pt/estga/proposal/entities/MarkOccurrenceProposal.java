@@ -11,10 +11,15 @@ import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.shared.audit.AuditedEntity;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 
 @Entity
+@Table(name = "mark_occurrence_proposal", indexes = {
+        @Index(name = "idx_proposal_submitted_by", columnList = "submitted_by_id"),
+        @Index(name = "idx_proposal_status", columnList = "status")
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -53,19 +58,13 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     
     private Integer credibilityScore;
 
-    @Builder.Default
-    private Boolean submitted = false;
-
-    private Long submittedById;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User submittedBy;
 
     private Instant submittedAt;
 
     @Builder.Default
-    private Boolean newMark = true;
-
-    // ==== Decision state ====
-    @OneToOne(fetch = FetchType.LAZY)
-    private ProposalDecisionAttempt activeDecision;
+    private boolean newMark = true;
 
     @Enumerated(EnumType.STRING)
     private ProposalStatus status;

@@ -10,6 +10,8 @@ import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
 
 import java.io.IOException;
 
@@ -18,6 +20,7 @@ import java.io.IOException;
 public class InitialPhotoHandler implements ConversationStateHandler {
 
     private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
+    private final UserService userService;
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
@@ -28,7 +31,9 @@ public class InitialPhotoHandler implements ConversationStateHandler {
         try {
             Long proposalId = context.getProposalContext().getProposalId();
             if (proposalId == null) {
-                MarkOccurrenceProposal newProposal = proposalFlowService.startProposal(context.getDomainUserId());
+                User user = userService.findById(context.getDomainUserId())
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                MarkOccurrenceProposal newProposal = proposalFlowService.startProposal(user);
                 proposalId = newProposal.getId();
                 context.getProposalContext().setProposalId(proposalId);
             }

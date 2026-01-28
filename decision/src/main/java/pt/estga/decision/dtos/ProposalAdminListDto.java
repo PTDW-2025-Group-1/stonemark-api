@@ -1,0 +1,18 @@
+package pt.estga.decision.dtos;
+
+import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.enums.SubmissionSource;
+
+import java.time.Instant;
+
+public record ProposalAdminListDto(
+        Long id,
+        ProposalStatus status,
+        Integer priority,
+        String title,
+        Long photoId,
+        String submittedByUsername,
+        SubmissionSource submissionSource,
+        Instant submittedAt
+) {
+}

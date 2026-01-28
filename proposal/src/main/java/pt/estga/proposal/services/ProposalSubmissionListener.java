@@ -1,0 +1,48 @@
+package pt.estga.proposal.services;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import pt.estga.proposal.events.ProposalSubmittedEvent;
+import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class ProposalSubmissionListener {
+
+    private final MarkOccurrenceProposalRepository proposalRepository;
+    private final ProposalScoringService scoringService;
+
+    @Async
+    @EventListener
+    @Transactional
+    public void handleProposalSubmitted(ProposalSubmittedEvent event) {
+        Long proposalId = event.getProposalId();
+        log.info("Processing submission asynchronously for proposal ID: {}", proposalId);
+
+        try {
+            proposalRepository.findById(proposalId).ifPresentOrElse(proposal -> {
+                try {
+                    // Calculate scores
+                    Integer priority = scoringService.calculatePriority(proposal);
+                    Integer credibility = scoringService.calculateCredibilityScore(proposal);
+
+                    proposal.setPriority(priority);
+                    proposal.setCredibilityScore(credibility);
+                    
+                    proposalRepository.save(proposal);
+                    log.info("Scores updated for proposal ID: {}. Priority={}, Credibility={}", proposalId, priority, credibility);
+                } catch (Exception e) {
+                    log.error("Error calculating scores for proposal ID: {}", proposalId, e);
+                    // In a real system, we might want to send this to a dead-letter queue or retry
+                }
+            }, () -> log.warn("Proposal with ID {} not found during async submission processing", proposalId));
+        } catch (Exception e) {
+            log.error("Unexpected error in proposal submission listener for proposal ID: {}", proposalId, e);
+        }
+    }
+}

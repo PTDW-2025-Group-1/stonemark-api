@@ -28,6 +28,7 @@ public class InitialLocationHandler implements ConversationStateHandler {
                 input.getLocation().getLongitude()
         );
 
+        // Automatically transition to photo analysis
         return HandlerOutcome.SUCCESS;
     }
 

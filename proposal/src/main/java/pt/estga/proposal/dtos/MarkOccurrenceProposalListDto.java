@@ -6,8 +6,8 @@ import java.time.Instant;
 
 public record MarkOccurrenceProposalListDto(
         Long id,
-        Long coverId,
-        boolean isSubmitted,
+        String title,
+        Long photoId,
         ProposalStatus status,
         Instant submittedAt
 ) {}

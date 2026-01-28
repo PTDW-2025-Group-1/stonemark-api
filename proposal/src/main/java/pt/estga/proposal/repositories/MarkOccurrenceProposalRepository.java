@@ -7,48 +7,63 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
+import pt.estga.user.entities.User;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
-    Page<MarkOccurrenceProposal> findAll(Pageable pageable);
-
-    @Query("SELECT p FROM MarkOccurrenceProposal p " +
-            "LEFT JOIN FETCH p.existingMonument m " +
-            "LEFT JOIN FETCH m.district " +
-            "LEFT JOIN FETCH m.parish " +
-            "LEFT JOIN FETCH m.municipality " +
-            "LEFT JOIN FETCH p.existingMark " +
-            "WHERE p.submittedById = :userId")
-    Page<MarkOccurrenceProposal> findBySubmittedById(@Param("userId") Long userId, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"existingMonument.district", "existingMonument.parish", "existingMonument.municipality", "existingMark", "activeDecision.detectedMark", "activeDecision.detectedMonument.district", "activeDecision.detectedMonument.parish", "activeDecision.detectedMonument.municipality"})
-    Optional<MarkOccurrenceProposal> findById(Long id);
-
-    List<MarkOccurrenceProposal> findByPriorityGreaterThanEqual(Integer priority);
-
-    Optional<MarkOccurrenceProposal> findFirstBySubmitted(boolean submitted);
+    @EntityGraph(attributePaths = {
+            "originalMediaFile",
+            "existingMonument",
+            "existingMark"
+    })
+    Page<MarkOccurrenceProposal> findBySubmittedBy(User user, Pageable pageable);
 
     @Query("""
-    SELECT new pt.estga.proposal.dtos.MarkOccurrenceProposalStatsDto(
-        SUM(CASE WHEN p.status IN ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED') THEN 1 ELSE 0 END),
-        SUM(CASE WHEN p.status IN ('SUBMITTED', 'UNDER_REVIEW') THEN 1 ELSE 0 END),
-        SUM(CASE WHEN p.status IN ('AUTO_REJECTED', 'MANUALLY_REJECTED') THEN 1 ELSE 0 END)
-    )
+    SELECT
+        SUM(CASE WHEN p.status IN ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED') THEN 1 ELSE 0 END) as accepted,
+        SUM(CASE WHEN p.status IN ('SUBMITTED', 'UNDER_REVIEW') THEN 1 ELSE 0 END) as underReview,
+        SUM(CASE WHEN p.status IN ('AUTO_REJECTED', 'MANUALLY_REJECTED') THEN 1 ELSE 0 END) as rejected
     FROM MarkOccurrenceProposal p
-    WHERE p.submittedById = :userId
+    WHERE p.submittedBy.id = :userId
     """)
-    MarkOccurrenceProposalStatsDto getStatsByUserId(@Param("userId") Long userId);
+    MarkOccurrenceProposalStatsProjection getStatsByUserId(@Param("userId") Long userId);
 
-    long countBySubmittedByIdAndStatusIn(Long submittedById, Collection<ProposalStatus> statuses);
+    @EntityGraph(attributePaths = {
+            "submittedBy",
+            "originalMediaFile",
+            "existingMonument"
+    })
+    @Query("SELECT p FROM MarkOccurrenceProposal p WHERE " +
+           "(:statuses IS NULL OR p.status IN :statuses) AND " +
+           "(:submittedById IS NULL OR p.submittedBy.id = :submittedById)")
+    Page<MarkOccurrenceProposal> findByFilters(
+            @Param("statuses") Collection<ProposalStatus> statuses,
+            @Param("submittedById") Long submittedById,
+            Pageable pageable
+    );
 
-    Page<MarkOccurrenceProposal> findByStatusIn(Collection<ProposalStatus> statuses, Pageable pageable);
+    @EntityGraph(attributePaths = {
+            "existingMark",
+            "existingMonument",
+            "originalMediaFile",
+            "submittedBy"
+    })
+    @Query("SELECT p FROM MarkOccurrenceProposal p WHERE p.id = :id")
+    Optional<MarkOccurrenceProposal> findByIdWithRelations(@Param("id") Long id);
 
+    @EntityGraph(attributePaths = {
+            "existingMark",
+            "existingMonument",
+            "originalMediaFile",
+            "submittedBy"
+    })
+    @Override
+    Optional<MarkOccurrenceProposal> findById(Long id);
 }
