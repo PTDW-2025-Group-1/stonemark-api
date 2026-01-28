@@ -2,6 +2,9 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,7 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
+    @Cacheable(value = "proposals", key = "#id")
     public Optional<MarkOccurrenceProposal> findById(Long id) {
         return repository.findById(id);
     }
@@ -42,21 +46,31 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
+    @CacheEvict(value = "proposalStats", key = "#proposal.submittedBy?.id")
     public MarkOccurrenceProposal create(MarkOccurrenceProposal proposal) {
         return repository.save(proposal);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "proposals", key = "#proposal.id"),
+            @CacheEvict(value = "proposalStats", key = "#proposal.submittedBy?.id")
+    })
     public MarkOccurrenceProposal update(MarkOccurrenceProposal proposal) {
         return repository.save(proposal);
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "proposals", key = "#proposal.id"),
+            @CacheEvict(value = "proposalStats", key = "#proposal.submittedBy?.id")
+    })
     public void delete(MarkOccurrenceProposal proposal) {
         repository.delete(proposal);
     }
 
     @Override
+    @Cacheable(value = "proposalStats", key = "#user.id")
     public MarkOccurrenceProposalStatsProjection getStatsByUser(User user) {
         return repository.getStatsByUserId(user.getId());
     }

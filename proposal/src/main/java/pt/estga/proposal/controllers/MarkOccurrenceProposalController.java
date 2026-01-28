@@ -6,12 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import pt.estga.proposal.dtos.MarkOccurrenceProposalCreateDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
@@ -93,17 +95,19 @@ public class MarkOccurrenceProposalController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Submit a proposal",
-            description = "Submits a mark occurrence proposal for review. This changes the proposal status to SUBMITTED.")
+    @Operation(summary = "Create and submit a proposal",
+            description = "Creates a new mark occurrence proposal and submits it immediately.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Proposal submitted successfully.",
-                    content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalDto.class))),
-            @ApiResponse(responseCode = "404", description = "Proposal not found."),
-            @ApiResponse(responseCode = "400", description = "Proposal cannot be submitted (e.g., invalid state).")
+            @ApiResponse(responseCode = "200", description = "Proposal created and submitted successfully.",
+                    content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalDto.class)))
     })
-    @PostMapping("/{proposalId}/submit")
-    public ResponseEntity<MarkOccurrenceProposalDto> submit(@PathVariable Long proposalId) {
-        MarkOccurrenceProposal proposal = submissionService.submit(proposalId);
+    @PostMapping
+    public ResponseEntity<MarkOccurrenceProposalDto> createAndSubmit(
+            @AuthenticationPrincipal AuthenticatedPrincipal principal,
+            @RequestBody @Valid MarkOccurrenceProposalCreateDto dto
+    ) {
+        User user = User.builder().id(principal.getId()).build();
+        MarkOccurrenceProposal proposal = submissionService.createAndSubmit(dto, user);
         return ResponseEntity.ok(markOccurrenceProposalMapper.toDto(proposal));
     }
 }

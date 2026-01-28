@@ -16,6 +16,10 @@ import pt.estga.user.entities.User;
 import java.time.Instant;
 
 @Entity
+@Table(name = "mark_occurrence_proposal", indexes = {
+        @Index(name = "idx_proposal_submitted_by", columnList = "submitted_by_id"),
+        @Index(name = "idx_proposal_status", columnList = "status")
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -53,9 +57,6 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     private Integer priority;
     
     private Integer credibilityScore;
-
-    @Builder.Default
-    private boolean submitted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User submittedBy;

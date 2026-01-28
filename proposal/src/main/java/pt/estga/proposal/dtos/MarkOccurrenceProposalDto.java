@@ -12,7 +12,6 @@ public record MarkOccurrenceProposalDto(
         String userNotes,
         String monumentName,
         SubmissionSource submissionSource,
-        boolean submitted,
         ProposalStatus status,
         Long existingMonumentId,
         String existingMonumentName,

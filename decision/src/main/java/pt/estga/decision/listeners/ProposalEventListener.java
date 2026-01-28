@@ -9,15 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
 import pt.estga.decision.services.ProposalDecisionService;
-import pt.estga.detection.model.DetectionResult;
-import pt.estga.detection.service.DetectionService;
-import pt.estga.file.services.MediaService;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
-import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-
-import java.io.InputStream;
 
 @Component
 @RequiredArgsConstructor
@@ -27,14 +21,12 @@ public class ProposalEventListener {
     private final ProposalDecisionService proposalDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final MonumentService monumentService;
-    private final DetectionService detectionService;
-    private final MediaService mediaService;
 
     @Async
     @EventListener
     @Transactional
     public void handleProposalSubmitted(ProposalSubmittedEvent event) {
-        Long proposalId = event.getProposal().getId();
+        Long proposalId = event.getProposalId();
         log.debug("Async processing of submitted proposal ID: {}", proposalId);
 
         proposalRepo.findById(proposalId).ifPresentOrElse(
@@ -56,30 +48,6 @@ public class ProposalEventListener {
                 monument.setActive(true);
                 monumentService.update(monument);
                 log.info("Activated monument ID: {}", monument.getId());
-            }
-        });
-    }
-
-    @Async
-    @EventListener
-    @Transactional
-    public void handleProposalPhotoUploaded(ProposalPhotoUploadedEvent event) {
-        Long proposalId = event.getProposal().getId();
-        log.info("Async detection processing for proposal ID: {}", proposalId);
-
-        proposalRepo.findById(proposalId).ifPresent(proposal -> {
-            try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
-                DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
-                if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                    double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
-                    proposal.setEmbedding(embeddedVector);
-                    proposalRepo.save(proposal);
-                    log.info("Successfully updated embedding for proposal ID: {}", proposalId);
-                } else {
-                    log.info("No embedding detected for proposal {}", proposalId);
-                }
-            } catch (Exception e) {
-                log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposalId, e);
             }
         });
     }
