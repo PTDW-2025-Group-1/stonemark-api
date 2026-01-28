@@ -48,6 +48,12 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<MarkOccurrenceProposal> findByIdWithRelations(Long id) {
+        return repository.findByIdWithRelations(id);
+    }
+
+    @Override
     public MarkOccurrenceProposal create(MarkOccurrenceProposal proposal) {
         return repository.save(proposal);
     }
@@ -65,12 +71,6 @@ public class MarkOccurrenceProposalServiceHibernateImpl implements MarkOccurrenc
     @Override
     public MarkOccurrenceProposalStatsProjection getStatsByUser(User user) {
         return repository.getStatsByUserId(user.getId());
-    }
-
-    @Override
-    public long countApprovedProposalsByUserId(Long userId) {
-        return repository.countBySubmittedByIdAndStatusIn(userId,
-                List.of(ProposalStatus.AUTO_ACCEPTED, ProposalStatus.MANUALLY_ACCEPTED));
     }
 
     @Override

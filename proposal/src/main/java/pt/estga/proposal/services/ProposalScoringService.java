@@ -17,16 +17,6 @@ public class ProposalScoringService {
     public Integer calculatePriority(MarkOccurrenceProposal proposal) {
         int priority = 0;
 
-        // User Reputation Boost (based on approved proposals)
-        Long userId = proposal.getSubmittedBy().getId();
-        if (userId != null) {
-            long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
-            
-            // Cap the reputation boost
-            int reputationBoost = (int) Math.min(approvedCount * properties.getReputationBoostPerApprovedProposal(), properties.getMaxReputationBoost());
-            priority += reputationBoost;
-        }
-
         // Boost for New Monument Proposals - Small boost for complexity
         if (proposal.getMonumentName() != null) {
             priority += properties.getNewMonumentProposalBoost();
@@ -41,13 +31,6 @@ public class ProposalScoringService {
         // Base score for authenticated users
         if (proposal.getSubmittedBy() != null) {
             score += properties.getBaseScoreAuthenticatedUser();
-        }
-
-        // Credibility based on past approved proposals
-        Long userId = proposal.getSubmittedBy().getId();
-        if (userId != null) {
-            long approvedCount = proposalService.countApprovedProposalsByUserId(userId);
-            score += (int) Math.min(approvedCount * properties.getCredibilityBoostPerApprovedProposal(), properties.getMaxCredibilityBoostApprovedProposals());
         }
 
         // Completeness of data

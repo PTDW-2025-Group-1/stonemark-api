@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import pt.estga.proposal.dtos.DecisionHistoryItem;
 import pt.estga.proposal.dtos.ProposalAdminListDto;
 import pt.estga.proposal.dtos.ProposalModeratorViewDto;
+import pt.estga.proposal.dtos.ProposalWithRelationsDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.ProposalDecisionAttempt;
 
@@ -21,4 +22,5 @@ public interface ProposalAdminMapper {
 
     List<DecisionHistoryItem> toDecisionHistoryList(List<ProposalDecisionAttempt> decisions);
 
+    ProposalWithRelationsDto toWithRelationsDto(MarkOccurrenceProposal proposal);
 }

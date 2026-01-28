@@ -21,15 +21,15 @@ public interface MarkOccurrenceProposalService {
 
     Page<MarkOccurrenceProposal> findByUser(User user, Pageable pageable);
 
+    Optional<MarkOccurrenceProposal> findByIdWithRelations(Long id);
+
+    MarkOccurrenceProposalStatsProjection getStatsByUser(User user);
+
     MarkOccurrenceProposal create(MarkOccurrenceProposal proposal);
 
     MarkOccurrenceProposal update(MarkOccurrenceProposal proposal);
 
     void delete(MarkOccurrenceProposal proposal);
-
-    MarkOccurrenceProposalStatsProjection getStatsByUser(User user);
-
-    long countApprovedProposalsByUserId(Long userId);
 
     // Admin/Moderator methods
     Page<ProposalAdminListDto> getAdminProposals(ProposalFilter filter, Pageable pageable);

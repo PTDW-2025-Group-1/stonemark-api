@@ -89,11 +89,7 @@ public class MarkOccurrenceProposal extends AuditedEntity {
                 this.status = ProposalStatus.AUTO_REJECTED;
             } else {
                 // Inconclusive
-                if (this.existingMonument == null && this.monumentName != null) {
-                    this.status = ProposalStatus.PENDING_MONUMENT_CREATION;
-                } else {
-                    this.status = ProposalStatus.UNDER_REVIEW;
-                }
+                this.status = ProposalStatus.UNDER_REVIEW;
             }
         }
     }

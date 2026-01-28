@@ -15,7 +15,7 @@ import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-import pt.estga.proposal.services.AutomaticDecisionService;
+import pt.estga.proposal.services.ProposalDecisionService;
 
 import java.io.InputStream;
 
@@ -24,7 +24,7 @@ import java.io.InputStream;
 @Slf4j
 public class ProposalEventListener {
 
-    private final AutomaticDecisionService automaticDecisionService;
+    private final ProposalDecisionService proposalDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final MonumentService monumentService;
     private final DetectionService detectionService;
@@ -38,7 +38,7 @@ public class ProposalEventListener {
         log.debug("Async processing of submitted proposal ID: {}", proposalId);
 
         proposalRepo.findById(proposalId).ifPresentOrElse(
-                automaticDecisionService::run,
+                proposalDecisionService::makeAutomaticDecision,
                 () -> log.error("Proposal with ID {} not found during async processing", proposalId)
         );
     }

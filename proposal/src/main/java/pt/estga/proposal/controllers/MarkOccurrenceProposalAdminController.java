@@ -18,11 +18,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.proposal.dtos.*;
-import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.entities.ProposalDecisionAttempt;
+import pt.estga.proposal.mappers.ProposalAdminMapper;
+import pt.estga.proposal.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.proposal.services.*;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
+import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
 import pt.estga.territory.dtos.GeocodingResultDto;
+import pt.estga.user.entities.User;
+import pt.estga.user.services.UserService;
 
 import java.util.List;
 
@@ -34,10 +39,11 @@ import java.util.List;
 public class MarkOccurrenceProposalAdminController {
 
     private final MarkOccurrenceProposalService proposalService;
-    private final ManualDecisionService manualDecisionService;
-    private final AutomaticDecisionService automaticDecisionService;
-    private final DecisionActivationService decisionActivationService;
+    private final ProposalDecisionService proposalDecisionService;
     private final MonumentCreationService monumentCreationService;
+    private final ProposalAdminMapper proposalAdminMapper;
+    private final ProposalDecisionAttemptRepository attemptRepo;
+    private final UserService userService;
 
     // ==== Read Operations ====
 
@@ -64,6 +70,21 @@ public class MarkOccurrenceProposalAdminController {
     @GetMapping("/{id}")
     public ResponseEntity<ProposalModeratorViewDto> getProposal(@PathVariable Long id) {
         return ResponseEntity.ok(proposalService.getAdminProposalDetails(id));
+    }
+
+    @Operation(summary = "Get proposal with all relations",
+            description = "Retrieves a proposal with all its related entities eagerly loaded.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Proposal with relations retrieved successfully.",
+                    content = @Content(schema = @Schema(implementation = ProposalWithRelationsDto.class))),
+            @ApiResponse(responseCode = "404", description = "Proposal not found.")
+    })
+    @GetMapping("/{id}/with-relations")
+    public ResponseEntity<ProposalWithRelationsDto> getProposalWithRelations(@PathVariable Long id) {
+        return proposalService.findByIdWithRelations(id)
+                .map(proposalAdminMapper::toWithRelationsDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResourceNotFoundException("Proposal not found with id: " + id));
     }
 
     @Operation(summary = "Get decision history",
@@ -96,7 +117,9 @@ public class MarkOccurrenceProposalAdminController {
         if (principal == null) {
             throw new InvalidCredentialsException("User not authenticated");
         }
-        manualDecisionService.createManualDecision(id, request.outcome(), request.notes(), principal.getId());
+        User moderator = userService.findById(principal.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Moderator not found"));
+        proposalDecisionService.makeManualDecision(id, request.outcome(), request.notes(), moderator);
         return ResponseEntity.ok().build();
     }
 
@@ -108,7 +131,7 @@ public class MarkOccurrenceProposalAdminController {
     })
     @PostMapping("/{id}/decisions/automatic/rerun")
     public ResponseEntity<Void> rerunAutomaticDecision(@PathVariable Long id) {
-        automaticDecisionService.rerunAutomaticDecision(id);
+        proposalDecisionService.makeAutomaticDecision(id);
         return ResponseEntity.ok().build();
     }
 
@@ -124,7 +147,14 @@ public class MarkOccurrenceProposalAdminController {
             @PathVariable Long id,
             @PathVariable Long attemptId
     ) {
-        decisionActivationService.activateDecision(id, attemptId);
+        ProposalDecisionAttempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new ResourceNotFoundException("Decision attempt not found with id: " + attemptId));
+        
+        if (!attempt.getProposal().getId().equals(id)) {
+            throw new IllegalArgumentException("Decision attempt does not belong to this proposal");
+        }
+        
+        proposalDecisionService.activateDecision(attemptId);
         return ResponseEntity.ok().build();
     }
 
