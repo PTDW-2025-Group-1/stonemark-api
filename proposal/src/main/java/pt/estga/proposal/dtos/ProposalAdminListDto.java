@@ -9,6 +9,10 @@ public record ProposalAdminListDto(
         Long id,
         ProposalStatus status,
         Integer priority,
+        String title,
+        Long photoId,
+        String submittedByUsername,
         SubmissionSource submissionSource,
         Instant submittedAt
-) { }
+) {
+}

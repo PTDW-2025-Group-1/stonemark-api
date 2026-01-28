@@ -18,6 +18,11 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccurrenceProposal, Long> {
 
+    @EntityGraph(attributePaths = {
+            "originalMediaFile",
+            "existingMonument",
+            "existingMark"
+    })
     Page<MarkOccurrenceProposal> findBySubmittedBy(User user, Pageable pageable);
 
     @Query("""
@@ -30,6 +35,11 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     """)
     MarkOccurrenceProposalStatsProjection getStatsByUserId(@Param("userId") Long userId);
 
+    @EntityGraph(attributePaths = {
+            "submittedBy",
+            "originalMediaFile",
+            "existingMonument"
+    })
     @Query("SELECT p FROM MarkOccurrenceProposal p WHERE " +
            "(:statuses IS NULL OR p.status IN :statuses) AND " +
            "(:submittedById IS NULL OR p.submittedBy.id = :submittedById)")
@@ -48,4 +58,14 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
     })
     @Query("SELECT p FROM MarkOccurrenceProposal p WHERE p.id = :id")
     Optional<MarkOccurrenceProposal> findByIdWithRelations(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {
+            "existingMark",
+            "existingMonument",
+            "originalMediaFile",
+            "submittedBy",
+            "activeDecision"
+    })
+    @Override
+    Optional<MarkOccurrenceProposal> findById(Long id);
 }
