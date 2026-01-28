@@ -2,15 +2,10 @@ package pt.estga.proposal.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pt.estga.proposal.dtos.DecisionHistoryItem;
-import pt.estga.proposal.dtos.ProposalAdminListDto;
-import pt.estga.proposal.dtos.ProposalFilter;
-import pt.estga.proposal.dtos.ProposalModeratorViewDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.user.entities.User;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface MarkOccurrenceProposalService {
@@ -31,10 +26,4 @@ public interface MarkOccurrenceProposalService {
 
     void delete(MarkOccurrenceProposal proposal);
 
-    // Admin/Moderator methods
-    Page<ProposalAdminListDto> getAdminProposals(ProposalFilter filter, Pageable pageable);
-
-    ProposalModeratorViewDto getAdminProposalDetails(Long id);
-
-    List<DecisionHistoryItem> getDecisionHistory(Long proposalId);
 }

@@ -37,6 +37,7 @@
         <module>report</module>
         <module>security</module>
         <module>territory</module>
+        <module>decision</module>
     </modules>
     <scm>
 		<connection/>

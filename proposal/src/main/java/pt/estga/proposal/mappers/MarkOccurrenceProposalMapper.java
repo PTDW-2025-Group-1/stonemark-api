@@ -20,7 +20,6 @@ public interface MarkOccurrenceProposalMapper {
     @Mapping(source = "existingMonument.id", target = "existingMonumentId")
     @Mapping(source = "existingMonument.name", target = "existingMonumentName")
     @Mapping(source = "existingMark.id", target = "existingMarkId")
-    @Mapping(source = "existingMark.name", target = "existingMarkName")
     MarkOccurrenceProposalDto toDto(MarkOccurrenceProposal entity);
 
     @Named("generateTitle")

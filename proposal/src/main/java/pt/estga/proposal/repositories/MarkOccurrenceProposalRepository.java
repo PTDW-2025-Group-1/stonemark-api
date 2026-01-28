@@ -53,8 +53,7 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
             "existingMark",
             "existingMonument",
             "originalMediaFile",
-            "submittedBy",
-            "activeDecision"
+            "submittedBy"
     })
     @Query("SELECT p FROM MarkOccurrenceProposal p WHERE p.id = :id")
     Optional<MarkOccurrenceProposal> findByIdWithRelations(@Param("id") Long id);
@@ -63,8 +62,7 @@ public interface MarkOccurrenceProposalRepository extends JpaRepository<MarkOccu
             "existingMark",
             "existingMonument",
             "originalMediaFile",
-            "submittedBy",
-            "activeDecision"
+            "submittedBy"
     })
     @Override
     Optional<MarkOccurrenceProposal> findById(Long id);

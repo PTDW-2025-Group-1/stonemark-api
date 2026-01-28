@@ -11,7 +11,6 @@ import pt.estga.shared.utils.StringSimilarityUtils;
 @RequiredArgsConstructor
 public class ProposalScoringService {
 
-    private final MarkOccurrenceProposalService proposalService;
     private final ProposalDecisionProperties properties;
 
     public Integer calculatePriority(MarkOccurrenceProposal proposal) {

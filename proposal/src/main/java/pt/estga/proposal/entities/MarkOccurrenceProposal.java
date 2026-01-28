@@ -8,8 +8,6 @@ import org.hibernate.type.SqlTypes;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
-import pt.estga.proposal.enums.DecisionOutcome;
-import pt.estga.proposal.enums.DecisionType;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.enums.SubmissionSource;
 import pt.estga.shared.audit.AuditedEntity;
@@ -67,31 +65,7 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     @Builder.Default
     private boolean newMark = true;
 
-    // ==== Decision state ====
-    @OneToOne(fetch = FetchType.LAZY)
-    private ProposalDecisionAttempt activeDecision;
-
     @Enumerated(EnumType.STRING)
     private ProposalStatus status;
-
-    public void applyDecision(ProposalDecisionAttempt decision) {
-        this.activeDecision = decision;
-        
-        if (decision.getType() == DecisionType.MANUAL) {
-            this.status = decision.getOutcome() == DecisionOutcome.ACCEPT
-                    ? ProposalStatus.MANUALLY_ACCEPTED
-                    : ProposalStatus.MANUALLY_REJECTED;
-        } else {
-            // Automatic
-            if (decision.getOutcome() == DecisionOutcome.ACCEPT) {
-                this.status = ProposalStatus.AUTO_ACCEPTED;
-            } else if (decision.getOutcome() == DecisionOutcome.REJECT) {
-                this.status = ProposalStatus.AUTO_REJECTED;
-            } else {
-                // Inconclusive
-                this.status = ProposalStatus.UNDER_REVIEW;
-            }
-        }
-    }
 
 }
