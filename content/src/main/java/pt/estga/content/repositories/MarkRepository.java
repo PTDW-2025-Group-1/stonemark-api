@@ -31,6 +31,6 @@ public interface MarkRepository extends JpaRepository<Mark, Long> {
             "WHERE embedding IS NOT NULL AND active = true " +
             "ORDER BY similarity DESC " +
             "LIMIT 5", nativeQuery = true)
-    List<MarkSimilarityProjection> findSimilarMarks(@Param("vector") String vector);
+    List<MarkSimilarityProjection> findSimilarMarks(@Param("vector") float[] vector);
 
 }

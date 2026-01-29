@@ -2,7 +2,7 @@ package pt.estga.proposal.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Array;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import pt.estga.content.entities.Mark;
@@ -41,10 +41,10 @@ public class MarkOccurrenceProposal extends AuditedEntity {
     @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 512)
-    @Column(columnDefinition = "vector")
-    private double[] embedding;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "embedding", columnDefinition = "vector(512)")
+    @ColumnTransformer(write = "?::vector")
+    private float[] embedding;
 
     private String userNotes;
     private String monumentName;

@@ -4,5 +4,5 @@ import java.util.List;
 
 public record DetectionResult(
         boolean isMasonMark,
-        List<Double> embedding
+        List<Float> embedding
 ) { }

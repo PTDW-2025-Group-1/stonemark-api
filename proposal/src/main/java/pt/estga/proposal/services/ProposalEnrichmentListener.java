@@ -11,6 +11,7 @@ import pt.estga.detection.service.DetectionService;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.shared.utils.VectorUtils;
 
 import java.io.InputStream;
 
@@ -34,8 +35,7 @@ public class ProposalEnrichmentListener {
             try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
                 DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
                 if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                    double[] embeddedVector = detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray();
-                    proposal.setEmbedding(embeddedVector);
+                    proposal.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
                     proposalRepo.save(proposal);
                     log.info("Successfully updated embedding for proposal ID: {}", proposalId);
                 } else {

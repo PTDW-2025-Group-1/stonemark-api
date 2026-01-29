@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.repositories.projections.MarkSimilarityProjection;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,4 +59,11 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
 
     @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark"})
     Optional<MarkOccurrence> findById(Long id);
+
+    @Query(value = "SELECT id, 1 - (embedding <=> CAST(:vector AS vector)) as similarity " +
+            "FROM mark_occurrence " +
+            "WHERE embedding IS NOT NULL AND active = true " +
+            "ORDER BY similarity DESC " +
+            "LIMIT 5", nativeQuery = true)
+    List<MarkSimilarityProjection> findSimilarOccurrences(@Param("vector") float[] vector);
 }
