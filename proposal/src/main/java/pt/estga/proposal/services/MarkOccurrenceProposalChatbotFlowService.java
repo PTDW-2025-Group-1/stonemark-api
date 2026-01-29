@@ -12,24 +12,22 @@ public interface MarkOccurrenceProposalChatbotFlowService {
 
     MarkOccurrenceProposal startProposal(User user);
 
-    void addPhoto(Long proposalId, byte[] photoData, String filename) throws IOException;
+    void addPhoto(MarkOccurrenceProposal proposal, byte[] photoData, String filename) throws IOException;
 
-    void addLocation(Long proposalId, Double latitude, Double longitude);
+    void addLocation(MarkOccurrenceProposal proposal, Double latitude, Double longitude);
 
-    List<Monument> suggestMonuments(Long proposalId);
+    List<Monument> suggestMonuments(MarkOccurrenceProposal proposal);
 
-    void selectMonument(Long proposalId, Long monumentId);
+    void selectMonument(MarkOccurrenceProposal proposal, Long monumentId);
 
-    void setNewMonumentName(Long proposalId, String name);
+    void setNewMonumentName(MarkOccurrenceProposal proposal, String name);
 
-    List<Mark> suggestMarks(Long proposalId);
+    List<Mark> suggestMarks(MarkOccurrenceProposal proposal);
 
-    void selectMark(Long proposalId, Long markId);
+    void selectMark(MarkOccurrenceProposal proposal, Long markId);
 
-    void indicateNewMark(Long proposalId);
+    void indicateNewMark(MarkOccurrenceProposal proposal);
 
-    void addNotes(Long proposalId, String notes);
-
-    MarkOccurrenceProposal getProposal(Long proposalId);
+    void addNotes(MarkOccurrenceProposal proposal, String notes);
 
 }

@@ -27,7 +27,7 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
         }
 
         if (callbackData.startsWith(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
+            proposalFlowService.indicateNewMark(context.getProposalContext().getProposal());
             return HandlerOutcome.SUCCESS;
         }
 
@@ -46,13 +46,13 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
                 }
                 try {
                     Long markId = Long.valueOf(callbackParts[2]);
-                    proposalFlowService.selectMark(context.getProposalContext().getProposalId(), markId);
+                    proposalFlowService.selectMark(context.getProposalContext().getProposal(), markId);
                     return HandlerOutcome.SUCCESS;
                 } catch (NumberFormatException e) {
                     return HandlerOutcome.FAILURE;
                 }
             } else if (rejected) {
-                proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
+                proposalFlowService.indicateNewMark(context.getProposalContext().getProposal());
                 return HandlerOutcome.REJECTED;
             }
         }

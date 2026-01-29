@@ -39,7 +39,7 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
             }
             try {
                 Long monumentId = Long.valueOf(callbackParts[2]);
-                proposalFlowService.selectMonument(context.getProposalContext().getProposalId(), monumentId);
+                proposalFlowService.selectMonument(context.getProposalContext().getProposal(), monumentId);
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;

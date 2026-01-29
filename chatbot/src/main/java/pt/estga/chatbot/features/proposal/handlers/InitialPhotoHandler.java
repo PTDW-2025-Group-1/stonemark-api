@@ -29,17 +29,16 @@ public class InitialPhotoHandler implements ConversationStateHandler {
         }
 
         try {
-            Long proposalId = context.getProposalContext().getProposalId();
-            if (proposalId == null) {
+            MarkOccurrenceProposal proposal = context.getProposalContext().getProposal();
+            if (proposal == null) {
                 User user = userService.findById(context.getDomainUserId())
                         .orElseThrow(() -> new RuntimeException("User not found"));
-                MarkOccurrenceProposal newProposal = proposalFlowService.startProposal(user);
-                proposalId = newProposal.getId();
-                context.getProposalContext().setProposalId(proposalId);
+                proposal = proposalFlowService.startProposal(user);
+                context.getProposalContext().setProposal(proposal);
             }
 
             proposalFlowService.addPhoto(
-                    proposalId,
+                    proposal,
                     input.getFileData(),
                     input.getFileName()
             );

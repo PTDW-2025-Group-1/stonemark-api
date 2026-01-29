@@ -25,29 +25,24 @@ public class MarkOccurrenceProposalSubmissionService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public MarkOccurrenceProposal submit(Long proposalId) {
-        log.info("Submitting proposal with ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = proposalService.findById(proposalId)
-                .orElseThrow(() -> {
-                    log.error("Proposal with ID {} not found during submission", proposalId);
-                    return new RuntimeException("Proposal not found");
-                });
+    public MarkOccurrenceProposal submit(MarkOccurrenceProposal proposal) {
+        log.info("Submitting proposal");
 
         if (ProposalStatus.SUBMITTED.equals(proposal.getStatus())) {
-            log.warn("Proposal with ID {} is already submitted. Skipping submission logic.", proposalId);
+            log.warn("Proposal is already submitted. Skipping submission logic.");
             return proposal;
         }
 
         proposal.setSubmittedAt(Instant.now());
         proposal.setStatus(ProposalStatus.SUBMITTED);
 
-        MarkOccurrenceProposal updatedProposal = proposalService.update(proposal);
-        log.info("Proposal with ID: {} submitted successfully", proposalId);
+        MarkOccurrenceProposal savedProposal = proposalService.create(proposal);
+        log.info("Proposal submitted successfully with ID: {}", savedProposal.getId());
         
-        eventPublisher.publishEvent(new ProposalSubmittedEvent(this, updatedProposal.getId()));
-        log.debug("Published ProposalSubmittedEvent for proposal ID: {}", proposalId);
+        eventPublisher.publishEvent(new ProposalSubmittedEvent(this, savedProposal.getId()));
+        log.debug("Published ProposalSubmittedEvent for proposal ID: {}", savedProposal.getId());
 
-        return updatedProposal;
+        return savedProposal;
     }
 
     @Transactional

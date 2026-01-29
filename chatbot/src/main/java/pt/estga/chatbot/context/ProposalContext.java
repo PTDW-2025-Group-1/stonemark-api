@@ -7,12 +7,12 @@ import java.util.List;
 
 @Data
 public class ProposalContext {
-    private Long proposalId;
+    private MarkOccurrenceProposal proposal;
     private List<String> suggestedMarkIds;
     private List<String> suggestedMonumentIds;
 
     public void clear() {
-        this.proposalId = null;
+        this.proposal = null;
         this.suggestedMarkIds = null;
         this.suggestedMonumentIds = null;
     }

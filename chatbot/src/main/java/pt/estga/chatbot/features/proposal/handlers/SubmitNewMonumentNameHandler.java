@@ -23,7 +23,7 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
         }
 
         proposalFlowService.setNewMonumentName(
-                context.getProposalContext().getProposalId(),
+                context.getProposalContext().getProposal(),
                 input.getText()
         );
         

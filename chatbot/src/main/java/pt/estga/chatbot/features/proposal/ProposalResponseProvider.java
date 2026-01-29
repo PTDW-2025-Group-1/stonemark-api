@@ -138,13 +138,13 @@ public class ProposalResponseProvider implements ResponseProvider {
     }
 
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
-        MarkOccurrenceProposal proposal = proposalFlowService.getProposal(context.getProposalContext().getProposalId());
+        MarkOccurrenceProposal proposal = context.getProposalContext().getProposal();
         Long markId = proposal.getExistingMark().getId();
         return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
     }
 
     private List<BotResponse> createMonumentSuggestionsResponse(ChatbotContext context) {
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposalId());
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposal());
 
         if (suggestedMonuments.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.NO_MONUMENTS_FOUND));

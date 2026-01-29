@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import pt.estga.chatbot.context.*;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 
@@ -17,16 +18,16 @@ public class AddNotesHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        Long proposalId = context.getProposalContext().getProposalId();
+        MarkOccurrenceProposal proposal = context.getProposalContext().getProposal();
         // Handle "skip" or text input for notes
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
             if (input.getText() != null) {
-                proposalFlowService.addNotes(proposalId, input.getText());
+                proposalFlowService.addNotes(proposal, input.getText());
             }
         }
 
         // Submit the proposal
-        submissionService.submit(proposalId);
+        submissionService.submit(proposal);
         
         // Clean up the context
         context.clear();

@@ -28,7 +28,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
         if (callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             try {
                 Long markId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MARK_PREFIX.length()));
-                proposalFlowService.selectMark(context.getProposalContext().getProposalId(), markId);
+                proposalFlowService.selectMark(context.getProposalContext().getProposal(), markId);
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;
@@ -36,7 +36,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
+            proposalFlowService.indicateNewMark(context.getProposalContext().getProposal());
             return HandlerOutcome.PROPOSE_NEW;
         }
 

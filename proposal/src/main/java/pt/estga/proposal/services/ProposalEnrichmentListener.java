@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.file.services.MediaService;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.shared.utils.VectorUtils;
@@ -28,22 +29,26 @@ public class ProposalEnrichmentListener {
     @EventListener
     @Transactional
     public void handleProposalPhotoUploaded(ProposalPhotoUploadedEvent event) {
-        Long proposalId = event.getProposal().getId();
-        log.info("Async detection processing for proposal ID: {}", proposalId);
+        MarkOccurrenceProposal proposal = event.getProposal();
+        log.info("Async detection processing for proposal");
 
-        proposalRepo.findById(proposalId).ifPresent(proposal -> {
-            try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
-                DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
-                if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                    proposal.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
+        try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
+            DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
+            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
+                proposal.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
+                
+                // If the proposal has already been persisted (e.g. user finished flow quickly), update it in DB
+                if (proposal.getId() != null) {
+                    log.info("Proposal already submitted (ID: {}), updating embedding in DB", proposal.getId());
                     proposalRepo.save(proposal);
-                    log.info("Successfully updated embedding for proposal ID: {}", proposalId);
                 } else {
-                    log.info("No embedding detected for proposal {}", proposalId);
+                    log.info("Proposal not yet submitted, embedding set in memory object");
                 }
-            } catch (Exception e) {
-                log.warn("Detection service failed for proposal ID: {}. Proceeding without detection.", proposalId, e);
+            } else {
+                log.info("No embedding detected for proposal");
             }
-        });
+        } catch (Exception e) {
+            log.warn("Detection service failed for proposal. Proceeding without detection.", e);
+        }
     }
 }

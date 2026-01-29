@@ -24,14 +24,14 @@ public class MonumentSuggestionHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposalId());
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposal());
         
         List<String> suggestedMonumentIds = suggestedMonuments.stream()
                 .map(monument -> monument.getId().toString())
                 .collect(Collectors.toList());
         context.getProposalContext().setSuggestedMonumentIds(suggestedMonumentIds);
 
-        log.info("Found {} suggested monuments for proposal {}", suggestedMonuments.size(), context.getProposalContext().getProposalId());
+        log.info("Found {} suggested monuments for proposal", suggestedMonuments.size());
 
         return HandlerOutcome.SUCCESS;
     }
