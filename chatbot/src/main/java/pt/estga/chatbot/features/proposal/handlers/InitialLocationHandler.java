@@ -8,6 +8,8 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
@@ -22,8 +24,13 @@ public class InitialLocationHandler implements ConversationStateHandler {
             return HandlerOutcome.FAILURE;
         }
 
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+
         proposalFlowService.addLocation(
-                context.getProposalContext().getProposal(),
+                (MarkOccurrenceProposal) proposal,
                 input.getLocation().getLatitude(),
                 input.getLocation().getLongitude()
         );

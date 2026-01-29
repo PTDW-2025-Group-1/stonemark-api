@@ -6,6 +6,7 @@ import pt.estga.chatbot.context.*;
 import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 
@@ -18,16 +19,21 @@ public class AddNotesHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        MarkOccurrenceProposal proposal = context.getProposalContext().getProposal();
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+
         // Handle "skip" or text input for notes
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
             if (input.getText() != null) {
-                proposalFlowService.addNotes(proposal, input.getText());
+                proposalFlowService.addNotes(markProposal, input.getText());
             }
         }
 
         // Submit the proposal
-        submissionService.submit(proposal);
+        submissionService.submit(markProposal);
         
         // Clean up the context
         context.clear();

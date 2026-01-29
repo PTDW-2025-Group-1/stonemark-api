@@ -1,13 +1,13 @@
 package pt.estga.chatbot.context;
 
 import lombok.Data;
-import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 
 import java.util.List;
 
 @Data
 public class ProposalContext {
-    private MarkOccurrenceProposal proposal;
+    private Proposal proposal;
     private List<String> suggestedMarkIds;
     private List<String> suggestedMonumentIds;
 

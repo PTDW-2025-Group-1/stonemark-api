@@ -9,6 +9,8 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
@@ -25,10 +27,16 @@ public class SelectMarkHandler implements ConversationStateHandler {
             return HandlerOutcome.AWAITING_INPUT;
         }
 
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+
         if (callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             try {
                 Long markId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MARK_PREFIX.length()));
-                proposalFlowService.selectMark(context.getProposalContext().getProposal(), markId);
+                proposalFlowService.selectMark(markProposal, markId);
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;
@@ -36,7 +44,7 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(context.getProposalContext().getProposal());
+            proposalFlowService.indicateNewMark(markProposal);
             return HandlerOutcome.PROPOSE_NEW;
         }
 

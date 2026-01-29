@@ -58,7 +58,7 @@ public class MarkOccurrenceProposalSubmissionService {
                 .submittedBy(user)
                 .submittedAt(Instant.now())
                 .status(ProposalStatus.SUBMITTED)
-                .newMark(true) // Default to true, logic might change if existingMarkId is present
+                .newMark(true)
                 .build();
 
         if (dto.photoId() != null) {

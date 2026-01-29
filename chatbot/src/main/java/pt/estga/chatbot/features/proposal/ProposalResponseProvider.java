@@ -21,6 +21,7 @@ import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.ArrayList;
@@ -138,13 +139,21 @@ public class ProposalResponseProvider implements ResponseProvider {
     }
 
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
-        MarkOccurrenceProposal proposal = context.getProposalContext().getProposal();
-        Long markId = proposal.getExistingMark().getId();
-        return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (proposal instanceof MarkOccurrenceProposal) {
+            Long markId = ((MarkOccurrenceProposal) proposal).getExistingMark().getId();
+            return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+        }
+        return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
     }
 
     private List<BotResponse> createMonumentSuggestionsResponse(ChatbotContext context) {
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposal());
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
+        }
+        
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments((MarkOccurrenceProposal) proposal);
 
         if (suggestedMonuments.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.NO_MONUMENTS_FOUND));

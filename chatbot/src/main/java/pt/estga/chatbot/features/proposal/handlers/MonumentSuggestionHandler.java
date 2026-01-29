@@ -10,6 +10,8 @@ import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.content.entities.Monument;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
@@ -24,7 +26,13 @@ public class MonumentSuggestionHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(context.getProposalContext().getProposal());
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+
+        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(markProposal);
         
         List<String> suggestedMonumentIds = suggestedMonuments.stream()
                 .map(monument -> monument.getId().toString())
