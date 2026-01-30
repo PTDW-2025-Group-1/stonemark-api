@@ -1,4 +1,4 @@
-package pt.estga.decision.dtos;
+package pt.estga.proposal.dtos;
 
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.dtos.MonumentDto;
@@ -25,7 +25,6 @@ public record ProposalWithRelationsDto(
         UserDto submittedBy,
         Instant submittedAt,
         boolean newMark,
-        ActiveDecisionViewDto activeDecision,
         ProposalStatus status
 ) {
 }

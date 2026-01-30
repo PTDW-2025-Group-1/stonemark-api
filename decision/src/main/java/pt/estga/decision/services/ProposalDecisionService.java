@@ -1,9 +1,7 @@
 package pt.estga.decision.services;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.decision.entities.ProposalDecisionAttempt;
 import pt.estga.decision.enums.DecisionOutcome;
@@ -11,21 +9,31 @@ import pt.estga.decision.enums.DecisionType;
 import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.enums.ProposalStatus;
-import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.repositories.ProposalRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.user.entities.User;
 
 import java.time.Instant;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
 public abstract class ProposalDecisionService<T extends Proposal> {
 
     protected final ProposalDecisionAttemptRepository attemptRepo;
     protected final ProposalRepository<T> proposalRepo;
     protected final ApplicationEventPublisher eventPublisher;
+    protected final Class<T> proposalType;
+
+    protected ProposalDecisionService(
+            ProposalDecisionAttemptRepository attemptRepo,
+            ProposalRepository<T> proposalRepo,
+            ApplicationEventPublisher eventPublisher,
+            Class<T> proposalType
+    ) {
+        this.attemptRepo = attemptRepo;
+        this.proposalRepo = proposalRepo;
+        this.eventPublisher = eventPublisher;
+        this.proposalType = proposalType;
+    }
 
     /**
      * Triggers the automatic decision logic for a proposal by ID.
@@ -39,7 +47,7 @@ public abstract class ProposalDecisionService<T extends Proposal> {
 
     /**
      * Triggers the automatic decision logic for a proposal entity.
-     * Subclasses must implement the specific logic for automatic decision making.
+     * Subclasses must implement the specific logic for automatic decision-making.
      */
     @Transactional
     public abstract ProposalDecisionAttempt makeAutomaticDecision(T proposal);
@@ -82,8 +90,11 @@ public abstract class ProposalDecisionService<T extends Proposal> {
         ProposalDecisionAttempt attempt = attemptRepo.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Decision attempt not found with id: " + attemptId));
         
-        @SuppressWarnings("unchecked")
-        T proposal = (T) attempt.getProposal();
+        if (!proposalType.isInstance(attempt.getProposal())) {
+            throw new IllegalArgumentException("Decision attempt " + attemptId + " does not belong to a proposal of type " + proposalType.getSimpleName());
+        }
+
+        T proposal = proposalType.cast(attempt.getProposal());
         log.info("Activating decision attempt ID: {} for proposal ID: {}", attemptId, proposal.getId());
 
         saveAndApplyDecision(proposal, attempt);

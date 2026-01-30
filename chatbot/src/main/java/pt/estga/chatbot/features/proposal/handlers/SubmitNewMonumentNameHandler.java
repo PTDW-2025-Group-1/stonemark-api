@@ -29,10 +29,9 @@ public class SubmitNewMonumentNameHandler implements ConversationStateHandler {
             return HandlerOutcome.FAILURE;
         }
 
-        proposalFlowService.setNewMonumentName(
-                (MarkOccurrenceProposal) proposal,
-                input.getText()
-        );
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+        markProposal.setMonumentName(input.getText());
+        markProposal.setExistingMonument(null);
         
         return HandlerOutcome.SUCCESS;
     }

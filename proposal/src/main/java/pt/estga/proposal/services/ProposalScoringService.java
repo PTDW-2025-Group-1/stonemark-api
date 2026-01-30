@@ -54,7 +54,7 @@ public class ProposalScoringService {
             } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > properties.getMonumentNameSimilarityThreshold()) {
                 score += properties.getMonumentNameSimilarMatchBoost();
             } else {
-                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, 3, 2);
+                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, properties.getMinWordLengthForMatch(), properties.getMaxWordTypoDistance());
                 if (matchCount > 0) {
                     score += properties.getMonumentNameWordMatchBoostPerWord() * matchCount;
                 }

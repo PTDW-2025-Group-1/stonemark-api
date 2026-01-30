@@ -10,6 +10,7 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
@@ -45,7 +46,13 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
                 if (!(proposal instanceof MarkOccurrenceProposal)) {
                     return HandlerOutcome.FAILURE;
                 }
-                proposalFlowService.selectMonument((MarkOccurrenceProposal) proposal, monumentId);
+                
+                // Instead of calling proposalFlowService.selectMonument, we set it directly on the proposal object
+                // because we are now submitting all at once at the end.
+                MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+                markProposal.setExistingMonument(Monument.builder().id(monumentId).build());
+                markProposal.setMonumentName(null); // Clear any previous name if selecting existing
+
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;

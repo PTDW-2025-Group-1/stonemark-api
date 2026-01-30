@@ -27,7 +27,7 @@ public class MarkOccurrenceProposalDecisionService extends ProposalDecisionServi
             ApplicationEventPublisher eventPublisher,
             ProposalDecisionProperties properties
     ) {
-        super(attemptRepo, proposalRepo, eventPublisher);
+        super(attemptRepo, proposalRepo, eventPublisher, MarkOccurrenceProposal.class);
         this.properties = properties;
     }
 
@@ -40,7 +40,8 @@ public class MarkOccurrenceProposalDecisionService extends ProposalDecisionServi
         boolean confident = false;
 
         // If the proposal requires a new monument, it must be reviewed manually
-        if (proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+        if (Boolean.TRUE.equals(properties.getRequireManualReviewForNewMonuments()) &&
+                proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
             log.info("Proposal ID {} requires new monument creation. Marking as inconclusive for manual review.", proposal.getId());
             outcome = DecisionOutcome.INCONCLUSIVE;
             confident = true; // Confidently sending to manual review

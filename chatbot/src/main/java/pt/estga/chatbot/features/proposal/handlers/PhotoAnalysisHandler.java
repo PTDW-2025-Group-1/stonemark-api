@@ -44,7 +44,8 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
         log.info("Photo analysis complete for proposal. Found {} suggestions.", suggestedMarks.size());
 
         if (suggestedMarks.isEmpty()) {
-            proposalFlowService.indicateNewMark(markProposal);
+            markProposal.setNewMark(true);
+            markProposal.setExistingMark(null);
         }
 
         return HandlerOutcome.SUCCESS;

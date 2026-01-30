@@ -18,15 +18,7 @@ public interface MarkOccurrenceProposalChatbotFlowService {
 
     List<Monument> suggestMonuments(MarkOccurrenceProposal proposal);
 
-    void selectMonument(MarkOccurrenceProposal proposal, Long monumentId);
-
-    void setNewMonumentName(MarkOccurrenceProposal proposal, String name);
-
     List<Mark> suggestMarks(MarkOccurrenceProposal proposal);
-
-    void selectMark(MarkOccurrenceProposal proposal, Long markId);
-
-    void indicateNewMark(MarkOccurrenceProposal proposal);
 
     void addNotes(MarkOccurrenceProposal proposal, String notes);
 

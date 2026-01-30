@@ -141,8 +141,11 @@ public class ProposalResponseProvider implements ResponseProvider {
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
         Proposal proposal = context.getProposalContext().getProposal();
         if (proposal instanceof MarkOccurrenceProposal) {
-            Long markId = ((MarkOccurrenceProposal) proposal).getExistingMark().getId();
-            return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+            MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+            if (markProposal.getExistingMark() != null) {
+                Long markId = markProposal.getExistingMark().getId();
+                return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+            }
         }
         return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
     }

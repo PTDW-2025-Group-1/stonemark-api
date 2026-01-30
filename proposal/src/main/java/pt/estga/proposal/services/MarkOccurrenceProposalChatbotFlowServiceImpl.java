@@ -80,31 +80,6 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
     }
 
     @Override
-    @Transactional
-    public void selectMonument(MarkOccurrenceProposal proposal, Long monumentId) {
-        log.info("Selecting monument ID: {} for proposal", monumentId);
-        clearMonumentSelections(proposal);
-
-        monumentService.findById(monumentId)
-                .ifPresentOrElse(
-                        proposal::setExistingMonument,
-                        () -> {
-                            log.error("Monument ID {} not found", monumentId);
-                            throw new RuntimeException("Monument not found");
-                        }
-                );
-    }
-
-    @Override
-    @Transactional
-    public void setNewMonumentName(MarkOccurrenceProposal proposal, String name) {
-        log.info("Setting new monument name '{}' for proposal", name);
-        clearMonumentSelections(proposal);
-
-        proposal.setMonumentName(name);
-    }
-
-    @Override
     public List<Mark> suggestMarks(MarkOccurrenceProposal proposal) {
         if (proposal.getEmbedding() != null && proposal.getEmbedding().length > 0) {
             try {
@@ -124,42 +99,8 @@ public class MarkOccurrenceProposalChatbotFlowServiceImpl implements MarkOccurre
 
     @Override
     @Transactional
-    public void selectMark(MarkOccurrenceProposal proposal, Long markId) {
-        log.info("Selecting mark ID: {} for proposal", markId);
-        clearMarkSelections(proposal);
-
-        markService.findById(markId).ifPresentOrElse(
-                proposal::setExistingMark,
-                () -> {
-                    log.error("Mark ID {} not found", markId);
-                    throw new RuntimeException("Mark not found");
-                }
-        );
-    }
-
-    @Override
-    @Transactional
-    public void indicateNewMark(MarkOccurrenceProposal proposal) {
-        log.info("Setting new mark for proposal");
-        clearMarkSelections(proposal);
-
-        proposal.setNewMark(true);
-    }
-
-    @Override
-    @Transactional
     public void addNotes(MarkOccurrenceProposal proposal, String notes) {
         log.info("Adding notes to proposal");
         proposal.setUserNotes(notes);
-    }
-
-    private void clearMonumentSelections(MarkOccurrenceProposal proposal) {
-        proposal.setExistingMonument(null);
-        proposal.setMonumentName(null);
-    }
-
-    private void clearMarkSelections(MarkOccurrenceProposal proposal) {
-        proposal.setExistingMark(null);
-        proposal.setNewMark(false);
     }
 }

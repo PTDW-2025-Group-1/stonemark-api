@@ -9,13 +9,8 @@ public record ActiveDecisionViewDto(
         Long id,
         DecisionType type,
         DecisionOutcome outcome,
-        Boolean confident,
-
-        Long detectedMarkId,
-        Long detectedMonumentId,
-
         String notes,
         Instant decidedAt,
-        Long decidedBy
+        String decidedByUsername
 ) {
 }
