@@ -3,12 +3,11 @@ package pt.estga.proposal.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.Type;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.shared.utils.PgVectorType;
 
 @Entity
 @DiscriminatorValue("MARK_OCCURRENCE")
@@ -28,9 +27,8 @@ public class MarkOccurrenceProposal extends Proposal {
     @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "embedding", columnDefinition = "vector(512)")
-    @ColumnTransformer(write = "?::vector")
+    @Type(PgVectorType.class)
+    @Column(name = "embedding", columnDefinition = "vector")
     private float[] embedding;
 
     private String monumentName;

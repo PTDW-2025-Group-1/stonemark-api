@@ -2,10 +2,12 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.file.services.MediaService;
@@ -26,8 +28,8 @@ public class ProposalEnrichmentListener {
     private final MediaService mediaService;
 
     @Async
-    @EventListener
-    @Transactional
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleProposalPhotoUploaded(ProposalPhotoUploadedEvent event) {
         MarkOccurrenceProposal proposal = event.getProposal();
         log.info("Async detection processing for proposal");
