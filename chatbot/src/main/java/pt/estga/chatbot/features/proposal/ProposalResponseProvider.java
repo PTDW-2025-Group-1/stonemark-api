@@ -60,8 +60,6 @@ public class ProposalResponseProvider implements ResponseProvider {
             case MARK_SELECTED -> createMarkSelectedResponse(context);
             case AWAITING_MONUMENT_SUGGESTIONS -> createMonumentSuggestionsResponse(context);
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
-            case AWAITING_NEW_MONUMENT_NAME ->
-                    buildSimpleMenuResponse(new Message(MessageKey.PROVIDE_NEW_MONUMENT_NAME_PROMPT, MONUMENT));
             case AWAITING_NOTES -> createNotesResponse();
             case SUBMITTED -> createSubmissionSuccessResponse(input);
             default -> {

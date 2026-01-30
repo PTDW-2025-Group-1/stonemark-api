@@ -27,10 +27,9 @@ public class MonumentSuggestionHandler implements ConversationStateHandler {
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
 
         List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments(markProposal);
         

@@ -51,7 +51,6 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
                 // because we are now submitting all at once at the end.
                 MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
                 markProposal.setExistingMonument(Monument.builder().id(monumentId).build());
-                markProposal.setMonumentName(null); // Clear any previous name if selecting existing
 
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
