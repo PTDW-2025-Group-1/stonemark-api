@@ -41,7 +41,7 @@ public class MarkOccurrenceProposalDecisionService extends ProposalDecisionServi
 
         // If the proposal requires a new monument, it must be reviewed manually
         if (Boolean.TRUE.equals(properties.getRequireManualReviewForNewMonuments()) &&
-                proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+                proposal.getExistingMonument() == null && proposal.getProposedMonument() != null) {
             log.info("Proposal ID {} requires new monument creation. Marking as inconclusive for manual review.", proposal.getId());
             outcome = DecisionOutcome.INCONCLUSIVE;
             confident = true; // Confidently sending to manual review
@@ -71,7 +71,7 @@ public class MarkOccurrenceProposalDecisionService extends ProposalDecisionServi
     @Override
     protected void validateManualDecision(MarkOccurrenceProposal proposal, DecisionOutcome outcome) {
         // If accepting, and it's a new monument, ensure monument is created
-        if (outcome == DecisionOutcome.ACCEPT && proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
+        if (outcome == DecisionOutcome.ACCEPT && proposal.getExistingMonument() == null && proposal.getProposedMonument() != null) {
             throw new IllegalStateException("Cannot approve proposal for new monument without creating the monument first.");
         }
     }

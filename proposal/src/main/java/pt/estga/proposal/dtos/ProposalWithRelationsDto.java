@@ -15,7 +15,6 @@ public record ProposalWithRelationsDto(
         MonumentDto existingMonument,
         MediaFileDto originalMediaFile,
         String userNotes,
-        String monumentName,
         Double latitude,
         Double longitude,
         SubmissionSource submissionSource,

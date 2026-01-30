@@ -6,7 +6,6 @@ public final class ProposalCallbackData {
     }
 
     public static final String START_SUBMISSION = "start_submission";
-    public static final String PROPOSE_NEW_MONUMENT = "propose_new_monument";
     public static final String PROPOSE_NEW_MARK = "propose_new_mark";
     public static final String SELECT_MONUMENT_PREFIX = "select_monument:";
     public static final String SELECT_MARK_PREFIX = "select_mark:";

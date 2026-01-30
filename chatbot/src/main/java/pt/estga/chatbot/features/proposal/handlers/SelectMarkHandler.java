@@ -18,8 +18,6 @@ import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowServi
 @RequiredArgsConstructor
 public class SelectMarkHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
-
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
@@ -29,10 +27,9 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
 
         if (callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             try {

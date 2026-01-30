@@ -16,8 +16,6 @@ import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowServi
 @RequiredArgsConstructor
 public class InitialLocationHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
-
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         if (input.getLocation() == null) {

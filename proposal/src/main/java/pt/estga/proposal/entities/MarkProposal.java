@@ -19,7 +19,7 @@ public class MarkProposal extends Proposal {
     private String description;
 
     @Type(PgVectorType.class)
-    @Column(name = "embedding", columnDefinition = "vector")
+    @Column(columnDefinition = "vector")
     private float[] embedding;
 
     @OneToOne(cascade = CascadeType.ALL)

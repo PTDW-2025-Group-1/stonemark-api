@@ -30,10 +30,9 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
         }
 
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
 
         if (callbackData.startsWith(ProposalCallbackData.PROPOSE_NEW_MARK)) {
             markProposal.setNewMark(true);

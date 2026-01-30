@@ -10,7 +10,6 @@ public record MarkOccurrenceProposalDto(
         Double longitude,
         boolean newMark,
         String userNotes,
-        String monumentName,
         SubmissionSource submissionSource,
         ProposalStatus status,
         Long existingMonumentId,

@@ -138,8 +138,7 @@ public class ProposalResponseProvider implements ResponseProvider {
 
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
         Proposal proposal = context.getProposalContext().getProposal();
-        if (proposal instanceof MarkOccurrenceProposal) {
-            MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+        if (proposal instanceof MarkOccurrenceProposal markProposal) {
             if (markProposal.getExistingMark() != null) {
                 Long markId = markProposal.getExistingMark().getId();
                 return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
@@ -171,12 +170,6 @@ public class ProposalResponseProvider implements ResponseProvider {
                     ))).build();
             responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
         }
-
-        Menu proposeNewMenu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.IF_NONE_OF_ABOVE_OPTIONS_MATCH)))
-                .buttons(List.of(List.of(Button.builder().textNode(textService.get(new Message(MessageKey.PROPOSE_NEW_MONUMENT_BTN, NEW))).callbackData(ProposalCallbackData.PROPOSE_NEW_MONUMENT).build())))
-                .build();
-        responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
 
         return responses;
     }

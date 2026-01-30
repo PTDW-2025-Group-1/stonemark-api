@@ -49,7 +49,6 @@ public class MonumentCreationService {
         Monument savedMonument = monumentService.create(monument);
         
         proposal.setExistingMonument(savedMonument);
-        proposal.setMonumentName(monument.getName()); // Update in case it changed
         proposalRepo.save(proposal);
         
         log.info("Created new monument with ID: {}", savedMonument.getId());

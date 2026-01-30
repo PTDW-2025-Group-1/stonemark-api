@@ -33,9 +33,7 @@ public class MessageKey {
     public static final String MONUMENT_OPTION = "monument_option";
     public static final String MONUMENT_CONFIRMATION_TITLE = "monument_confirmation_title";
     public static final String NO_MONUMENTS_FOUND = "no_monuments_found";
-    public static final String PROVIDE_NEW_MONUMENT_NAME_PROMPT = "provide_new_monument_name_prompt";
-    public static final String PROPOSE_NEW_MONUMENT_BTN = "propose_new_monument_btn";
-    
+
     public static final String ADD_NOTES_PROMPT = "add_notes_prompt";
     public static final String SUBMISSION_SUCCESS = "submission_success";
 

@@ -19,8 +19,6 @@ import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowServi
 @RequiredArgsConstructor
 public class ConfirmMonumentHandler implements ConversationStateHandler {
 
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
-
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         String callbackData = input.getCallbackData();
@@ -43,13 +41,12 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
             try {
                 Long monumentId = Long.valueOf(callbackParts[2]);
                 Proposal proposal = context.getProposalContext().getProposal();
-                if (!(proposal instanceof MarkOccurrenceProposal)) {
+                if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
                     return HandlerOutcome.FAILURE;
                 }
                 
                 // Instead of calling proposalFlowService.selectMonument, we set it directly on the proposal object
                 // because we are now submitting all at once at the end.
-                MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
                 markProposal.setExistingMonument(Monument.builder().id(monumentId).build());
 
                 return HandlerOutcome.SUCCESS;

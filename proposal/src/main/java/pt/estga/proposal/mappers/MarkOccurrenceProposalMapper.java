@@ -27,12 +27,6 @@ public interface MarkOccurrenceProposalMapper {
 
     @Named("generateTitle")
     default String generateTitle(MarkOccurrenceProposal proposal) {
-        if (proposal.getMonumentName() != null) {
-            return proposal.getMonumentName();
-        } else if (proposal.getExistingMonument() != null) {
-            return proposal.getExistingMonument().getName();
-        } else {
-            return "Proposal #" + proposal.getId();
-        }
+        return "Proposal #" + proposal.getId();
     }
 }

@@ -34,11 +34,9 @@ public class MarkOccurrenceProposal extends Proposal {
     private MediaFile originalMediaFile;
 
     @Type(PgVectorType.class)
-    @Column(name = "embedding", columnDefinition = "vector")
+    @Column(columnDefinition = "vector")
     private float[] embedding;
 
-    // Deprecated fields, kept for gradual migration
-    private String monumentName;
     private Double latitude;
     private Double longitude;
 

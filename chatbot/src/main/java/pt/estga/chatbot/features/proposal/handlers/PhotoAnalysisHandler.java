@@ -27,12 +27,10 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
-        
+
         // suggestMarks will now handle analysis internally if needed
         List<Mark> suggestedMarks = proposalFlowService.suggestMarks(markProposal);
         
