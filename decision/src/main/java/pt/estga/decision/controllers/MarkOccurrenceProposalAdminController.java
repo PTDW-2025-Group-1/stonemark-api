@@ -22,7 +22,7 @@ import pt.estga.decision.entities.ProposalDecisionAttempt;
 import pt.estga.decision.mappers.ProposalAdminMapper;
 import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.decision.services.ProposalAdminService;
-import pt.estga.decision.services.ProposalDecisionService;
+import pt.estga.decision.services.MarkOccurrenceProposalDecisionService;
 import pt.estga.decision.dtos.ProposalFilter;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.proposal.services.MonumentCreationService;
@@ -39,7 +39,7 @@ import pt.estga.user.services.UserService;
 @Tag(name = "Proposal Moderation", description = "Endpoints for proposal moderation actions.")
 public class MarkOccurrenceProposalAdminController {
 
-    private final ProposalDecisionService proposalDecisionService;
+    private final MarkOccurrenceProposalDecisionService markOccurrenceProposalDecisionService;
     private final MonumentCreationService monumentCreationService;
     private final ProposalAdminService proposalAdminService;
     private final ProposalAdminMapper proposalAdminMapper;
@@ -100,7 +100,7 @@ public class MarkOccurrenceProposalAdminController {
         }
         User moderator = userService.findById(principal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Moderator not found"));
-        proposalDecisionService.makeManualDecision(id, request.outcome(), request.notes(), moderator);
+        markOccurrenceProposalDecisionService.makeManualDecision(id, request.outcome(), request.notes(), moderator);
         return ResponseEntity.ok().build();
     }
 
@@ -112,7 +112,7 @@ public class MarkOccurrenceProposalAdminController {
     })
     @PostMapping("/{id}/decisions/automatic/rerun")
     public ResponseEntity<Void> rerunAutomaticDecision(@PathVariable Long id) {
-        proposalDecisionService.makeAutomaticDecision(id);
+        markOccurrenceProposalDecisionService.makeAutomaticDecision(id);
         return ResponseEntity.ok().build();
     }
 
@@ -135,7 +135,7 @@ public class MarkOccurrenceProposalAdminController {
             throw new IllegalArgumentException("Decision attempt does not belong to this proposal");
         }
         
-        proposalDecisionService.activateDecision(attemptId);
+        markOccurrenceProposalDecisionService.activateDecision(attemptId);
         return ResponseEntity.ok().build();
     }
 

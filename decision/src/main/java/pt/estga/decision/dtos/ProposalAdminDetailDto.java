@@ -27,10 +27,6 @@ public record ProposalAdminDetailDto(
     // Linked Entities Info
     Long existingMonumentId,
     String existingMonumentName,
-    Long existingMarkId,
-
-    // Moderation Info
-    ActiveDecisionViewDto activeDecision,
-    List<DecisionHistoryItem> decisionHistory
+    Long existingMarkId
 ) {
 }

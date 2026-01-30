@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
-import pt.estga.decision.services.ProposalDecisionService;
+import pt.estga.decision.services.MarkOccurrenceProposalDecisionService;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
@@ -18,7 +18,7 @@ import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 @Slf4j
 public class ProposalEventListener {
 
-    private final ProposalDecisionService proposalDecisionService;
+    private final MarkOccurrenceProposalDecisionService markOccurrenceProposalDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final MonumentService monumentService;
 
@@ -30,7 +30,7 @@ public class ProposalEventListener {
         log.debug("Async processing of submitted proposal ID: {}", proposalId);
 
         proposalRepo.findById(proposalId).ifPresentOrElse(
-                proposalDecisionService::makeAutomaticDecision,
+                markOccurrenceProposalDecisionService::makeAutomaticDecision,
                 () -> log.error("Proposal with ID {} not found during async processing", proposalId)
         );
     }

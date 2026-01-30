@@ -5,15 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.proposal.config.ProposalDecisionProperties;
-import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.decision.entities.ProposalDecisionAttempt;
 import pt.estga.decision.enums.DecisionOutcome;
 import pt.estga.decision.enums.DecisionType;
+import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
-import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
+import pt.estga.proposal.repositories.ProposalRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.user.entities.User;
 
@@ -22,12 +21,11 @@ import java.time.Instant;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ProposalDecisionService {
+public abstract class ProposalDecisionService<T extends Proposal> {
 
-    private final ProposalDecisionAttemptRepository attemptRepo;
-    private final MarkOccurrenceProposalRepository proposalRepo;
-    private final ApplicationEventPublisher eventPublisher;
-    private final ProposalDecisionProperties properties;
+    protected final ProposalDecisionAttemptRepository attemptRepo;
+    protected final ProposalRepository<T> proposalRepo;
+    protected final ApplicationEventPublisher eventPublisher;
 
     /**
      * Triggers the automatic decision logic for a proposal by ID.
@@ -35,47 +33,16 @@ public class ProposalDecisionService {
     @Transactional
     public ProposalDecisionAttempt makeAutomaticDecision(Long proposalId) {
         log.info("Processing automatic decision for proposal ID: {}", proposalId);
-        MarkOccurrenceProposal proposal = getProposalOrThrow(proposalId);
+        T proposal = getProposalOrThrow(proposalId);
         return makeAutomaticDecision(proposal);
     }
 
     /**
      * Triggers the automatic decision logic for a proposal entity.
+     * Subclasses must implement the specific logic for automatic decision making.
      */
     @Transactional
-    public ProposalDecisionAttempt makeAutomaticDecision(MarkOccurrenceProposal proposal) {
-        log.debug("Running automatic decision logic for proposal ID: {}, Priority: {}", proposal.getId(), proposal.getPriority());
-
-        DecisionOutcome outcome;
-        boolean confident = false;
-
-        // If the proposal requires a new monument, it must be reviewed manually
-        if (proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
-            log.info("Proposal ID {} requires new monument creation. Marking as inconclusive for manual review.", proposal.getId());
-            outcome = DecisionOutcome.INCONCLUSIVE;
-            confident = true; // Confidently sending to manual review
-        } else if (proposal.getPriority() != null && proposal.getPriority() > properties.getAutomaticAcceptanceThreshold()) {
-            outcome = DecisionOutcome.ACCEPT;
-            confident = true;
-        } else if (proposal.getPriority() != null && proposal.getPriority() < properties.getAutomaticRejectionThreshold()) {
-            outcome = DecisionOutcome.REJECT;
-        } else {
-            outcome = DecisionOutcome.INCONCLUSIVE;
-        }
-
-        log.info("Automatic decision outcome for proposal ID {}: {} (Confident: {})", proposal.getId(), outcome, confident);
-
-        ProposalDecisionAttempt attempt = ProposalDecisionAttempt.builder()
-                .proposal(proposal)
-                .type(DecisionType.AUTOMATIC)
-                .outcome(outcome)
-                .confident(confident)
-                .notes("Priority-based automatic evaluation")
-                .decidedAt(Instant.now())
-                .build();
-
-        return saveAndApplyDecision(proposal, attempt);
-    }
+    public abstract ProposalDecisionAttempt makeAutomaticDecision(T proposal);
 
     /**
      * Creates a manual decision for a proposal.
@@ -83,12 +50,9 @@ public class ProposalDecisionService {
     @Transactional
     public ProposalDecisionAttempt makeManualDecision(Long proposalId, DecisionOutcome outcome, String notes, User moderator) {
         log.info("Creating manual decision for proposal ID: {}, Outcome: {}, Moderator ID: {}", proposalId, outcome, moderator.getId());
-        MarkOccurrenceProposal proposal = getProposalOrThrow(proposalId);
+        T proposal = getProposalOrThrow(proposalId);
 
-        // If accepting, and it's a new monument, ensure monument is created
-        if (outcome == DecisionOutcome.ACCEPT && proposal.getExistingMonument() == null && proposal.getMonumentName() != null) {
-            throw new IllegalStateException("Cannot approve proposal for new monument without creating the monument first.");
-        }
+        validateManualDecision(proposal, outcome);
 
         ProposalDecisionAttempt attempt = ProposalDecisionAttempt.builder()
                 .proposal(proposal)
@@ -104,6 +68,13 @@ public class ProposalDecisionService {
     }
 
     /**
+     * Optional validation hook for manual decisions.
+     */
+    protected void validateManualDecision(T proposal, DecisionOutcome outcome) {
+        // Default implementation does nothing
+    }
+
+    /**
      * Activates a specific decision attempt for a proposal.
      */
     @Transactional
@@ -111,7 +82,8 @@ public class ProposalDecisionService {
         ProposalDecisionAttempt attempt = attemptRepo.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Decision attempt not found with id: " + attemptId));
         
-        MarkOccurrenceProposal proposal = attempt.getProposal();
+        @SuppressWarnings("unchecked")
+        T proposal = (T) attempt.getProposal();
         log.info("Activating decision attempt ID: {} for proposal ID: {}", attemptId, proposal.getId());
 
         saveAndApplyDecision(proposal, attempt);
@@ -122,7 +94,7 @@ public class ProposalDecisionService {
      */
     @Transactional
     public void deactivateDecision(Long proposalId) {
-        MarkOccurrenceProposal proposal = getProposalOrThrow(proposalId);
+        T proposal = getProposalOrThrow(proposalId);
         log.info("Deactivating decision for proposal ID: {}", proposalId);
 
         if (proposal.getStatus() == ProposalStatus.UNDER_REVIEW || proposal.getStatus() == ProposalStatus.SUBMITTED) {
@@ -138,7 +110,7 @@ public class ProposalDecisionService {
 
     // ==== Helper Methods ====
 
-    private ProposalDecisionAttempt saveAndApplyDecision(MarkOccurrenceProposal proposal, ProposalDecisionAttempt attempt) {
+    protected ProposalDecisionAttempt saveAndApplyDecision(T proposal, ProposalDecisionAttempt attempt) {
         attemptRepo.save(attempt);
         log.debug("Saved decision attempt with ID: {}", attempt.getId());
 
@@ -147,13 +119,15 @@ public class ProposalDecisionService {
         log.info("Updated proposal ID: {} status to: {}", proposal.getId(), proposal.getStatus());
 
         if (attempt.getOutcome() == DecisionOutcome.ACCEPT) {
-            eventPublisher.publishEvent(new ProposalAcceptedEvent(this, proposal));
+            publishAcceptedEvent(proposal);
         }
 
         return attempt;
     }
 
-    private void applyDecisionToProposal(MarkOccurrenceProposal proposal, ProposalDecisionAttempt decision) {
+    protected abstract void publishAcceptedEvent(T proposal);
+
+    private void applyDecisionToProposal(T proposal, ProposalDecisionAttempt decision) {
         if (decision.getType() == DecisionType.MANUAL) {
             proposal.setStatus(decision.getOutcome() == DecisionOutcome.ACCEPT
                     ? ProposalStatus.MANUALLY_ACCEPTED
@@ -171,7 +145,7 @@ public class ProposalDecisionService {
         }
     }
 
-    private MarkOccurrenceProposal getProposalOrThrow(Long id) {
+    protected T getProposalOrThrow(Long id) {
         return proposalRepo.findById(id)
                 .orElseThrow(() -> {
                     log.error("Proposal with ID {} not found", id);

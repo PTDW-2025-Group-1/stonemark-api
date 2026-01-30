@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import pt.estga.decision.entities.ProposalDecisionAttempt;
 import pt.estga.decision.enums.DecisionOutcome;
 import pt.estga.decision.enums.DecisionType;
@@ -12,6 +13,7 @@ import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.proposal.config.ProposalDecisionProperties;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
+import pt.estga.proposal.events.ProposalAcceptedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.user.entities.User;
@@ -24,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ProposalDecisionServiceTest {
+class MarkOccurrenceProposalDecisionServiceTest {
 
     @Mock
     private ProposalDecisionAttemptRepository attemptRepo;
@@ -33,10 +35,13 @@ class ProposalDecisionServiceTest {
     private MarkOccurrenceProposalRepository proposalRepo;
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private ProposalDecisionProperties properties;
 
     @InjectMocks
-    private ProposalDecisionService proposalDecisionService;
+    private MarkOccurrenceProposalDecisionService markOccurrenceProposalDecisionService;
 
     // ==== Automatic Decision Tests ====
 
@@ -48,7 +53,7 @@ class ProposalDecisionServiceTest {
         when(properties.getAutomaticAcceptanceThreshold()).thenReturn(150);
 
         // Act
-        ProposalDecisionAttempt result = proposalDecisionService.makeAutomaticDecision(proposal);
+        ProposalDecisionAttempt result = markOccurrenceProposalDecisionService.makeAutomaticDecision(proposal);
 
         // Assert
         assertEquals(DecisionType.AUTOMATIC, result.getType());
@@ -58,6 +63,7 @@ class ProposalDecisionServiceTest {
 
         verify(attemptRepo).save(any(ProposalDecisionAttempt.class));
         verify(proposalRepo).save(proposal);
+        verify(eventPublisher).publishEvent(any(ProposalAcceptedEvent.class));
     }
 
     @Test
@@ -69,7 +75,7 @@ class ProposalDecisionServiceTest {
         when(properties.getAutomaticRejectionThreshold()).thenReturn(10);
 
         // Act
-        ProposalDecisionAttempt result = proposalDecisionService.makeAutomaticDecision(proposal);
+        ProposalDecisionAttempt result = markOccurrenceProposalDecisionService.makeAutomaticDecision(proposal);
 
         // Assert
         assertEquals(DecisionOutcome.REJECT, result.getOutcome());
@@ -89,7 +95,7 @@ class ProposalDecisionServiceTest {
         when(properties.getAutomaticRejectionThreshold()).thenReturn(10);
 
         // Act
-        ProposalDecisionAttempt result = proposalDecisionService.makeAutomaticDecision(proposal);
+        ProposalDecisionAttempt result = markOccurrenceProposalDecisionService.makeAutomaticDecision(proposal);
 
         // Assert
         assertEquals(DecisionOutcome.INCONCLUSIVE, result.getOutcome());
@@ -112,7 +118,7 @@ class ProposalDecisionServiceTest {
         when(properties.getAutomaticAcceptanceThreshold()).thenReturn(150);
 
         // Act
-        ProposalDecisionAttempt result = proposalDecisionService.makeAutomaticDecision(proposalId);
+        ProposalDecisionAttempt result = markOccurrenceProposalDecisionService.makeAutomaticDecision(proposalId);
 
         // Assert
         assertNotNull(result);
@@ -140,7 +146,7 @@ class ProposalDecisionServiceTest {
         when(proposalRepo.findById(proposalId)).thenReturn(Optional.of(proposal));
 
         // Act
-        ProposalDecisionAttempt result = proposalDecisionService.makeManualDecision(proposalId, outcome, notes, moderator);
+        ProposalDecisionAttempt result = markOccurrenceProposalDecisionService.makeManualDecision(proposalId, outcome, notes, moderator);
 
         // Assert
         assertNotNull(result);
@@ -154,6 +160,7 @@ class ProposalDecisionServiceTest {
 
         verify(attemptRepo).save(any(ProposalDecisionAttempt.class));
         verify(proposalRepo).save(proposal);
+        verify(eventPublisher).publishEvent(any(ProposalAcceptedEvent.class));
     }
 
     @Test
@@ -166,7 +173,7 @@ class ProposalDecisionServiceTest {
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () ->
-            proposalDecisionService.makeManualDecision(proposalId, DecisionOutcome.ACCEPT, "notes", moderator)
+            markOccurrenceProposalDecisionService.makeManualDecision(proposalId, DecisionOutcome.ACCEPT, "notes", moderator)
         );
     }
 
@@ -190,11 +197,12 @@ class ProposalDecisionServiceTest {
         when(attemptRepo.findById(attemptId)).thenReturn(Optional.of(attempt));
 
         // Act
-        proposalDecisionService.activateDecision(attemptId);
+        markOccurrenceProposalDecisionService.activateDecision(attemptId);
 
         // Assert
         assertEquals(ProposalStatus.MANUALLY_ACCEPTED, proposal.getStatus());
         verify(proposalRepo).save(proposal);
+        verify(eventPublisher).publishEvent(any(ProposalAcceptedEvent.class));
     }
 
     @Test
@@ -208,7 +216,7 @@ class ProposalDecisionServiceTest {
         when(proposalRepo.findById(proposalId)).thenReturn(Optional.of(proposal));
 
         // Act
-        proposalDecisionService.deactivateDecision(proposalId);
+        markOccurrenceProposalDecisionService.deactivateDecision(proposalId);
 
         // Assert
         assertEquals(ProposalStatus.UNDER_REVIEW, proposal.getStatus());
