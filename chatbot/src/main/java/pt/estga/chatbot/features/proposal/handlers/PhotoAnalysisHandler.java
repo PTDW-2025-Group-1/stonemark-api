@@ -12,7 +12,7 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.content.entities.Mark;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
 import java.util.stream.Collectors;

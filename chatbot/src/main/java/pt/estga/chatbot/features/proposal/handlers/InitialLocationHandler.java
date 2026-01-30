@@ -10,7 +10,7 @@ import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
@@ -25,15 +25,12 @@ public class InitialLocationHandler implements ConversationStateHandler {
         }
 
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
 
-        proposalFlowService.addLocation(
-                (MarkOccurrenceProposal) proposal,
-                input.getLocation().getLatitude(),
-                input.getLocation().getLongitude()
-        );
+        markProposal.setLatitude(input.getLocation().getLatitude());
+        markProposal.setLongitude(input.getLocation().getLongitude());
 
         // Automatically transition to photo analysis
         return HandlerOutcome.SUCCESS;

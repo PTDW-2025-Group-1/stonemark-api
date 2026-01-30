@@ -22,7 +22,7 @@ import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;

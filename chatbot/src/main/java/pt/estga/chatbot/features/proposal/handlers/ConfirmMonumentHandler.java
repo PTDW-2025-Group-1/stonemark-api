@@ -13,7 +13,7 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
