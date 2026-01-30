@@ -2,10 +2,12 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 
@@ -18,8 +20,8 @@ public class ProposalSubmissionListener {
     private final ProposalScoringService scoringService;
 
     @Async
-    @EventListener
-    @Transactional
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleProposalSubmitted(ProposalSubmittedEvent event) {
         Long proposalId = event.getProposalId();
         log.info("Processing submission asynchronously for proposal ID: {}", proposalId);

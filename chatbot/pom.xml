@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-abilities</artifactId>
-            <version>9.2.0</version>
+            <version>9.2.1</version>
         </dependency>
     </dependencies>
 

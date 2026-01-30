@@ -2,11 +2,10 @@ package pt.estga.content.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Array;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.Type;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.shared.audit.AuditedEntity;
+import pt.estga.shared.utils.PgVectorType;
 
 import java.time.Instant;
 
@@ -31,10 +30,9 @@ public class MarkOccurrence extends AuditedEntity {
     @OneToOne(cascade = CascadeType.ALL)
     private MediaFile cover;
 
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 512)
-    @Column(columnDefinition = "vector")
-    private double[] embedding;
+    @Type(PgVectorType.class)
+    @Column(name = "embedding", columnDefinition = "vector")
+    private float[] embedding;
 
     private Long authorId;
     private String authorName;

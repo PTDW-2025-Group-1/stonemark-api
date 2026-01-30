@@ -14,6 +14,7 @@ import pt.estga.content.repositories.MarkRepository;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.file.services.MediaService;
+import pt.estga.shared.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class MarkDetectionListener {
                 Optional<Mark> markOpt = markRepository.findById(event.getMarkId());
                 if (markOpt.isPresent()) {
                     Mark mark = markOpt.get();
-                    mark.setEmbedding(detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray());
+                    mark.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
                     markRepository.save(mark);
                 }
             }
@@ -60,7 +61,7 @@ public class MarkDetectionListener {
                 Optional<MarkOccurrence> occurrenceOpt = markOccurrenceRepository.findById(event.getOccurrenceId());
                 if (occurrenceOpt.isPresent()) {
                     MarkOccurrence occurrence = occurrenceOpt.get();
-                    occurrence.setEmbedding(detectionResult.embedding().stream().mapToDouble(Double::doubleValue).toArray());
+                    occurrence.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
                     markOccurrenceRepository.save(occurrence);
                 }
             }

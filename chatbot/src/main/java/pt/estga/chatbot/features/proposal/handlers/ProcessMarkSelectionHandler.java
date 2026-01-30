@@ -10,6 +10,8 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
@@ -26,8 +28,14 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
             return HandlerOutcome.AWAITING_INPUT;
         }
 
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
+
         if (callbackData.startsWith(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
+            proposalFlowService.indicateNewMark(markProposal);
             return HandlerOutcome.SUCCESS;
         }
 
@@ -46,13 +54,13 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
                 }
                 try {
                     Long markId = Long.valueOf(callbackParts[2]);
-                    proposalFlowService.selectMark(context.getProposalContext().getProposalId(), markId);
+                    proposalFlowService.selectMark(markProposal, markId);
                     return HandlerOutcome.SUCCESS;
                 } catch (NumberFormatException e) {
                     return HandlerOutcome.FAILURE;
                 }
             } else if (rejected) {
-                proposalFlowService.indicateNewMark(context.getProposalContext().getProposalId());
+                proposalFlowService.indicateNewMark(markProposal);
                 return HandlerOutcome.REJECTED;
             }
         }

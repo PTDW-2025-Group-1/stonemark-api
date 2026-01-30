@@ -10,6 +10,8 @@ import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.content.entities.Mark;
+import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
@@ -24,20 +26,25 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
-        Long proposalId = context.getProposalContext().getProposalId();
+        Proposal proposal = context.getProposalContext().getProposal();
+        if (!(proposal instanceof MarkOccurrenceProposal)) {
+            return HandlerOutcome.FAILURE;
+        }
+        
+        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
         
         // suggestMarks will now handle analysis internally if needed
-        List<Mark> suggestedMarks = proposalFlowService.suggestMarks(proposalId);
+        List<Mark> suggestedMarks = proposalFlowService.suggestMarks(markProposal);
         
         List<String> suggestedMarkIds = suggestedMarks.stream()
                 .map(mark -> mark.getId().toString())
                 .collect(Collectors.toList());
         context.getProposalContext().setSuggestedMarkIds(suggestedMarkIds);
 
-        log.info("Photo analysis complete for proposal {}. Found {} suggestions.", proposalId, suggestedMarks.size());
+        log.info("Photo analysis complete for proposal. Found {} suggestions.", suggestedMarks.size());
 
         if (suggestedMarks.isEmpty()) {
-            proposalFlowService.indicateNewMark(proposalId);
+            proposalFlowService.indicateNewMark(markProposal);
         }
 
         return HandlerOutcome.SUCCESS;

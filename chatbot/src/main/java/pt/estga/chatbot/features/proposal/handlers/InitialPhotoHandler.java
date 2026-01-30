@@ -9,6 +9,7 @@ import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
@@ -29,17 +30,22 @@ public class InitialPhotoHandler implements ConversationStateHandler {
         }
 
         try {
-            Long proposalId = context.getProposalContext().getProposalId();
-            if (proposalId == null) {
+            Proposal proposal = context.getProposalContext().getProposal();
+            MarkOccurrenceProposal markProposal;
+
+            if (proposal == null) {
                 User user = userService.findById(context.getDomainUserId())
                         .orElseThrow(() -> new RuntimeException("User not found"));
-                MarkOccurrenceProposal newProposal = proposalFlowService.startProposal(user);
-                proposalId = newProposal.getId();
-                context.getProposalContext().setProposalId(proposalId);
+                markProposal = proposalFlowService.startProposal(user);
+                context.getProposalContext().setProposal(markProposal);
+            } else if (proposal instanceof MarkOccurrenceProposal) {
+                markProposal = (MarkOccurrenceProposal) proposal;
+            } else {
+                return HandlerOutcome.FAILURE;
             }
 
             proposalFlowService.addPhoto(
-                    proposalId,
+                    markProposal,
                     input.getFileData(),
                     input.getFileName()
             );
