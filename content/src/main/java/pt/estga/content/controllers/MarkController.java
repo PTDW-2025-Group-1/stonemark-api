@@ -15,7 +15,6 @@ import pt.estga.content.services.MarkQueryService;
 import pt.estga.content.services.MarkSearchService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
-import pt.estga.shared.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -62,7 +61,7 @@ public class MarkController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<String> similarMarkIds = markSearchService.searchMarks(VectorUtils.toFloatArray(detectionResult.embedding()));
+        List<String> similarMarkIds = markSearchService.searchMarks(detectionResult.embedding());
         return ResponseEntity.ok(similarMarkIds);
     }
 }

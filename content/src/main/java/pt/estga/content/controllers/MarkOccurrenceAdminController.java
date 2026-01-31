@@ -1,6 +1,7 @@
 package pt.estga.content.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkOccurrenceDto;
+import pt.estga.content.dtos.MarkOccurrenceRequestDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.services.MarkOccurrenceQueryService;
@@ -46,7 +48,7 @@ public class MarkOccurrenceAdminController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkOccurrenceDto> createMarkOccurrence(
-            @RequestPart("data") MarkOccurrenceDto markOccurrenceDto,
+            @RequestPart("data") @Valid MarkOccurrenceRequestDto markOccurrenceDto,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @AuthenticationPrincipal AppPrincipal principal
     ) throws IOException {
@@ -71,7 +73,7 @@ public class MarkOccurrenceAdminController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkOccurrenceDto> updateMarkOccurrence(
             @PathVariable Long id,
-            @RequestPart("data") MarkOccurrenceDto markOccurrenceDto,
+            @RequestPart("data") @Valid MarkOccurrenceRequestDto markOccurrenceDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         MarkOccurrence existingMarkOccurrence = service.findById(id)

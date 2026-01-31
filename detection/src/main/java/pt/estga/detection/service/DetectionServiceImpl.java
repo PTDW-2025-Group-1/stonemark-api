@@ -57,7 +57,7 @@ public class DetectionServiceImpl implements DetectionService {
 
         if (result == null) {
             log.warn("Detection response body is null. Returning a failed detection result.");
-            return new DetectionResult(false, null);
+            return new DetectionResult(false, new float[0]);
         }
 
         log.info("Detection process completed. Mason mark detected: {}", result.isMasonMark());

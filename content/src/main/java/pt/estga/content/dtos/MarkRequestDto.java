@@ -1,8 +1,6 @@
 package pt.estga.content.dtos;
 
-public record MarkDto(
-        Long id,
-        String title,
+public record MarkRequestDto(
         String description,
         float[] embedding,
         Long coverId,

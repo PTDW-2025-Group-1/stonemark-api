@@ -18,7 +18,6 @@ import pt.estga.content.services.MarkOccurrenceQueryService;
 import pt.estga.content.services.MarkSearchService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
-import pt.estga.shared.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -130,7 +129,7 @@ public class MarkOccurrenceController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<String> similarOccurrenceIds = markSearchService.searchOccurrences(VectorUtils.toFloatArray(detectionResult.embedding()));
+        List<String> similarOccurrenceIds = markSearchService.searchOccurrences(detectionResult.embedding());
         return ResponseEntity.ok(similarOccurrenceIds);
     }
 }

@@ -7,6 +7,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MarkOccurrenceListDto;
 import pt.estga.content.dtos.MarkOccurrenceMapDto;
+import pt.estga.content.dtos.MarkOccurrenceRequestDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.dtos.MarkOccurrenceDto;
 
@@ -32,18 +33,16 @@ public interface MarkOccurrenceMapper {
     @Mapping(target = "cover", ignore = true)
     @Mapping(source = "markId", target = "mark.id")
     @Mapping(source = "monumentId", target = "monument.id")
-    @Mapping(target = "monument", ignore = true)
-    @Mapping(target = "mark", ignore = true)
     @Mapping(target = "author", ignore = true)
-    MarkOccurrence toEntity(MarkOccurrenceDto dto);
+    @Mapping(target = "embedding", ignore = true)
+    MarkOccurrence toEntity(MarkOccurrenceRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "cover", ignore = true)
     @Mapping(source = "markId", target = "mark.id")
     @Mapping(source = "monumentId", target = "monument.id")
-    @Mapping(target = "monument", ignore = true)
-    @Mapping(target = "mark", ignore = true)
     @Mapping(target = "author", ignore = true)
-    void updateEntityFromDto(MarkOccurrenceDto dto, @MappingTarget MarkOccurrence entity);
+    @Mapping(target = "embedding", ignore = true)
+    void updateEntityFromDto(MarkOccurrenceRequestDto dto, @MappingTarget MarkOccurrence entity);
 
 }

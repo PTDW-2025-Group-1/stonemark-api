@@ -39,9 +39,10 @@ public class MonumentAdminController {
 
     @GetMapping()
     public ResponseEntity<Page<MonumentDto>> getMonumentsManagement(
-            @PageableDefault(size = 10) Pageable pageable
+            @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(required = false, defaultValue = "true") boolean active
     ) {
-        return ResponseEntity.ok(queryService.findAllWithDivisionsManagement(pageable).map(mapper::toResponseDto));
+        return ResponseEntity.ok(queryService.findAllWithDivisions(pageable, active).map(mapper::toResponseDto));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

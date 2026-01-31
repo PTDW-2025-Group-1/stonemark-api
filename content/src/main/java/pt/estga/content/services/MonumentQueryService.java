@@ -11,9 +11,9 @@ public interface MonumentQueryService {
 
     Page<Monument> findAll(Pageable pageable);
 
-    Page<Monument> findAllWithDivisions(Pageable pageable);
+    Page<Monument> findAll(Pageable pageable, boolean active);
 
-    Page<Monument> findAllWithDivisionsManagement(Pageable pageable);
+    Page<Monument> findAllWithDivisions(Pageable pageable, boolean active);
 
     Optional<Monument> findById(Long id);
 

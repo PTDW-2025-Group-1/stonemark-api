@@ -28,17 +28,17 @@ public class MonumentQueryServiceImpl implements MonumentQueryService {
 
     @Override
     public Page<Monument> findAll(Pageable pageable) {
-        return repository.findByActiveTrue(pageable);
+        return repository.findByActive(pageable, true);
     }
 
     @Override
-    public Page<Monument> findAllWithDivisions(Pageable pageable) {
-        return repository.findAllWithDivisions(pageable);
+    public Page<Monument> findAll(Pageable pageable, boolean active) {
+        return repository.findByActive(pageable, active);
     }
 
     @Override
-    public Page<Monument> findAllWithDivisionsManagement(Pageable pageable) {
-        return repository.findAllWithDivisionsAdmin(pageable);
+    public Page<Monument> findAllWithDivisions(Pageable pageable, boolean active) {
+        return repository.findAllWithDivisions(pageable, active);
     }
 
     @Override
@@ -48,13 +48,13 @@ public class MonumentQueryServiceImpl implements MonumentQueryService {
 
     @Override
     public List<Monument> findByCoordinatesInRange(double latitude, double longitude, double range) {
-        return repository.findByCoordinatesInRange(latitude, longitude, range);
+        return repository.findByCoordinatesInRange(latitude, longitude, range, true);
     }
 
     @Override
     public List<Monument> findLatest(int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return repository.findByActiveTrue(pageable).getContent();
+        return repository.findByActive(pageable, true).getContent();
     }
 
     @Override
@@ -64,12 +64,12 @@ public class MonumentQueryServiceImpl implements MonumentQueryService {
 
     @Override
     public Page<Monument> searchByName(String query, Pageable pageable) {
-        return repository.findByNameContainingIgnoreCaseAndActiveTrue(query, pageable);
+        return repository.findByNameContainingIgnoreCaseAndActive(query, pageable, true);
     }
 
     @Override
     public Page<Monument> findByPolygon(String geoJson, Pageable pageable) {
-        return repository.findByPolygon(geoJson, pageable);
+        return repository.findByPolygon(geoJson, pageable, true);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class MonumentQueryServiceImpl implements MonumentQueryService {
         if (division.isPresent()) {
             Geometry geometry = division.get().getGeometry();
             if (geometry != null) {
-                return repository.findByGeometry(geometry, pageable);
+                return repository.findByGeometry(geometry, pageable, true);
             }
         }
         return Page.empty(pageable);
@@ -87,6 +87,6 @@ public class MonumentQueryServiceImpl implements MonumentQueryService {
     @Override
     @Cacheable("popularMonuments")
     public List<Monument> findPopular(int limit) {
-        return repository.findPopular(PageRequest.of(0, limit));
+        return repository.findPopular(PageRequest.of(0, limit), true);
     }
 }

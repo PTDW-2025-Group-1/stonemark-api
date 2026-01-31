@@ -1,6 +1,7 @@
 package pt.estga.content.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkDto;
+import pt.estga.content.dtos.MarkRequestDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.services.MarkQueryService;
@@ -44,7 +46,7 @@ public class MarkAdminController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkDto> createMark(
-            @RequestPart("data") MarkDto markDto,
+            @RequestPart("data") @Valid MarkRequestDto markDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark mark = mapper.toEntity(markDto);
@@ -65,7 +67,7 @@ public class MarkAdminController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkDto> updateMark(
             @PathVariable Long id,
-            @RequestPart("data") MarkDto markDto,
+            @RequestPart("data") @Valid MarkRequestDto markDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark existingMark = service.findById(id)

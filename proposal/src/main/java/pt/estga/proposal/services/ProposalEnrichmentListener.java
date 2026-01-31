@@ -14,7 +14,6 @@ import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.events.ProposalPhotoUploadedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
-import pt.estga.shared.utils.VectorUtils;
 
 import java.io.InputStream;
 
@@ -36,8 +35,8 @@ public class ProposalEnrichmentListener {
 
         try (InputStream detectionInputStream = mediaService.loadFileById(proposal.getOriginalMediaFile().getId()).getInputStream()) {
             DetectionResult detectionResult = detectionService.detect(detectionInputStream, proposal.getOriginalMediaFile().getOriginalFilename());
-            if (detectionResult != null && detectionResult.embedding() != null && !detectionResult.embedding().isEmpty()) {
-                proposal.setEmbedding(VectorUtils.toFloatArray(detectionResult.embedding()));
+            if (detectionResult != null && detectionResult.embedding() != null && detectionResult.embedding().length > 0) {
+                proposal.setEmbedding(detectionResult.embedding());
                 
                 // If the proposal has already been persisted (e.g. user finished flow quickly), update it in DB
                 if (proposal.getId() != null) {
