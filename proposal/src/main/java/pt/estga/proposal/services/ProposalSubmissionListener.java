@@ -2,12 +2,14 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import pt.estga.proposal.events.ProposalScoredEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 
@@ -18,6 +20,7 @@ public class ProposalSubmissionListener {
 
     private final MarkOccurrenceProposalRepository proposalRepository;
     private final ProposalScoringService scoringService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -38,6 +41,10 @@ public class ProposalSubmissionListener {
                     
                     proposalRepository.save(proposal);
                     log.info("Scores updated for proposal ID: {}. Priority={}, Credibility={}", proposalId, priority, credibility);
+
+                    // Publish event indicating scoring is complete
+                    eventPublisher.publishEvent(new ProposalScoredEvent(this, proposalId));
+
                 } catch (Exception e) {
                     log.error("Error calculating scores for proposal ID: {}", proposalId, e);
                     // In a real system, we might want to send this to a dead-letter queue or retry

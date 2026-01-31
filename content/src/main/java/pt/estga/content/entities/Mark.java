@@ -25,7 +25,7 @@ public class Mark extends AuditedEntity {
     private MediaFile cover;
 
     @Type(PgVectorType.class)
-    @Column(name = "embedding", columnDefinition = "vector")
+    @Column(columnDefinition = "vector")
     private float[] embedding;
 
     @Builder.Default

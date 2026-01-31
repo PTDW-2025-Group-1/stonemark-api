@@ -2,6 +2,7 @@ package pt.estga.shared.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,10 +50,16 @@ public class GlobalExceptionHandler {
                 .body(new MessageResponseDto(ex.getMessage()));
     }
 
-    @ExceptionHandler(RuntimeException.class) // Catch generic RuntimeException for now, can be refined
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<MessageResponseDto> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new MessageResponseDto("Content-Type not supported. If uploading a file with JSON data, ensure the JSON part has 'Content-Type: application/json'. Details: " + ex.getBody()));
+    }
+
+    @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        // For "Proposal not found" and similar custom exceptions
-        if (ex.getMessage() != null && ex.getMessage().contains("Proposal not found")) {
+        if (ex.getMessage() != null) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>("An unexpected error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);

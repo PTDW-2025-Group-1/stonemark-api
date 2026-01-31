@@ -6,11 +6,10 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import pt.estga.content.entities.Monument;
 import pt.estga.content.services.MonumentService;
-import pt.estga.decision.services.ProposalDecisionService;
+import pt.estga.decision.services.MarkOccurrenceProposalDecisionService;
 import pt.estga.proposal.events.ProposalAcceptedEvent;
-import pt.estga.proposal.events.ProposalSubmittedEvent;
+import pt.estga.proposal.events.ProposalScoredEvent;
 import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 
 @Component
@@ -18,19 +17,22 @@ import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
 @Slf4j
 public class ProposalEventListener {
 
-    private final ProposalDecisionService proposalDecisionService;
+    private final MarkOccurrenceProposalDecisionService markOccurrenceProposalDecisionService;
     private final MarkOccurrenceProposalRepository proposalRepo;
     private final MonumentService monumentService;
 
     @Async
     @EventListener
     @Transactional
-    public void handleProposalSubmitted(ProposalSubmittedEvent event) {
-        Long proposalId = event.getProposalId();
-        log.debug("Async processing of submitted proposal ID: {}", proposalId);
+    public void handleProposalScored(ProposalScoredEvent event) {
+        var proposalId = event.getProposalId();
+        log.info("Starting async automatic decision process for proposal ID: {}", proposalId);
 
         proposalRepo.findById(proposalId).ifPresentOrElse(
-                proposalDecisionService::makeAutomaticDecision,
+                proposal -> {
+                    markOccurrenceProposalDecisionService.makeAutomaticDecision(proposal);
+                    log.info("Completed async automatic decision process for proposal ID: {}", proposalId);
+                },
                 () -> log.error("Proposal with ID {} not found during async processing", proposalId)
         );
     }
@@ -39,16 +41,17 @@ public class ProposalEventListener {
     @EventListener
     @Transactional
     public void handleProposalAccepted(ProposalAcceptedEvent event) {
-        Long proposalId = event.getProposal().getId();
-        log.debug("Async processing of accepted proposal ID: {}", proposalId);
+        var proposalId = event.getProposal().getId();
+        log.info("Starting async acceptance processing for proposal ID: {}", proposalId);
 
-        proposalRepo.findById(proposalId).ifPresent(proposal -> {
+        proposalRepo.findById(proposalId).ifPresentOrElse(proposal -> {
             if (proposal.getExistingMonument() != null && !proposal.getExistingMonument().getActive()) {
-                Monument monument = proposal.getExistingMonument();
+                var monument = proposal.getExistingMonument();
                 monument.setActive(true);
                 monumentService.update(monument);
-                log.info("Activated monument ID: {}", monument.getId());
+                log.info("Activated monument ID: {} as part of proposal acceptance", monument.getId());
             }
-        });
+            log.info("Completed async acceptance processing for proposal ID: {}", proposalId);
+        }, () -> log.error("Proposal with ID {} not found during async acceptance processing", proposalId));
     }
 }

@@ -10,6 +10,8 @@ import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalCreateDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
+import pt.estga.proposal.entities.MarkProposal;
+import pt.estga.proposal.entities.MonumentProposal;
 import pt.estga.proposal.enums.ProposalStatus;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.user.entities.User;
@@ -53,7 +55,6 @@ public class MarkOccurrenceProposalSubmissionService {
                 .latitude(dto.latitude())
                 .longitude(dto.longitude())
                 .userNotes(dto.userNotes())
-                .monumentName(dto.monumentName())
                 .submissionSource(dto.submissionSource())
                 .submittedBy(user)
                 .submittedAt(Instant.now())

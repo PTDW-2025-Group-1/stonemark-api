@@ -8,9 +8,11 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.chatbot.models.Platform;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.enums.SubmissionSource;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
@@ -36,7 +38,12 @@ public class InitialPhotoHandler implements ConversationStateHandler {
             if (proposal == null) {
                 User user = userService.findById(context.getDomainUserId())
                         .orElseThrow(() -> new RuntimeException("User not found"));
-                markProposal = proposalFlowService.startProposal(user);
+                
+                markProposal = proposalFlowService.startProposal(
+                        user,
+                        mapPlatformToSubmissionSource(input.getPlatform())
+                );
+
                 context.getProposalContext().setProposal(markProposal);
             } else if (proposal instanceof MarkOccurrenceProposal) {
                 markProposal = (MarkOccurrenceProposal) proposal;
@@ -59,5 +66,16 @@ public class InitialPhotoHandler implements ConversationStateHandler {
     @Override
     public ConversationState canHandle() {
         return ProposalState.WAITING_FOR_PHOTO;
+    }
+
+    private SubmissionSource mapPlatformToSubmissionSource(Platform platform) {
+        if (platform == null) {
+            return SubmissionSource.OTHER;
+        }
+        return switch (platform) {
+            case TELEGRAM -> SubmissionSource.TELEGRAM_BOT;
+            case WHATSAPP -> SubmissionSource.WHATSAPP;
+            default -> SubmissionSource.OTHER;
+        };
     }
 }

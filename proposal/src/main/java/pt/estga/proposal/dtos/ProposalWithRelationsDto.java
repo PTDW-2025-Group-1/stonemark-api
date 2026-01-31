@@ -1,4 +1,4 @@
-package pt.estga.decision.dtos;
+package pt.estga.proposal.dtos;
 
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.dtos.MonumentDto;
@@ -15,7 +15,6 @@ public record ProposalWithRelationsDto(
         MonumentDto existingMonument,
         MediaFileDto originalMediaFile,
         String userNotes,
-        String monumentName,
         Double latitude,
         Double longitude,
         SubmissionSource submissionSource,
@@ -25,7 +24,6 @@ public record ProposalWithRelationsDto(
         UserDto submittedBy,
         Instant submittedAt,
         boolean newMark,
-        ActiveDecisionViewDto activeDecision,
         ProposalStatus status
 ) {
 }

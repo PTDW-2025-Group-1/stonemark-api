@@ -24,8 +24,8 @@ public class ProposalFlowStrategy implements FlowStrategy {
             Map.entry(ProposalState.AWAITING_MARK_SELECTION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.WAITING_FOR_MARK_CONFIRMATION, ProposalState.MARK_SELECTED),
             Map.entry(ProposalState.MARK_SELECTED, ProposalState.AWAITING_MONUMENT_SUGGESTIONS),
+            Map.entry(ProposalState.AWAITING_MONUMENT_SELECTION, ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION),
             Map.entry(ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION, ProposalState.AWAITING_NOTES),
-            Map.entry(ProposalState.AWAITING_NEW_MONUMENT_NAME, ProposalState.AWAITING_NOTES),
             Map.entry(ProposalState.AWAITING_NOTES, ProposalState.SUBMITTED),
             Map.entry(ProposalState.SUBMITTED, CoreState.MAIN_MENU)
     );
@@ -71,15 +71,17 @@ public class ProposalFlowStrategy implements FlowStrategy {
         if (currentState == ProposalState.AWAITING_MONUMENT_SUGGESTIONS && outcome == SUCCESS) {
             List<String> suggestions = context.getProposalContext().getSuggestedMonumentIds();
             if (suggestions == null || suggestions.isEmpty()) {
-                return ProposalState.AWAITING_NEW_MONUMENT_NAME;
-            } else {
+                return ProposalState.AWAITING_NOTES;
+            } else if (suggestions.size() == 1) {
                 return ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION;
+            } else {
+                return ProposalState.AWAITING_MONUMENT_SELECTION;
             }
         }
 
         // Handle branching from monument confirmation
         if (currentState == ProposalState.WAITING_FOR_MONUMENT_CONFIRMATION && outcome == REJECTED) {
-            return ProposalState.AWAITING_NEW_MONUMENT_NAME;
+            return ProposalState.AWAITING_NOTES;
         }
 
         if (outcome == SUCCESS) {

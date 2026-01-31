@@ -31,7 +31,7 @@ public class MarkOccurrence extends AuditedEntity {
     private MediaFile cover;
 
     @Type(PgVectorType.class)
-    @Column(name = "embedding", columnDefinition = "vector")
+    @Column(columnDefinition = "vector")
     private float[] embedding;
 
     private Long authorId;

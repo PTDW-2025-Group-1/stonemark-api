@@ -24,14 +24,19 @@ public class MarkOccurrenceProposal extends Proposal {
     @ManyToOne(fetch = FetchType.LAZY)
     private Monument existingMonument;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private MonumentProposal proposedMonument;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private MarkProposal proposedMark;
+
     @OneToOne(fetch = FetchType.LAZY)
     private MediaFile originalMediaFile;
 
     @Type(PgVectorType.class)
-    @Column(name = "embedding", columnDefinition = "vector")
+    @Column(columnDefinition = "vector")
     private float[] embedding;
 
-    private String monumentName;
     private Double latitude;
     private Double longitude;
 

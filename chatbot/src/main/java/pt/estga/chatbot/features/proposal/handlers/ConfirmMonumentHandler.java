@@ -10,15 +10,14 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.content.entities.Monument;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
 public class ConfirmMonumentHandler implements ConversationStateHandler {
-
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
@@ -42,10 +41,14 @@ public class ConfirmMonumentHandler implements ConversationStateHandler {
             try {
                 Long monumentId = Long.valueOf(callbackParts[2]);
                 Proposal proposal = context.getProposalContext().getProposal();
-                if (!(proposal instanceof MarkOccurrenceProposal)) {
+                if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
                     return HandlerOutcome.FAILURE;
                 }
-                proposalFlowService.selectMonument((MarkOccurrenceProposal) proposal, monumentId);
+                
+                // Instead of calling proposalFlowService.selectMonument, we set it directly on the proposal object
+                // because we are now submitting all at once at the end.
+                markProposal.setExistingMonument(Monument.builder().id(monumentId).build());
+
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;

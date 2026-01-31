@@ -22,7 +22,7 @@ import pt.estga.content.services.MarkService;
 import pt.estga.content.services.MonumentService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,9 +59,8 @@ public class ProposalResponseProvider implements ResponseProvider {
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
             case AWAITING_MONUMENT_SUGGESTIONS -> createMonumentSuggestionsResponse(context);
+            case AWAITING_MONUMENT_SELECTION -> createMonumentSuggestionsResponse(context);
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
-            case AWAITING_NEW_MONUMENT_NAME ->
-                    buildSimpleMenuResponse(new Message(MessageKey.PROVIDE_NEW_MONUMENT_NAME_PROMPT, MONUMENT));
             case AWAITING_NOTES -> createNotesResponse();
             case SUBMITTED -> createSubmissionSuccessResponse(input);
             default -> {
@@ -140,42 +139,35 @@ public class ProposalResponseProvider implements ResponseProvider {
 
     private List<BotResponse> createMarkSelectedResponse(ChatbotContext context) {
         Proposal proposal = context.getProposalContext().getProposal();
-        if (proposal instanceof MarkOccurrenceProposal) {
-            Long markId = ((MarkOccurrenceProposal) proposal).getExistingMark().getId();
-            return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+        if (proposal instanceof MarkOccurrenceProposal markProposal) {
+            if (markProposal.getExistingMark() != null) {
+                Long markId = markProposal.getExistingMark().getId();
+                return buildSimpleMenuResponse(new Message(MessageKey.MARK_SELECTED_CONFIRMATION, markId));
+            }
         }
         return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
     }
 
     private List<BotResponse> createMonumentSuggestionsResponse(ChatbotContext context) {
-        Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
-            return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
-        }
-        
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments((MarkOccurrenceProposal) proposal);
+        List<String> suggestedMonumentIds = context.getProposalContext().getSuggestedMonumentIds();
 
-        if (suggestedMonuments.isEmpty()) {
+        if (suggestedMonumentIds == null || suggestedMonumentIds.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.NO_MONUMENTS_FOUND));
         }
 
         List<BotResponse> responses = new ArrayList<>();
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MONUMENTS_TITLE, SEARCH))).build()).build());
 
-        for (Monument monument : suggestedMonuments) {
-            Menu selectionMenu = Menu.builder()
-                    .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
-                    .buttons(List.of(List.of(
-                            Button.builder().textNode(textService.get(new Message(MessageKey.SELECT_BTN, CHECK))).callbackData(ProposalCallbackData.SELECT_MONUMENT_PREFIX + monument.getId()).build()
-                    ))).build();
-            responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
+        for (String monumentId : suggestedMonumentIds) {
+            monumentService.findById(Long.valueOf(monumentId)).ifPresent(monument -> {
+                Menu selectionMenu = Menu.builder()
+                        .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
+                        .buttons(List.of(List.of(
+                                Button.builder().textNode(textService.get(new Message(MessageKey.SELECT_BTN, CHECK))).callbackData(ProposalCallbackData.SELECT_MONUMENT_PREFIX + monument.getId()).build()
+                        ))).build();
+                responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
+            });
         }
-
-        Menu proposeNewMenu = Menu.builder()
-                .titleNode(textService.get(new Message(MessageKey.IF_NONE_OF_ABOVE_OPTIONS_MATCH)))
-                .buttons(List.of(List.of(Button.builder().textNode(textService.get(new Message(MessageKey.PROPOSE_NEW_MONUMENT_BTN, NEW))).callbackData(ProposalCallbackData.PROPOSE_NEW_MONUMENT).build())))
-                .build();
-        responses.add(BotResponse.builder().uiComponent(proposeNewMenu).build());
 
         return responses;
     }

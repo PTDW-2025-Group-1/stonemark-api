@@ -10,9 +10,10 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.content.entities.Mark;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
@@ -29,13 +30,13 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
         }
 
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
 
         if (callbackData.startsWith(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(markProposal);
+            markProposal.setNewMark(true);
+            markProposal.setExistingMark(null);
             return HandlerOutcome.SUCCESS;
         }
 
@@ -54,13 +55,15 @@ public class ProcessMarkSelectionHandler implements ConversationStateHandler {
                 }
                 try {
                     Long markId = Long.valueOf(callbackParts[2]);
-                    proposalFlowService.selectMark(markProposal, markId);
+                    markProposal.setExistingMark(Mark.builder().id(markId).build());
+                    markProposal.setNewMark(false);
                     return HandlerOutcome.SUCCESS;
                 } catch (NumberFormatException e) {
                     return HandlerOutcome.FAILURE;
                 }
             } else if (rejected) {
-                proposalFlowService.indicateNewMark(markProposal);
+                markProposal.setNewMark(true);
+                markProposal.setExistingMark(null);
                 return HandlerOutcome.REJECTED;
             }
         }

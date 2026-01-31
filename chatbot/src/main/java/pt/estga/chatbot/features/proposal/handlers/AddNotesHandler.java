@@ -7,7 +7,7 @@ import pt.estga.chatbot.features.proposal.ProposalCallbackData;
 import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 
 @Component
@@ -28,7 +28,7 @@ public class AddNotesHandler implements ConversationStateHandler {
         // Handle "skip" or text input for notes
         if (input.getCallbackData() == null || !input.getCallbackData().equals(ProposalCallbackData.SKIP_NOTES)) {
             if (input.getText() != null) {
-                proposalFlowService.addNotes(markProposal, input.getText());
+                markProposal.setUserNotes(input.getText());
             }
         }
 

@@ -17,6 +17,7 @@ public class ProposalDecisionProperties {
      */
     private Integer automaticAcceptanceThreshold = 150;
     private Integer automaticRejectionThreshold = 10;
+    private Boolean requireManualReviewForNewMonuments = true;
 
     /**
      * Priority Scoring Configuration.
@@ -41,6 +42,8 @@ public class ProposalDecisionProperties {
     private Integer monumentNameSimilarMatchBoost = 10;
     private Double monumentNameSimilarityThreshold = 0.7;
     private Integer monumentNameWordMatchBoostPerWord = 5;
+    private Integer minWordLengthForMatch = 3;
+    private Integer maxWordTypoDistance = 2;
     private Integer maxCredibilityScore = 100;
 
 }

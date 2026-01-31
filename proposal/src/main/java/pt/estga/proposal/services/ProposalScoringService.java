@@ -17,7 +17,7 @@ public class ProposalScoringService {
         int priority = 0;
 
         // Boost for New Monument Proposals - Small boost for complexity
-        if (proposal.getMonumentName() != null) {
+        if (proposal.getProposedMonument() != null) {
             priority += properties.getNewMonumentProposalBoost();
         }
 
@@ -45,8 +45,8 @@ public class ProposalScoringService {
 
         // Boost if suggested monument name resembles the found/linked monument name
         Monument existingMonument = proposal.getExistingMonument();
-        if (existingMonument != null && proposal.getMonumentName() != null) {
-            String suggestedName = proposal.getMonumentName();
+        if (existingMonument != null && proposal.getProposedMonument() != null && proposal.getProposedMonument().getName() != null) {
+            String suggestedName = proposal.getProposedMonument().getName();
             String actualName = existingMonument.getName();
             
             if (StringSimilarityUtils.containsIgnoreCase(suggestedName, actualName)) {
@@ -54,7 +54,7 @@ public class ProposalScoringService {
             } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > properties.getMonumentNameSimilarityThreshold()) {
                 score += properties.getMonumentNameSimilarMatchBoost();
             } else {
-                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, 3, 2);
+                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, properties.getMinWordLengthForMatch(), properties.getMaxWordTypoDistance());
                 if (matchCount > 0) {
                     score += properties.getMonumentNameWordMatchBoostPerWord() * matchCount;
                 }

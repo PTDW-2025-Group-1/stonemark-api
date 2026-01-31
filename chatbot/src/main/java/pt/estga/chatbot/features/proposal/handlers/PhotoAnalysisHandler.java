@@ -12,7 +12,7 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.content.entities.Mark;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,12 +27,10 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
-        
+
         // suggestMarks will now handle analysis internally if needed
         List<Mark> suggestedMarks = proposalFlowService.suggestMarks(markProposal);
         
@@ -44,7 +42,8 @@ public class PhotoAnalysisHandler implements ConversationStateHandler {
         log.info("Photo analysis complete for proposal. Found {} suggestions.", suggestedMarks.size());
 
         if (suggestedMarks.isEmpty()) {
-            proposalFlowService.indicateNewMark(markProposal);
+            markProposal.setNewMark(true);
+            markProposal.setExistingMark(null);
         }
 
         return HandlerOutcome.SUCCESS;

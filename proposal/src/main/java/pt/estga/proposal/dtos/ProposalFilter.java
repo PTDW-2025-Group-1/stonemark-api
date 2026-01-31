@@ -1,4 +1,4 @@
-package pt.estga.decision.dtos;
+package pt.estga.proposal.dtos;
 
 import pt.estga.proposal.enums.ProposalStatus;
 

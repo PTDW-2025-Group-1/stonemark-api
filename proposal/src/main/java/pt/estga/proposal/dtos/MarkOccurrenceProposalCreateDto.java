@@ -7,7 +7,6 @@ public record MarkOccurrenceProposalCreateDto(
         @NotNull Double latitude,
         @NotNull Double longitude,
         String userNotes,
-        String monumentName,
         @NotNull SubmissionSource submissionSource,
         Long existingMonumentId,
         Long existingMarkId,

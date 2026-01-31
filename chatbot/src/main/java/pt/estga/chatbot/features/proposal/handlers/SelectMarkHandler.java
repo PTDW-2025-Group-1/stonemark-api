@@ -9,15 +9,14 @@ import pt.estga.chatbot.context.ConversationStateHandler;
 import pt.estga.chatbot.context.HandlerOutcome;
 import pt.estga.chatbot.context.ProposalState;
 import pt.estga.chatbot.models.BotInput;
+import pt.estga.content.entities.Mark;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.MarkOccurrenceProposalChatbotFlowService;
+import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 @Component
 @RequiredArgsConstructor
 public class SelectMarkHandler implements ConversationStateHandler {
-
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Override
     public HandlerOutcome handle(ChatbotContext context, BotInput input) {
@@ -28,15 +27,15 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
+        if (!(proposal instanceof MarkOccurrenceProposal markProposal)) {
             return HandlerOutcome.FAILURE;
         }
-        MarkOccurrenceProposal markProposal = (MarkOccurrenceProposal) proposal;
 
         if (callbackData.startsWith(ProposalCallbackData.SELECT_MARK_PREFIX)) {
             try {
                 Long markId = Long.valueOf(callbackData.substring(ProposalCallbackData.SELECT_MARK_PREFIX.length()));
-                proposalFlowService.selectMark(markProposal, markId);
+                markProposal.setExistingMark(Mark.builder().id(markId).build());
+                markProposal.setNewMark(false);
                 return HandlerOutcome.SUCCESS;
             } catch (NumberFormatException e) {
                 return HandlerOutcome.FAILURE;
@@ -44,7 +43,8 @@ public class SelectMarkHandler implements ConversationStateHandler {
         }
 
         if (callbackData.equals(ProposalCallbackData.PROPOSE_NEW_MARK)) {
-            proposalFlowService.indicateNewMark(markProposal);
+            markProposal.setNewMark(true);
+            markProposal.setExistingMark(null);
             return HandlerOutcome.PROPOSE_NEW;
         }
 
