@@ -75,7 +75,7 @@ logging:
   level:
     org.springframework: INFO
     pt.estga: DEBUG
-
+# todo: split into module specific configs
 application:
 #  base-url: http://localhost:8080
   base-url: https://api.stonemark.pt

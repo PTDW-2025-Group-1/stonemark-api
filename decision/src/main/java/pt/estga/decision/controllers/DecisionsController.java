@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.decision.dtos.ActiveDecisionViewDto;
 import pt.estga.decision.dtos.ManualDecisionRequest;
-import pt.estga.decision.entities.ProposalDecisionAttempt;
 import pt.estga.decision.mappers.DecisionMapper;
 import pt.estga.decision.repositories.ProposalDecisionAttemptRepository;
 import pt.estga.decision.services.MarkOccurrenceProposalDecisionService;
@@ -22,7 +21,6 @@ import pt.estga.proposal.services.MonumentCreationService;
 import pt.estga.shared.exceptions.InvalidCredentialsException;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
-import pt.estga.user.entities.User;
 import pt.estga.user.services.UserService;
 
 @RestController
@@ -69,7 +67,7 @@ public class DecisionsController {
         if (principal == null) {
             throw new InvalidCredentialsException("User not authenticated");
         }
-        User moderator = userService.findById(principal.getId())
+        var moderator = userService.findById(principal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Moderator not found"));
         markOccurrenceProposalDecisionService.makeManualDecision(id, request.outcome(), request.notes(), moderator);
         return ResponseEntity.ok().build();
@@ -99,11 +97,12 @@ public class DecisionsController {
             @PathVariable Long id,
             @PathVariable Long attemptId
     ) {
-        ProposalDecisionAttempt attempt = attemptRepo.findById(attemptId)
+        var attempt = attemptRepo.findById(attemptId)
                 .orElseThrow(() -> new ResourceNotFoundException("Decision attempt not found with id: " + attemptId));
         
         if (!attempt.getProposal().getId().equals(id)) {
-            throw new IllegalArgumentException("Decision attempt does not belong to this proposal");
+            // Returning 400 Bad Request for mismatched proposal ID
+            return ResponseEntity.badRequest().build();
         }
         
         markOccurrenceProposalDecisionService.activateDecision(attemptId);

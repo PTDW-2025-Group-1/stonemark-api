@@ -70,12 +70,32 @@
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
+            <artifactId>decision</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.estga</groupId>
             <artifactId>shared</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>pt.estga</groupId>
             <artifactId>user</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.estga</groupId>
+            <artifactId>territory</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.estga</groupId>
+            <artifactId>verification</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>pt.estga</groupId>
+            <artifactId>security</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
