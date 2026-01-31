@@ -18,11 +18,11 @@ import java.util.Optional;
 @Repository
 public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, Long> {
 
-    @EntityGraph(attributePaths = {"monument", "mark"})
+    @EntityGraph(attributePaths = {"monument", "mark", "author"})
     Page<MarkOccurrence> findByActiveIsTrue(Pageable pageable);
 
     @Override
-    @EntityGraph(attributePaths = {"monument", "mark"})
+    @EntityGraph(attributePaths = {"monument", "mark", "author"})
     Page<MarkOccurrence> findAll(Pageable pageable);
 
     @EntityGraph(attributePaths = {"monument", "mark"})
@@ -57,7 +57,7 @@ public interface MarkOccurrenceRepository extends JpaRepository<MarkOccurrence, 
     @Query("SELECT COUNT(DISTINCT mo.monument.id) FROM MarkOccurrence mo WHERE mo.mark.id = :markId AND mo.active = true")
     long countDistinctMonumentIdByMarkId(@Param("markId") Long markId);
 
-    @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark"})
+    @EntityGraph(attributePaths = {"monument.district", "monument.parish", "monument.municipality", "mark", "author"})
     Optional<MarkOccurrence> findById(Long id);
 
     @Query(value = "SELECT id, 1 - (embedding <=> CAST(:vector AS vector)) as similarity " +

@@ -2,11 +2,13 @@ package pt.estga.content.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
 import pt.estga.file.entities.MediaFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,13 +40,9 @@ public interface MarkOccurrenceService {
 
     long countDistinctMonumentsByMarkId(Long markId);
 
-    MarkOccurrence create(MarkOccurrence occurrence);
+    MarkOccurrence create(MarkOccurrence occurrence, MultipartFile file, Long coverId) throws IOException;
 
-    MarkOccurrence create(MarkOccurrence occurrence, MediaFile cover);
-
-    MarkOccurrence update(MarkOccurrence occurrence);
-
-    MarkOccurrence update(MarkOccurrence occurrence, MediaFile cover);
+    MarkOccurrence update(MarkOccurrence occurrence, MultipartFile file, Long coverId) throws IOException;
 
     void deleteById(Long id);
 }

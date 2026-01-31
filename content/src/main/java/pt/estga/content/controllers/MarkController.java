@@ -3,8 +3,8 @@ package pt.estga.content.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,21 +33,17 @@ public class MarkController {
     private final MarkSearchService markSearchService;
 
     @GetMapping
-    public Page<MarkDto> getMarks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+    public ResponseEntity<Page<MarkDto>> getMarks(
+            @PageableDefault(size = 9) Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toDto);
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/details")
-    public Page<MarkDto> getDetailedMarks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+    public ResponseEntity<Page<MarkDto>> getDetailedMarks(
+            @PageableDefault(size = 9) Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toDto);
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/{id}")

@@ -8,13 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.events.MarkOccurrenceCreatedEvent;
 import pt.estga.content.repositories.MarkOccurrenceRepository;
 import pt.estga.file.entities.MediaFile;
+import pt.estga.file.services.MediaService;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +27,7 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     private final MarkOccurrenceRepository repository;
     private final ApplicationEventPublisher eventPublisher;
+    private final MediaService mediaService;
 
     @Override
     public Page<MarkOccurrence> findAll(Pageable pageable) {
@@ -93,16 +97,19 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence) {
-        return create(occurrence, null);
-    }
+    public MarkOccurrence create(MarkOccurrence occurrence, MultipartFile file, Long coverId) throws IOException {
+        MediaFile mediaFile = null;
 
-    @Override
-    @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence, MediaFile cover) {
-        if (cover != null) {
-            occurrence.setCover(cover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (coverId != null) {
+            mediaFile = mediaService.findById(coverId).orElse(null);
         }
+
+        if (mediaFile != null) {
+            occurrence.setCover(mediaFile);
+        }
+
         MarkOccurrence savedOccurrence = repository.save(occurrence);
         if (savedOccurrence.getCover() != null) {
             eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
@@ -112,16 +119,19 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
 
     @Override
     @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence) {
-        return update(occurrence, null);
-    }
+    public MarkOccurrence update(MarkOccurrence occurrence, MultipartFile file, Long coverId) throws IOException {
+        MediaFile mediaFile = null;
 
-    @Override
-    @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence, MediaFile cover) {
-        if (cover != null) {
-            occurrence.setCover(cover);
+        if (file != null && !file.isEmpty()) {
+            mediaFile = mediaService.save(file.getInputStream(), file.getOriginalFilename());
+        } else if (coverId != null) {
+            mediaFile = mediaService.findById(coverId).orElse(null);
         }
+
+        if (mediaFile != null) {
+            occurrence.setCover(mediaFile);
+        }
+
         MarkOccurrence savedOccurrence = repository.save(occurrence);
         if (savedOccurrence.getCover() != null) {
             eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));

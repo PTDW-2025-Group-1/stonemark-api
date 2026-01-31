@@ -6,6 +6,7 @@ import org.hibernate.annotations.Type;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.shared.audit.AuditedEntity;
 import pt.estga.shared.utils.PgVectorType;
+import pt.estga.user.entities.User;
 
 import java.time.Instant;
 
@@ -34,8 +35,9 @@ public class MarkOccurrence extends AuditedEntity {
     @Column(columnDefinition = "vector")
     private float[] embedding;
 
-    private Long authorId;
-    private String authorName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User author;
+
     private Instant publishedAt;
 
     @Builder.Default

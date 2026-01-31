@@ -3,9 +3,9 @@ package pt.estga.content.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,9 +38,10 @@ public class MarkOccurrenceController {
     private final MarkSearchService markSearchService;
 
     @GetMapping
-    public Page<MarkOccurrenceDto> getMarkOccurrences(Pageable pageable) {
-        return service.findAll(pageable)
-                .map(mapper::toDto);
+    public ResponseEntity<Page<MarkOccurrenceDto>> getMarkOccurrences(
+            @PageableDefault(size = 9) Pageable pageable
+    ) {
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/{id}")
@@ -52,35 +53,30 @@ public class MarkOccurrenceController {
     }
 
     @GetMapping("/by-mark/{markId}")
-    public Page<MarkOccurrenceListDto> getOccurrencesByMark(
+    public ResponseEntity<Page<MarkOccurrenceListDto>> getOccurrencesByMark(
             @PathVariable Long markId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size,
-            @RequestParam(defaultValue = "desc") String sort
+            @PageableDefault(size = 6, sort = "publishedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "publishedAt"));
-        return service.findByMarkId(markId, pageable)
-                .map(mapper::toListDto);
+        return ResponseEntity.ok(service.findByMarkId(markId, pageable).map(mapper::toListDto));
     }
 
     @GetMapping("/map/by-mark/{markId}")
-    public List<MarkOccurrenceMapDto> getOccurrencesForMapByMark(@PathVariable Long markId) {
-        return service.findByMarkIdForMap(markId)
+    public ResponseEntity<List<MarkOccurrenceMapDto>> getOccurrencesForMapByMark(@PathVariable Long markId) {
+        return ResponseEntity.ok(service.findByMarkIdForMap(markId)
                 .stream()
                 .map(mapper::toMapDto)
-                .toList();
+                .toList());
     }
 
     @GetMapping("/latest")
-    public List<MarkOccurrenceListDto> getLatestMarkOccurrences(
+    public ResponseEntity<List<MarkOccurrenceListDto>> getLatestMarkOccurrences(
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
-        return service.findLatest(safeLimit)
+        return ResponseEntity.ok(service.findLatest(safeLimit)
                 .stream()
                 .map(mapper::toListDto)
-                .toList();
+                .toList());
     }
 
     @GetMapping("/count-by-monument/{monumentId}")
@@ -100,40 +96,30 @@ public class MarkOccurrenceController {
     }
 
     @GetMapping("/by-monument/{monumentId}")
-    public Page<MarkOccurrenceListDto> getOccurrencesByMonument(
+    public ResponseEntity<Page<MarkOccurrenceListDto>> getOccurrencesByMonument(
             @PathVariable Long monumentId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size,
-            @RequestParam(defaultValue = "desc") String sort
+            @PageableDefault(size = 6, sort = "publishedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "publishedAt"));
-        return service.findByMonumentId(monumentId, pageable)
-                .map(mapper::toListDto);
+        return ResponseEntity.ok(service.findByMonumentId(monumentId, pageable).map(mapper::toListDto));
     }
 
     @GetMapping("/filters/marks-by-monument")
-    public List<MarkDto> getAvailableMarksByMonument(@RequestParam Long monumentId) {
-        return markMapper.toDto(service.findAvailableMarksByMonumentId(monumentId));
+    public ResponseEntity<List<MarkDto>> getAvailableMarksByMonument(@RequestParam Long monumentId) {
+        return ResponseEntity.ok(markMapper.toDto(service.findAvailableMarksByMonumentId(monumentId)));
     }
 
     @GetMapping("/filters/monuments-by-mark")
-    public List<MonumentListDto> getAvailableMonumentsByMark(@RequestParam Long markId) {
-        return monumentMapper.toListDto(service.findAvailableMonumentsByMarkId(markId));
+    public ResponseEntity<List<MonumentListDto>> getAvailableMonumentsByMark(@RequestParam Long markId) {
+        return ResponseEntity.ok(monumentMapper.toListDto(service.findAvailableMonumentsByMarkId(markId)));
     }
 
     @GetMapping("/filter-by-mark-and-monument")
-    public Page<MarkOccurrenceListDto> filterByMarkAndMonument(
+    public ResponseEntity<Page<MarkOccurrenceListDto>> filterByMarkAndMonument(
             @RequestParam Long markId,
             @RequestParam Long monumentId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size,
-            @RequestParam(defaultValue = "desc") String sort
+            @PageableDefault(size = 6, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Sort.Direction direction = sort.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
-        return service.findByMarkIdAndMonumentId(markId, monumentId, pageable)
-                .map(mapper::toListDto);
+        return ResponseEntity.ok(service.findByMarkIdAndMonumentId(markId, monumentId, pageable).map(mapper::toListDto));
     }
 
     @PostMapping(value = "/search/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
