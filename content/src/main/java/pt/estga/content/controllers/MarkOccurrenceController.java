@@ -14,7 +14,7 @@ import pt.estga.content.dtos.*;
 import pt.estga.content.mappers.MarkMapper;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
 import pt.estga.content.mappers.MonumentMapper;
-import pt.estga.content.services.MarkOccurrenceService;
+import pt.estga.content.services.MarkOccurrenceQueryService;
 import pt.estga.content.services.MarkSearchService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
@@ -30,7 +30,7 @@ import java.util.List;
 @Tag(name = "Mark Occurrences", description = "Endpoints for mark occurrences.")
 public class MarkOccurrenceController {
 
-    private final MarkOccurrenceService service;
+    private final MarkOccurrenceQueryService service;
     private final MarkOccurrenceMapper mapper;
     private final MarkMapper markMapper;
     private final MonumentMapper monumentMapper;

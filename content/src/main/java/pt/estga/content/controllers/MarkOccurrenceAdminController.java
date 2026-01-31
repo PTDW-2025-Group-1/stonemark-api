@@ -15,6 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkOccurrenceDto;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.mappers.MarkOccurrenceMapper;
+import pt.estga.content.services.MarkOccurrenceQueryService;
 import pt.estga.content.services.MarkOccurrenceService;
 import pt.estga.shared.exceptions.ResourceNotFoundException;
 import pt.estga.shared.models.AppPrincipal;
@@ -32,6 +33,7 @@ import java.net.URI;
 public class MarkOccurrenceAdminController {
 
     private final MarkOccurrenceService service;
+    private final MarkOccurrenceQueryService queryService;
     private final MarkOccurrenceMapper mapper;
     private final UserService userService;
 
@@ -39,7 +41,7 @@ public class MarkOccurrenceAdminController {
     public ResponseEntity<Page<MarkOccurrenceDto>> getMarkOccurrencesManagement(
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAllManagement(pageable).map(mapper::toDto));
+        return ResponseEntity.ok(queryService.findAllManagement(pageable).map(mapper::toDto));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

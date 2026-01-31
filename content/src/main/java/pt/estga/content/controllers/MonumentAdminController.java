@@ -16,6 +16,7 @@ import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentRequestDto;
 import pt.estga.content.entities.Monument;
 import pt.estga.content.mappers.MonumentMapper;
+import pt.estga.content.services.MonumentQueryService;
 import pt.estga.content.services.MonumentService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
@@ -32,6 +33,7 @@ import java.net.URI;
 public class MonumentAdminController {
 
     private final MonumentService service;
+    private final MonumentQueryService queryService;
     private final MonumentMapper mapper;
     private final MediaService mediaService;
 
@@ -39,7 +41,7 @@ public class MonumentAdminController {
     public ResponseEntity<Page<MonumentDto>> getMonumentsManagement(
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAllWithDivisionsManagement(pageable).map(mapper::toResponseDto));
+        return ResponseEntity.ok(queryService.findAllWithDivisionsManagement(pageable).map(mapper::toResponseDto));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

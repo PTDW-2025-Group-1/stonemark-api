@@ -14,6 +14,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.services.MarkQueryService;
 import pt.estga.content.services.MarkService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
@@ -30,6 +31,7 @@ import java.net.URI;
 public class MarkAdminController {
 
     private final MarkService service;
+    private final MarkQueryService queryService;
     private final MarkMapper mapper;
     private final MediaService mediaService;
 
@@ -37,7 +39,7 @@ public class MarkAdminController {
     public ResponseEntity<Page<MarkDto>> getMarksManagement(
             @PageableDefault(size = 9) Pageable pageable
     ) {
-        return ResponseEntity.ok(service.findAllManagement(pageable).map(mapper::toDto));
+        return ResponseEntity.ok(queryService.findAllManagement(pageable).map(mapper::toDto));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -11,7 +11,7 @@ import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
 import pt.estga.content.mappers.MonumentMapper;
-import pt.estga.content.services.MonumentService;
+import pt.estga.content.services.MonumentQueryService;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @Tag(name = "Monuments", description = "Endpoints for monuments.")
 public class MonumentController {
 
-    private final MonumentService service;
+    private final MonumentQueryService service;
     private final MonumentMapper mapper;
 
     @GetMapping
@@ -29,13 +29,6 @@ public class MonumentController {
             @PageableDefault(size = 9) Pageable pageable
     ) {
         return ResponseEntity.ok(service.findAll(pageable).map(mapper::toListDto));
-    }
-
-    @GetMapping("/details")
-    public ResponseEntity<Page<MonumentDto>> getDetailedMonuments(
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
-        return ResponseEntity.ok(service.findAllWithDivisions(pageable).map(mapper::toResponseDto));
     }
 
     @GetMapping("/map")

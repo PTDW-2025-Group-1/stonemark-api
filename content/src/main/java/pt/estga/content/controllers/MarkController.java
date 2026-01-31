@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.services.MarkQueryService;
 import pt.estga.content.services.MarkSearchService;
-import pt.estga.content.services.MarkService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
 import pt.estga.shared.utils.VectorUtils;
@@ -27,7 +27,7 @@ import java.util.List;
 @Tag(name = "Marks", description = "Endpoints for marks.")
 public class MarkController {
 
-    private final MarkService service;
+    private final MarkQueryService service;
     private final MarkMapper mapper;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;

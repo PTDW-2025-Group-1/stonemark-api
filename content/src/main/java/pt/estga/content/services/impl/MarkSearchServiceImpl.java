@@ -1,12 +1,12 @@
-package pt.estga.content.services;
+package pt.estga.content.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.content.repositories.MarkOccurrenceRepository;
-import pt.estga.content.repositories.MarkRepository;
+import pt.estga.content.repositories.MarkOccurrenceQueryRepository;
+import pt.estga.content.repositories.MarkQueryRepository;
 import pt.estga.content.repositories.projections.MarkSimilarityProjection;
+import pt.estga.content.services.MarkSearchService;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MarkSearchServiceImpl implements MarkSearchService {
 
-    private final MarkRepository markRepository;
-    private final MarkOccurrenceRepository markOccurrenceRepository;
+    private final MarkQueryRepository markQueryRepository;
+    private final MarkOccurrenceQueryRepository markOccurrenceQueryRepository;
 
     private static final double SIMILARITY_THRESHOLD = 0.8;
 
@@ -25,7 +25,7 @@ public class MarkSearchServiceImpl implements MarkSearchService {
             return List.of();
         }
 
-        List<MarkSimilarityProjection> results = markRepository.findSimilarMarks(embeddedVector);
+        List<MarkSimilarityProjection> results = markQueryRepository.findSimilarMarks(embeddedVector);
 
         return results.stream()
                 .filter(result -> result.getSimilarity() >= SIMILARITY_THRESHOLD)
@@ -39,7 +39,7 @@ public class MarkSearchServiceImpl implements MarkSearchService {
             return List.of();
         }
 
-        List<MarkSimilarityProjection> results = markOccurrenceRepository.findSimilarOccurrences(embeddedVector);
+        List<MarkSimilarityProjection> results = markOccurrenceQueryRepository.findSimilarOccurrences(embeddedVector);
 
         return results.stream()
                 .filter(result -> result.getSimilarity() >= SIMILARITY_THRESHOLD)
