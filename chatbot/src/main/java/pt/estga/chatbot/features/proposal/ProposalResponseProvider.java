@@ -59,6 +59,7 @@ public class ProposalResponseProvider implements ResponseProvider {
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
             case AWAITING_MONUMENT_SUGGESTIONS -> createMonumentSuggestionsResponse(context);
+            case AWAITING_MONUMENT_SELECTION -> createMonumentSuggestionsResponse(context);
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
             case AWAITING_NOTES -> createNotesResponse();
             case SUBMITTED -> createSubmissionSuccessResponse(input);
@@ -148,27 +149,24 @@ public class ProposalResponseProvider implements ResponseProvider {
     }
 
     private List<BotResponse> createMonumentSuggestionsResponse(ChatbotContext context) {
-        Proposal proposal = context.getProposalContext().getProposal();
-        if (!(proposal instanceof MarkOccurrenceProposal)) {
-            return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
-        }
-        
-        List<Monument> suggestedMonuments = proposalFlowService.suggestMonuments((MarkOccurrenceProposal) proposal);
+        List<String> suggestedMonumentIds = context.getProposalContext().getSuggestedMonumentIds();
 
-        if (suggestedMonuments.isEmpty()) {
+        if (suggestedMonumentIds == null || suggestedMonumentIds.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.NO_MONUMENTS_FOUND));
         }
 
         List<BotResponse> responses = new ArrayList<>();
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MONUMENTS_TITLE, SEARCH))).build()).build());
 
-        for (Monument monument : suggestedMonuments) {
-            Menu selectionMenu = Menu.builder()
-                    .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
-                    .buttons(List.of(List.of(
-                            Button.builder().textNode(textService.get(new Message(MessageKey.SELECT_BTN, CHECK))).callbackData(ProposalCallbackData.SELECT_MONUMENT_PREFIX + monument.getId()).build()
-                    ))).build();
-            responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
+        for (String monumentId : suggestedMonumentIds) {
+            monumentService.findById(Long.valueOf(monumentId)).ifPresent(monument -> {
+                Menu selectionMenu = Menu.builder()
+                        .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
+                        .buttons(List.of(List.of(
+                                Button.builder().textNode(textService.get(new Message(MessageKey.SELECT_BTN, CHECK))).callbackData(ProposalCallbackData.SELECT_MONUMENT_PREFIX + monument.getId()).build()
+                        ))).build();
+                responses.add(BotResponse.builder().uiComponent(selectionMenu).build());
+            });
         }
 
         return responses;

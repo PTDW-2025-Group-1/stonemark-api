@@ -35,7 +35,7 @@ public class MarkOccurrenceProposalChatbotFlowService {
     private final MarkSearchService markSearchService;
     private final ApplicationEventPublisher eventPublisher;
 
-    private static final double COORDINATE_SEARCH_RANGE = 0.01;
+    private static final double COORDINATE_SEARCH_RANGE = 0.02;
 
     public MarkOccurrenceProposal startProposal(User user, SubmissionSource source) {
         log.info("Starting new chatbot proposal for user ID: {} with source: {}", user.getId(), source);
@@ -58,10 +58,16 @@ public class MarkOccurrenceProposalChatbotFlowService {
 
     public List<Monument> suggestMonuments(MarkOccurrenceProposal proposal) {
         if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-            return monumentService.findByCoordinatesInRange(
+            log.info("Searching for monuments near lat: {}, lon: {} with range: {}", 
+                    proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE);
+            
+            List<Monument> monuments = monumentService.findByCoordinatesInRange(
                     proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE
             );
+            log.info("Found {} monuments nearby.", monuments.size());
+            return monuments;
         }
+        log.warn("Proposal has no coordinates, cannot suggest monuments.");
         return List.of();
     }
 
