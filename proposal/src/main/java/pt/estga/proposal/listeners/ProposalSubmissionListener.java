@@ -1,4 +1,4 @@
-package pt.estga.proposal.services;
+package pt.estga.proposal.listeners;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.events.ProposalScoredEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
 import pt.estga.proposal.repositories.ProposalRepository;
+import pt.estga.proposal.services.ProposalScoringService;
 
 @Component
 @RequiredArgsConstructor

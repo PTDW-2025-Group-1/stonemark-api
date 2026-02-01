@@ -1,4 +1,4 @@
-package pt.estga.proposal.services;
+package pt.estga.proposal.listeners;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
