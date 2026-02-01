@@ -18,7 +18,6 @@ import pt.estga.proposal.dtos.MarkOccurrenceProposalDto;
 import pt.estga.proposal.dtos.MarkOccurrenceProposalListDto;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.mappers.MarkOccurrenceProposalMapper;
-import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.proposal.services.MarkOccurrenceProposalService;
 import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
 import pt.estga.shared.interfaces.AuthenticatedPrincipal;
@@ -64,20 +63,6 @@ public class MarkOccurrenceProposalController {
         User user = User.builder().id(principal.getId()).build();
         return proposalService.findByUser(user, PageRequest.of(page, size))
                 .map(markOccurrenceProposalMapper::toDto);
-    }
-
-    @Operation(summary = "Get user proposal statistics",
-            description = "Retrieves statistics about mark occurrence proposals for the authenticated user.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully.",
-                    content = @Content(schema = @Schema(implementation = MarkOccurrenceProposalStatsProjection.class)))
-    })
-    @GetMapping("/user/me/stats")
-    public ResponseEntity<MarkOccurrenceProposalStatsProjection> getUserStats(
-            @AuthenticationPrincipal AuthenticatedPrincipal principal
-    ) {
-        User user = User.builder().id(principal.getId()).build();
-        return ResponseEntity.ok(proposalService.getStatsByUser(user));
     }
 
     @Operation(summary = "Get proposal by ID",

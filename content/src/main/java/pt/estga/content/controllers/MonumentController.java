@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentDto;
@@ -44,7 +45,7 @@ public class MonumentController {
         return ResponseEntity.ok(service.searchByName(query, pageable).map(mapper::toListDto));
     }
 
-    @PostMapping("/search/polygon")
+    @PostMapping(value = "/search/polygon", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<MonumentListDto>> searchMonumentsByPolygon(
             @RequestBody String geoJson,
             @PageableDefault(size = 9, sort = "name") Pageable pageable

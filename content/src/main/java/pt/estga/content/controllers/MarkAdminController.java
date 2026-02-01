@@ -1,5 +1,7 @@
 package pt.estga.content.controllers;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ public class MarkAdminController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkDto> createMark(
-            @RequestPart("data") @Valid MarkRequestDto markDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MarkRequestDto markDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark mark = mapper.toEntity(markDto);
@@ -67,7 +69,7 @@ public class MarkAdminController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkDto> updateMark(
             @PathVariable Long id,
-            @RequestPart("data") @Valid MarkRequestDto markDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MarkRequestDto markDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Mark existingMark = service.findById(id)
@@ -91,6 +93,10 @@ public class MarkAdminController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Mark existingMark = service.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mark not found"));
 

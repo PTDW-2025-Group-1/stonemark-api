@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,7 +62,7 @@ public class DecisionsController {
     @PostMapping("/manual")
     public ResponseEntity<Void> createManualDecision(
             @PathVariable Long id,
-            @RequestBody ManualDecisionRequest request,
+            @RequestBody @Valid ManualDecisionRequest request,
             @AuthenticationPrincipal AuthenticatedPrincipal principal
     ) {
         if (principal == null) {
@@ -109,6 +110,18 @@ public class DecisionsController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Deactivate current decision",
+               description = "Reverts the proposal status to UNDER_REVIEW, effectively removing the current decision.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Decision deactivated successfully."),
+            @ApiResponse(responseCode = "404", description = "Proposal not found.")
+    })
+    @PostMapping("/deactivate")
+    public ResponseEntity<Void> deactivateDecision(@PathVariable Long id) {
+        markOccurrenceProposalDecisionService.deactivateDecision(id);
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "Create monument for proposal",
                description = "Creates a new monument based on the proposal data.")
     @ApiResponses(value = {
@@ -118,7 +131,7 @@ public class DecisionsController {
     @PostMapping("/monument")
     public ResponseEntity<Void> createMonumentForProposal(
             @PathVariable Long id,
-            @RequestBody MonumentRequestDto request
+            @RequestBody @Valid MonumentRequestDto request
     ) {
         monumentCreationService.createMonumentFromProposal(id, request);
         return ResponseEntity.ok().build();

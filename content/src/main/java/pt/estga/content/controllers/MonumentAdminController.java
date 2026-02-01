@@ -1,5 +1,7 @@
 package pt.estga.content.controllers;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +49,7 @@ public class MonumentAdminController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MonumentDto> createMonument(
-            @RequestPart("data") @Valid MonumentRequestDto monumentDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MonumentRequestDto monumentDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Monument monument = mapper.toEntity(monumentDto);
@@ -69,7 +71,7 @@ public class MonumentAdminController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MonumentDto> updateMonument(
             @PathVariable Long id,
-            @RequestPart("data") @Valid MonumentRequestDto monumentDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MonumentRequestDto monumentDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         Monument existingMonument = service.findById(id)
@@ -96,6 +98,10 @@ public class MonumentAdminController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Monument monument = service.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Monument not found"));
 

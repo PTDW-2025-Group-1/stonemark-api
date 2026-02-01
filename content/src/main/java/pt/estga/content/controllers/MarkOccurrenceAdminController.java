@@ -1,5 +1,7 @@
 package pt.estga.content.controllers;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +50,7 @@ public class MarkOccurrenceAdminController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkOccurrenceDto> createMarkOccurrence(
-            @RequestPart("data") @Valid MarkOccurrenceRequestDto markOccurrenceDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MarkOccurrenceRequestDto markOccurrenceDto,
             @RequestPart(value = "file", required = false) MultipartFile file,
             @AuthenticationPrincipal AppPrincipal principal
     ) throws IOException {
@@ -73,7 +75,7 @@ public class MarkOccurrenceAdminController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MarkOccurrenceDto> updateMarkOccurrence(
             @PathVariable Long id,
-            @RequestPart("data") @Valid MarkOccurrenceRequestDto markOccurrenceDto,
+            @RequestPart("data") @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) @Valid MarkOccurrenceRequestDto markOccurrenceDto,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
         MarkOccurrence existingMarkOccurrence = service.findById(id)
@@ -96,6 +98,10 @@ public class MarkOccurrenceAdminController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         MarkOccurrence existingMarkOccurrence = service.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MarkOccurrence not found"));
 

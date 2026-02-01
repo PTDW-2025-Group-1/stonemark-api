@@ -9,16 +9,17 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.events.ProposalScoredEvent;
 import pt.estga.proposal.events.ProposalSubmittedEvent;
-import pt.estga.proposal.repositories.MarkOccurrenceProposalRepository;
+import pt.estga.proposal.repositories.ProposalRepository;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class ProposalSubmissionListener {
 
-    private final MarkOccurrenceProposalRepository proposalRepository;
+    private final ProposalRepository<Proposal> proposalRepository;
     private final ProposalScoringService scoringService;
     private final ApplicationEventPublisher eventPublisher;
 

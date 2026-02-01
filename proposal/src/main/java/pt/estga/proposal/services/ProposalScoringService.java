@@ -2,10 +2,9 @@ package pt.estga.proposal.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pt.estga.content.entities.Monument;
 import pt.estga.proposal.config.ProposalDecisionProperties;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
-import pt.estga.shared.utils.StringSimilarityUtils;
+import pt.estga.proposal.entities.Proposal;
 
 @Service
 @RequiredArgsConstructor
@@ -13,18 +12,16 @@ public class ProposalScoringService {
 
     private final ProposalDecisionProperties properties;
 
-    public Integer calculatePriority(MarkOccurrenceProposal proposal) {
+    public Integer calculatePriority(Proposal proposal) {
         int priority = 0;
 
-        // Boost for New Monument Proposals - Small boost for complexity
-        if (proposal.getProposedMonument() != null) {
-            priority += properties.getNewMonumentProposalBoost();
+        if (proposal instanceof MarkOccurrenceProposal markOccurrenceProposal) {
         }
 
         return priority;
     }
 
-    public Integer calculateCredibilityScore(MarkOccurrenceProposal proposal) {
+    public Integer calculateCredibilityScore(Proposal proposal) {
         int score = 0;
 
         // Base score for authenticated users
@@ -33,31 +30,16 @@ public class ProposalScoringService {
         }
 
         // Completeness of data
-        if (proposal.getLatitude() != null && proposal.getLongitude() != null) {
-            score += properties.getCompletenessScoreLocation();
-        }
         if (proposal.getUserNotes() != null && !proposal.getUserNotes().isEmpty()) {
             score += properties.getCompletenessScoreUserNotes();
         }
-        if (proposal.getOriginalMediaFile() != null) {
-            score += properties.getCompletenessScoreMediaFile();
-        }
 
-        // Boost if suggested monument name resembles the found/linked monument name
-        Monument existingMonument = proposal.getExistingMonument();
-        if (existingMonument != null && proposal.getProposedMonument() != null && proposal.getProposedMonument().getName() != null) {
-            String suggestedName = proposal.getProposedMonument().getName();
-            String actualName = existingMonument.getName();
-            
-            if (StringSimilarityUtils.containsIgnoreCase(suggestedName, actualName)) {
-                score += properties.getMonumentNameExactMatchBoost();
-            } else if (StringSimilarityUtils.calculateLevenshteinSimilarity(suggestedName, actualName) > properties.getMonumentNameSimilarityThreshold()) {
-                score += properties.getMonumentNameSimilarMatchBoost();
-            } else {
-                int matchCount = StringSimilarityUtils.countMatchingWords(suggestedName, actualName, properties.getMinWordLengthForMatch(), properties.getMaxWordTypoDistance());
-                if (matchCount > 0) {
-                    score += properties.getMonumentNameWordMatchBoostPerWord() * matchCount;
-                }
+        if (proposal instanceof MarkOccurrenceProposal markOccurrenceProposal) {
+            if (markOccurrenceProposal.getLatitude() != null && markOccurrenceProposal.getLongitude() != null) {
+                score += properties.getCompletenessScoreLocation();
+            }
+            if (markOccurrenceProposal.getOriginalMediaFile() != null) {
+                score += properties.getCompletenessScoreMediaFile();
             }
         }
 

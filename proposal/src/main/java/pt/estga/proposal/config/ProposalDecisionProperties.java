@@ -38,12 +38,6 @@ public class ProposalDecisionProperties {
     private Integer completenessScoreLocation = 10;
     private Integer completenessScoreUserNotes = 5;
     private Integer completenessScoreMediaFile = 10;
-    private Integer monumentNameExactMatchBoost = 15;
-    private Integer monumentNameSimilarMatchBoost = 10;
-    private Double monumentNameSimilarityThreshold = 0.7;
-    private Integer monumentNameWordMatchBoostPerWord = 5;
-    private Integer minWordLengthForMatch = 3;
-    private Integer maxWordTypoDistance = 2;
     private Integer maxCredibilityScore = 100;
 
 }
