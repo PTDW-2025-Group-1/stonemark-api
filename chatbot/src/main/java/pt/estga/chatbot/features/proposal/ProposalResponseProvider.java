@@ -18,11 +18,10 @@ import pt.estga.chatbot.services.ResponseProvider;
 import pt.estga.chatbot.services.UiTextService;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
-import pt.estga.content.services.MarkService;
-import pt.estga.content.services.MonumentService;
+import pt.estga.content.services.MarkQueryService;
+import pt.estga.content.services.MonumentQueryService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
-import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,10 +35,9 @@ import static pt.estga.chatbot.constants.EmojiKey.*;
 public class ProposalResponseProvider implements ResponseProvider {
 
     private final UiTextService textService;
-    private final MarkService markService;
-    private final MonumentService monumentService;
+    private final MarkQueryService markQueryService;
+    private final MonumentQueryService monumentQueryService;
     private final MainMenuFactory mainMenuFactory;
-    private final MarkOccurrenceProposalChatbotFlowService proposalFlowService;
 
     @Value("${application.frontend.base-url}")
     private String frontendBaseUrl;
@@ -58,8 +56,7 @@ public class ProposalResponseProvider implements ResponseProvider {
             case WAITING_FOR_MARK_CONFIRMATION -> createSingleMarkConfirmationResponse(context);
             case AWAITING_MARK_SELECTION -> createMultipleMarkSelectionResponse(context);
             case MARK_SELECTED -> createMarkSelectedResponse(context);
-            case AWAITING_MONUMENT_SUGGESTIONS -> createMonumentSuggestionsResponse(context);
-            case AWAITING_MONUMENT_SELECTION -> createMonumentSuggestionsResponse(context);
+            case AWAITING_MONUMENT_SUGGESTIONS, AWAITING_MONUMENT_SELECTION -> createMonumentSuggestionsResponse(context);
             case WAITING_FOR_MONUMENT_CONFIRMATION -> createMonumentConfirmationResponse(context);
             case AWAITING_NOTES -> createNotesResponse();
             case SUBMITTED -> createSubmissionSuccessResponse(input);
@@ -72,7 +69,7 @@ public class ProposalResponseProvider implements ResponseProvider {
 
     private List<BotResponse> createSingleMarkConfirmationResponse(ChatbotContext context) {
         String markId = context.getProposalContext().getSuggestedMarkIds().getFirst();
-        Optional<Mark> markOptional = markService.findWithCoverById(Long.valueOf(markId));
+        Optional<Mark> markOptional = markQueryService.findWithCoverById(Long.valueOf(markId));
 
         if (markOptional.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
@@ -108,7 +105,7 @@ public class ProposalResponseProvider implements ResponseProvider {
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MARKS_TITLE, SEARCH))).build()).build());
 
         for (String markId : context.getProposalContext().getSuggestedMarkIds()) {
-            markService.findWithCoverById(Long.valueOf(markId)).ifPresent(mark -> {
+            markQueryService.findWithCoverById(Long.valueOf(markId)).ifPresent(mark -> {
                 PhotoItem.PhotoItemBuilder photoItemBuilder = PhotoItem.builder()
                         .captionNode(textService.get(new Message(MessageKey.MARK_CAPTION, mark.getId())));
 
@@ -159,7 +156,7 @@ public class ProposalResponseProvider implements ResponseProvider {
         responses.add(BotResponse.builder().uiComponent(TextMessage.builder().textNode(textService.get(new Message(MessageKey.FOUND_MONUMENTS_TITLE, SEARCH))).build()).build());
 
         for (String monumentId : suggestedMonumentIds) {
-            monumentService.findById(Long.valueOf(monumentId)).ifPresent(monument -> {
+            monumentQueryService.findById(Long.valueOf(monumentId)).ifPresent(monument -> {
                 Menu selectionMenu = Menu.builder()
                         .titleNode(textService.get(new Message(MessageKey.MONUMENT_OPTION, monument.getName())))
                         .buttons(List.of(List.of(
@@ -177,7 +174,7 @@ public class ProposalResponseProvider implements ResponseProvider {
             return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));
         }
         String monumentId = context.getProposalContext().getSuggestedMonumentIds().getFirst();
-        Optional<Monument> monumentOptional = monumentService.findById(Long.valueOf(monumentId));
+        Optional<Monument> monumentOptional = monumentQueryService.findById(Long.valueOf(monumentId));
 
         if (monumentOptional.isEmpty()) {
             return buildSimpleMenuResponse(new Message(MessageKey.ERROR_GENERIC, WARNING));

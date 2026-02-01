@@ -8,7 +8,7 @@ import pt.estga.chatbot.models.BotInput;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.entities.Proposal;
 import pt.estga.proposal.services.chatbot.MarkOccurrenceProposalChatbotFlowService;
-import pt.estga.proposal.services.MarkOccurrenceProposalSubmissionService;
+import pt.estga.proposal.services.submission.MarkOccurrenceProposalSubmissionService;
 
 @Component
 @RequiredArgsConstructor

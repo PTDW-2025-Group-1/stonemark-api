@@ -85,18 +85,10 @@ public class MarkOccurrenceProposalDecisionService extends ProposalDecisionServi
 
     @Override
     protected void validateManualDecision(MarkOccurrenceProposal proposal, DecisionOutcome outcome) {
-        // If accepting, and it's a new monument, ensure monument is created
-        if (outcome == DecisionOutcome.ACCEPT && isNewMonumentProposal(proposal)) {
-            throw new IllegalStateException("Cannot approve proposal for new monument without creating the monument first.");
-        }
     }
 
     @Override
     protected void publishAcceptedEvent(MarkOccurrenceProposal proposal) {
         eventPublisher.publishEvent(new ProposalAcceptedEvent(this, proposal));
-    }
-
-    private boolean isNewMonumentProposal(MarkOccurrenceProposal proposal) {
-        return proposal.getExistingMonument() == null && proposal.getProposedMonument() != null;
     }
 }

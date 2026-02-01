@@ -35,6 +35,7 @@ public interface MonumentMapper {
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
     @Mapping(target = "cover", ignore = true)
+    @Mapping(target = "location", ignore = true)
     Monument toEntity(MonumentRequestDto dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -42,6 +43,7 @@ public interface MonumentMapper {
     @Mapping(source = "municipalityId", target = "municipality.id")
     @Mapping(source = "districtId", target = "district.id")
     @Mapping(target = "cover", ignore = true)
+    @Mapping(target = "location", ignore = true)
     void updateEntityFromDto(MonumentRequestDto dto, @MappingTarget Monument entity);
 
 }

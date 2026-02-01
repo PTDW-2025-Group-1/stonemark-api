@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.Monument;
+import pt.estga.content.services.MarkQueryService;
 import pt.estga.content.services.MarkSearchService;
-import pt.estga.content.services.MarkService;
-import pt.estga.content.services.MonumentService;
+import pt.estga.content.services.MonumentQueryService;
 import pt.estga.file.entities.MediaFile;
 import pt.estga.file.services.MediaService;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 public class MarkOccurrenceProposalChatbotFlowService {
 
     private final MediaService mediaService;
-    private final MonumentService monumentService;
-    private final MarkService markService;
+    private final MonumentQueryService monumentQueryService;
+    private final MarkQueryService markQueryService;
     private final MarkSearchService markSearchService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -61,7 +61,7 @@ public class MarkOccurrenceProposalChatbotFlowService {
             log.info("Searching for monuments near lat: {}, lon: {} with range: {}", 
                     proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE);
             
-            List<Monument> monuments = monumentService.findByCoordinatesInRange(
+            List<Monument> monuments = monumentQueryService.findByCoordinatesInRange(
                     proposal.getLatitude(), proposal.getLongitude(), COORDINATE_SEARCH_RANGE
             );
             log.info("Found {} monuments nearby.", monuments.size());
@@ -77,7 +77,7 @@ public class MarkOccurrenceProposalChatbotFlowService {
                 List<String> markIds = markSearchService.searchMarks(proposal.getEmbedding());
                 return markIds.stream()
                         .map(Long::valueOf)
-                        .map(markService::findById)
+                        .map(markQueryService::findById)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toList());

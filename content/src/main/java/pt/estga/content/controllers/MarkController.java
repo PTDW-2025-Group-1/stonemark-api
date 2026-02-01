@@ -3,19 +3,18 @@ package pt.estga.content.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pt.estga.content.dtos.MarkDto;
 import pt.estga.content.mappers.MarkMapper;
+import pt.estga.content.services.MarkQueryService;
 import pt.estga.content.services.MarkSearchService;
-import pt.estga.content.services.MarkService;
 import pt.estga.detection.model.DetectionResult;
 import pt.estga.detection.service.DetectionService;
-import pt.estga.shared.utils.VectorUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -27,27 +26,23 @@ import java.util.List;
 @Tag(name = "Marks", description = "Endpoints for marks.")
 public class MarkController {
 
-    private final MarkService service;
+    private final MarkQueryService service;
     private final MarkMapper mapper;
     private final DetectionService detectionService;
     private final MarkSearchService markSearchService;
 
     @GetMapping
-    public Page<MarkDto> getMarks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+    public ResponseEntity<Page<MarkDto>> getMarks(
+            @PageableDefault(size = 9) Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toDto);
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/details")
-    public Page<MarkDto> getDetailedMarks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+    public ResponseEntity<Page<MarkDto>> getDetailedMarks(
+            @PageableDefault(size = 9) Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toDto);
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toDto));
     }
 
     @GetMapping("/{id}")
@@ -66,7 +61,7 @@ public class MarkController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<String> similarMarkIds = markSearchService.searchMarks(VectorUtils.toFloatArray(detectionResult.embedding()));
+        List<String> similarMarkIds = markSearchService.searchMarks(detectionResult.embedding());
         return ResponseEntity.ok(similarMarkIds);
     }
 }

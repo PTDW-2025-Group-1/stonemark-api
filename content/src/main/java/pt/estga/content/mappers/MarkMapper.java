@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import pt.estga.content.dtos.MarkDto;
+import pt.estga.content.dtos.MarkRequestDto;
 import pt.estga.content.entities.Mark;
 import pt.estga.file.mappers.MediaFileMapper;
 
@@ -20,10 +21,10 @@ public interface MarkMapper {
     List<MarkDto> toDto(List<Mark> marks);
 
     @Mapping(target = "cover", ignore = true)
-    Mark toEntity(MarkDto markDto);
+    Mark toEntity(MarkRequestDto markDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "cover", ignore = true)
-    void updateEntityFromDto(MarkDto dto, @MappingTarget Mark entity);
+    void updateEntityFromDto(MarkRequestDto dto, @MappingTarget Mark entity);
 
 }

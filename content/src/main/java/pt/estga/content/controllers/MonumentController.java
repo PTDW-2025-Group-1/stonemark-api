@@ -3,16 +3,16 @@ package pt.estga.content.controllers;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.estga.content.dtos.MonumentDto;
 import pt.estga.content.dtos.MonumentListDto;
 import pt.estga.content.dtos.MonumentMapDto;
 import pt.estga.content.mappers.MonumentMapper;
-import pt.estga.content.services.MonumentService;
+import pt.estga.content.services.MonumentQueryService;
 
 import java.util.List;
 
@@ -22,76 +22,59 @@ import java.util.List;
 @Tag(name = "Monuments", description = "Endpoints for monuments.")
 public class MonumentController {
 
-    private final MonumentService service;
+    private final MonumentQueryService service;
     private final MonumentMapper mapper;
 
     @GetMapping
-    public Page<MonumentListDto> getMonuments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+    public ResponseEntity<Page<MonumentListDto>> getMonuments(
+            @PageableDefault(size = 9) Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAll(pageable).map(mapper::toListDto);
-    }
-
-    @GetMapping("/details")
-    public Page<MonumentDto> getDetailedMonuments(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        return service.findAllWithDivisions(pageable).map(mapper::toResponseDto);
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toListDto));
     }
 
     @GetMapping("/map")
-    public Page<MonumentMapDto> getAllForMap(Pageable pageable) {
-        return service.findAll(pageable).map(mapper::toMapDto);
+    public ResponseEntity<Page<MonumentMapDto>> getAllForMap(Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable).map(mapper::toMapDto));
     }
 
     @GetMapping("/search")
-    public Page<MonumentListDto> searchMonuments(
+    public ResponseEntity<Page<MonumentListDto>> searchMonuments(
             @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @PageableDefault(size = 9, sort = "name") Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.searchByName(query, pageable).map(mapper::toListDto);
+        return ResponseEntity.ok(service.searchByName(query, pageable).map(mapper::toListDto));
     }
 
-    @PostMapping("/search/polygon")
-    public Page<MonumentListDto> searchMonumentsByPolygon(
+    @PostMapping(value = "/search/polygon", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<MonumentListDto>> searchMonumentsByPolygon(
             @RequestBody String geoJson,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @PageableDefault(size = 9, sort = "name") Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByPolygon(geoJson, pageable).map(mapper::toListDto);
+        return ResponseEntity.ok(service.findByPolygon(geoJson, pageable).map(mapper::toListDto));
     }
 
     @GetMapping("/division/{id}")
-    public Page<MonumentListDto> getMonumentsByDivision(
+    public ResponseEntity<Page<MonumentListDto>> getMonumentsByDivision(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "9") int size
+            @PageableDefault(size = 9, sort = "name") Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        return service.findByDivisionId(id, pageable).map(mapper::toListDto);
+        return ResponseEntity.ok(service.findByDivisionId(id, pageable).map(mapper::toListDto));
     }
 
     @GetMapping("/popular")
-    public List<MonumentListDto> getPopularMonuments(
+    public ResponseEntity<List<MonumentListDto>> getPopularMonuments(
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
-        return mapper.toListDto(service.findPopular(safeLimit));
+        return ResponseEntity.ok(mapper.toListDto(service.findPopular(safeLimit)));
     }
 
     @GetMapping("/latest")
-    public List<MonumentListDto> getLatestMonuments(
+    public ResponseEntity<List<MonumentListDto>> getLatestMonuments(
             @RequestParam(defaultValue = "6") int limit
     ) {
         int safeLimit = Math.min(limit, 50);
-        return mapper.toListDto(service.findLatest(safeLimit));
+        return ResponseEntity.ok(mapper.toListDto(service.findLatest(safeLimit)));
     }
 
     @GetMapping("/count")

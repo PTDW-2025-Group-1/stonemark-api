@@ -1,7 +1,6 @@
-package pt.estga.content.services;
+package pt.estga.content.services.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,19 +10,18 @@ import org.springframework.transaction.annotation.Transactional;
 import pt.estga.content.entities.Mark;
 import pt.estga.content.entities.MarkOccurrence;
 import pt.estga.content.entities.Monument;
-import pt.estga.content.events.MarkOccurrenceCreatedEvent;
-import pt.estga.content.repositories.MarkOccurrenceRepository;
-import pt.estga.file.entities.MediaFile;
+import pt.estga.content.repositories.MarkOccurrenceQueryRepository;
+import pt.estga.content.services.MarkOccurrenceQueryService;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService {
+@Transactional(readOnly = true)
+public class MarkOccurrenceQueryServiceImpl implements MarkOccurrenceQueryService {
 
-    private final MarkOccurrenceRepository repository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final MarkOccurrenceQueryRepository repository;
 
     @Override
     public Page<MarkOccurrence> findAll(Pageable pageable) {
@@ -89,48 +87,5 @@ public class MarkOccurrenceServiceHibernateImpl implements MarkOccurrenceService
     @Override
     public long countDistinctMonumentsByMarkId(Long markId) {
         return repository.countDistinctMonumentIdByMarkId(markId);
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence) {
-        return create(occurrence, null);
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence create(MarkOccurrence occurrence, MediaFile cover) {
-        if (cover != null) {
-            occurrence.setCover(cover);
-        }
-        MarkOccurrence savedOccurrence = repository.save(occurrence);
-        if (savedOccurrence.getCover() != null) {
-            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
-        }
-        return savedOccurrence;
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence) {
-        return update(occurrence, null);
-    }
-
-    @Override
-    @Transactional
-    public MarkOccurrence update(MarkOccurrence occurrence, MediaFile cover) {
-        if (cover != null) {
-            occurrence.setCover(cover);
-        }
-        MarkOccurrence savedOccurrence = repository.save(occurrence);
-        if (savedOccurrence.getCover() != null) {
-            eventPublisher.publishEvent(new MarkOccurrenceCreatedEvent(this, savedOccurrence.getId(), savedOccurrence.getCover().getId(), savedOccurrence.getCover().getOriginalFilename()));
-        }
-        return savedOccurrence;
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        repository.deleteById(id);
     }
 }

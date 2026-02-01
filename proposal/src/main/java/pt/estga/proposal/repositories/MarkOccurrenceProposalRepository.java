@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pt.estga.proposal.entities.MarkOccurrenceProposal;
 import pt.estga.proposal.enums.ProposalStatus;
-import pt.estga.proposal.projections.MarkOccurrenceProposalStatsProjection;
 import pt.estga.user.entities.User;
 
 import java.util.Collection;
@@ -22,17 +21,8 @@ public interface MarkOccurrenceProposalRepository extends ProposalRepository<Mar
             "existingMonument",
             "existingMark"
     })
+    @Override
     Page<MarkOccurrenceProposal> findBySubmittedBy(User user, Pageable pageable);
-
-    @Query("""
-    SELECT
-        SUM(CASE WHEN p.status IN ('AUTO_ACCEPTED', 'MANUALLY_ACCEPTED') THEN 1 ELSE 0 END) as accepted,
-        SUM(CASE WHEN p.status IN ('SUBMITTED', 'UNDER_REVIEW') THEN 1 ELSE 0 END) as underReview,
-        SUM(CASE WHEN p.status IN ('AUTO_REJECTED', 'MANUALLY_REJECTED') THEN 1 ELSE 0 END) as rejected
-    FROM MarkOccurrenceProposal p
-    WHERE p.submittedBy.id = :userId
-    """)
-    MarkOccurrenceProposalStatsProjection getStatsByUserId(@Param("userId") Long userId);
 
     @EntityGraph(attributePaths = {
             "submittedBy",

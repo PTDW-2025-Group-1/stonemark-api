@@ -2,6 +2,8 @@ package pt.estga.content.controllers;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,13 +23,13 @@ public class ImportController {
     private final DivisionImportService divisionImportService;
     private final MonumentImportService monumentImportService;
 
-    @PostMapping("/divisions/pbf")
-    public MessageResponseDto importDivisionsFromPbf(
+    @PostMapping(value = "/divisions/pbf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponseDto> importDivisionsFromPbf(
             @RequestParam("file") MultipartFile file
     ) throws Exception {
 
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            return ResponseEntity.badRequest().body(new MessageResponseDto("File is empty"));
         }
 
         int count;
@@ -35,16 +37,16 @@ public class ImportController {
             count = divisionImportService.importFromPbf(is);
         }
 
-        return new MessageResponseDto("Administrative divisions fully replaced. Imported " + count + " entries.");
+        return ResponseEntity.ok(new MessageResponseDto("Administrative divisions fully replaced. Imported " + count + " entries."));
     }
 
-    @PostMapping("/monuments/geojson")
-    public MessageResponseDto importMonumentsFromGeoJson(
+    @PostMapping(value = "/monuments/geojson", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponseDto> importMonumentsFromGeoJson(
             @RequestParam("file") MultipartFile file
     ) throws Exception {
 
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("File is empty");
+            return ResponseEntity.badRequest().body(new MessageResponseDto("File is empty"));
         }
 
         int count;
@@ -52,6 +54,6 @@ public class ImportController {
             count = monumentImportService.importFromGeoJson(is);
         }
 
-        return new MessageResponseDto("Imported " + count + " monuments successfully.");
+        return ResponseEntity.ok(new MessageResponseDto("Imported " + count + " monuments successfully."));
     }
 }
